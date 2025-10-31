@@ -1,0 +1,150 @@
+.root {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+}
+
+.embla {
+  width: clamp(260px, 70vw, 42rem);
+}
+
+.viewport {
+  overflow: hidden;
+  border-radius: 1.75rem;
+}
+
+.container {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+  margin-left: -1rem;
+}
+
+.slide {
+  flex: 0 0 80%;
+  min-width: 0;
+  padding-left: 1rem;
+}
+
+.parallax {
+  position: relative;
+  height: clamp(200px, 32vh, 360px);
+  border-radius: 1.75rem;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--background) 88%, black);
+  box-shadow: 0 2rem 3.25rem -1.5rem rgba(0, 0, 0, 0.45);
+}
+
+.layer {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.imageWrap {
+  position: relative;
+  flex: 0 0 calc(115% + 2rem);
+  height: 100%;
+}
+
+.img {
+  object-fit: cover;
+}
+
+.meta {
+  position: absolute;
+  inset: auto 1rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+  display: grid;
+  gap: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.meta span {
+  font-size: 0.65rem;
+  opacity: 0.75;
+}
+
+.meta strong {
+  font-size: 0.9rem;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  max-width: clamp(260px, 70vw, 42rem);
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 2.5rem);
+  gap: 0.5rem;
+}
+
+.btn {
+  appearance: none;
+  background: color-mix(in oklab, var(--background) 82%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btnSvg {
+  width: 38%;
+  height: 38%;
+}
+
+.dots {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.dot {
+  appearance: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dotSelected {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+@media (max-width: 640px) {
+  .slide {
+    flex-basis: 90%;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .dots {
+    justify-content: center;
+  }
+}

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+import Footer from "../components/footer";
+import PatternBackground from "../components/pattern-background";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +26,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://use.typekit.net" />
+        <link rel="stylesheet" href="https://use.typekit.net/nmi8pmj.css" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <PatternBackground />
+        <Script id="theme-init" strategy="beforeInteractive">{`
+          (function(){
+            try {
+              var stored = localStorage.getItem('theme');
+              var prefers = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+              var dark = stored ? stored === 'dark' : prefers;
+              document.documentElement.classList.toggle('dark', dark);
+            } catch (e) {}
+          })();
+        `}</Script>
         {children}
+        <Footer />
       </body>
     </html>
   );

@@ -1,26 +1,171 @@
-@import "tailwindcss";
+/* CSS-only setup: remove Tailwind imports, keep variables and author styles */
+html { scroll-behavior: smooth; }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --nav-h: 64px;
+  --radius: 0.625rem;
+  --background: #b91c1c; /* red-700 */
+  --foreground: #ffffff; /* ensure readable text */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --tile: 800px;
+  --layer2-x: 100px;
+  --layer2-y: 100px;
+  --gap-y: 300px; /* vertical space between layers */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: #280909; /* darker red for dark mode, red-900-ish */
+  --foreground: #ffffff;
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base reset + primitives */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-snap-type: y mandatory; scroll-padding-top: var(--nav-h); }
+body { margin: 0; min-height: 100dvh; background: var(--background); color: var(--foreground); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+img, svg, video, canvas, audio, iframe, embed, object { display: block; max-width: 100%; }
+button, input, textarea, select { font: inherit; color: inherit; }
+/* App shell */
+.app-root { min-height: 100dvh; display: flex; flex-direction: column; }
+/* Layout helpers */
+.container { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1.5rem; }
+/* Navbar */
+.navbar { position: fixed; inset-inline: 0; top: 0; z-index: 50; backdrop-filter: blur(8px); background: color-mix(in oklab, var(--background) 85%, transparent); border-bottom: 1px solid var(--border); }
+.navbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; max-width: 64rem; margin: 0 auto; }
+.brand { font-weight: bold; letter-spacing: 0.3em; color: oklch(0.85 0 0); text-decoration: none; }
+.brand { font-family: "ltc-goudy-text-pro", serif; font-weight: 400; }
+.brand:hover { color: oklch(0.98 0 0); }
+.nav-links { display: none; gap: 1.25rem; font-size: 0.9rem; color: oklch(0.8 0 0); list-style: none; margin: 0; padding: 0; }
+.nav-link { text-decoration: none; color: inherit; padding: 0.5rem 0.75rem; border-radius: 999px; }
+.nav-link:hover { background: oklch(0.25 0 0 / 0.7); color: white; }
+.menu-btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 0.5rem; background: color-mix(in oklab, var(--background) 90%, transparent); border: 1px solid var(--border); color: oklch(0.85 0 0); }
+.menu-btn:hover { background: oklch(0.3 0 0); }
+.toggle-btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 0.5rem; background: color-mix(in oklab, var(--background) 90%, transparent); border: 1px solid var(--border); color: oklch(0.85 0 0); }
+.toggle-btn:hover { background: oklch(0.3 0 0); }
+.mobile-nav { display: none; }
+.mobile-nav.open { display: block; border-top: 1px solid var(--border); background: color-mix(in oklab, var(--background) 92%, transparent); padding: 1rem 1.5rem; }
+.mobile-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; color: oklch(0.9 0 0); }
+.mobile-link { text-decoration: none; color: inherit; padding: 0.5rem 0.75rem; border-radius: 0.75rem; }
+.mobile-link:hover { background: oklch(0.25 0 0 / 0.7); color: white; }
+@media (min-width: 640px) { .nav-links { display: flex; } .menu-btn { display: none; } .mobile-nav { display: none !important; } }
+/* Sections + snap */
+/* Use the root scroller (html) as the snap container to avoid nested snapping */
+section {
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  /* Keep content close to top, below fixed navbar */
+  padding: calc(var(--nav-h) + 1rem) 1.5rem 4rem;
+  display: flex;
+  align-items: flex-start;
+}
+.section-inner { width: 100%; max-width: 64rem; margin: 0 auto; display: grid; gap: 2.5rem; }
+.eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; color: oklch(0.7 0 0); font-family: "ltc-goudy-text-pro-shaded", sans-serif;
+font-weight: 400;
+font-style: normal; }
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; margin: 0; color: white; font-weight: 650; }
+h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.15; margin: 0; color: white; font-weight: 650; }
+p { color: oklch(0.9 0 0); max-width: 60ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 1rem; }
+.btn { appearance: none; border: none; border-radius: 999px; padding: 0.75rem 1.25rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+.btn-primary { background: white; color: black; }
+.btn-primary:hover { background: #e5e5e5; }
+.btn-ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: white; }
+.card { height: 16rem; border-radius: 1.5rem; border: 1px dashed var(--border); background: var(--card); color: oklch(0.7 0 0); display: flex; align-items: center; justify-content: center; padding: 1.5rem; text-transform: uppercase; letter-spacing: 0.2em; }
+.card.card-feature { height: auto; border: none; background: transparent; padding: 0; justify-content: center; align-items: stretch; }
+.card.card-feature > * { width: 100%; }
+@media (min-width: 640px) { .card { height: 20rem; } }
+.nav-controls { display: flex; gap: 1rem; }
+
+@keyframes movePattern {
+  from {
+    background-position:
+      0 0,
+      var(--layer2-x) calc(var(--layer2-y) + var(--gap-y));
+  }
+  to {
+    background-position:
+      var(--tile) var(--tile),
+      calc(var(--layer2-x) + var(--tile)) calc(var(--layer2-y) + var(--gap-y) + var(--tile));
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.pattern {
+  position: fixed;
+  /* Overscan in all directions so no edges show on rotation/zoom */
+  inset: -60vmax;
+  background-image: url('/ryanAir.png'), url('/ryanAir_.png');
+  background-repeat: repeat, repeat;
+  background-size: var(--tile) var(--tile), var(--tile) var(--tile);
+  background-position: 0 0, var(--layer2-x) calc(var(--layer2-y) + var(--gap-y));
+  animation: movePattern 60s linear infinite; /* was 15s; 4x to preserve speed */
+  z-index: -1;
+  pointer-events: none;
+  transform-origin: center;
+}
+/* Footer: make it a snap point so it can be reached when using
+   mandatory scroll snapping on the root scroller. */
+.footer {
+  scroll-snap-align: end;
+  scroll-snap-stop: always;
+  padding: 2rem 1.5rem 3rem;
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 92%, transparent);
 }

@@ -1,65 +1,275 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Menu, X, Sun, Moon } from "lucide-react";
+import PhotoCarousel from "../components/gallery/photo-carousel";
+
+type SectionConfig = {
+  id: string;
+  title: string;
+  description: string;
+  placeholder?: string;
+  content?: ReactNode;
+};
+
+const CONTENT_SECTIONS: SectionConfig[] = [
+  {
+    id: "music",
+    title: "Music",
+    description:
+      "Albums, singles, and live sessions will live here. Build out playlists or embed streaming players when the catalogue is ready.",
+    placeholder: "Music gallery placeholder",
+  },
+  {
+    id: "gallery",
+    title: "Gallery",
+    description:
+      "Capture behind-the-scenes shots, cover artwork, and stage moments. Add an image grid or carousel once assets are available.",
+    content: <PhotoCarousel />,
+  },
+  {
+    id: "videos",
+    title: "Videos",
+    description:
+      "Highlight music videos, mini-documentaries, and live performances. Drop in embeds or a custom video player soon.",
+    placeholder: "Video showcase placeholder",
+  },
+  {
+    id: "about",
+    title: "About",
+    description:
+      "Share your story, influences, and creative milestones. This section can expand into a rich biography with press quotes.",
+    placeholder: "About content placeholder",
+  },
+  {
+    id: "contact",
+    title: "Contact",
+    description:
+      "Offer booking, management, and collaboration details. Later, replace the placeholder with a form or contact cards.",
+    placeholder: "Contact form placeholder",
+  },
+];
+
+const NAV_ITEMS = [
+  { id: "hero", label: "Home" },
+  ...CONTENT_SECTIONS.map(({ id, title }) => ({ id, label: title })),
+];
+
+const applyTheme = (theme: "light" | "dark") => {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (theme === "dark") root.classList.add("dark");
+  else root.classList.remove("dark");
+};
+
+function ThemeToggle() {
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  // Mount: determine real theme, apply it, and show the control
+  useEffect(() => {
+    // Defer state updates to avoid cascading render warning
+    setTimeout(() => {
+      setMounted(true);
+      // Sync with the class set by the pre-hydration script
+      const initial = document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
+      setTheme(initial);
+      applyTheme(initial);
+    }, 0);
+  }, []);
+
+  // Persist on changes after mount
+  useEffect(() => {
+    if (!mounted) return;
+    applyTheme(theme);
+    try {
+      window.localStorage.setItem("theme", theme);
+    } catch {
+      // ignore storage errors
+    }
+  }, [mounted, theme]);
+
+  if (!mounted) {
+    // Stable placeholder to avoid SSR/CSR mismatch
+    return (
+      <button
+        className="toggle-btn"
+        type="button"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+    );
+  }
+
+  const next = theme === "dark" ? "light" : "dark";
+  return (
+    <button
+      className="toggle-btn"
+      type="button"
+      aria-label={`Switch to ${next} mode`}
+      onClick={() => setTheme(next)}
+      title={`Switch to ${next} mode`}
+    >
+      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div>
+      <Navbar />
+      <main>
+        <Hero />
+        {CONTENT_SECTIONS.map((section) => (
+          <ContentSection key={section.id} {...section} />
+        ))}
       </main>
     </div>
+  );
+}
+
+function Navbar() {
+  const [open, setOpen] = useState(false);
+
+  const handleNavigate = () => {
+    setOpen(false);
+  };
+
+  return (
+    <header className="navbar">
+      <nav className="navbar-inner">
+        <Link href="#hero" className="brand" onClick={handleNavigate}>
+          Creature of Habit
+        </Link>
+
+        {/* Links in the middle (hidden on mobile) */}
+        <ul className="nav-links">
+          {NAV_ITEMS.map(({ id, label }) => (
+            <li key={id}>
+              <Link href={`#${id}`} className="nav-link">
+                {label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {/* Controls on the far right */}
+        <div className="nav-controls">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="menu-btn"
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+            onClick={() => setOpen((prev) => !prev)}
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </nav>
+      <div className={`mobile-nav ${open ? "open" : ""}`}>
+        <ul className="mobile-list">
+          {NAV_ITEMS.map(({ id, label }) => (
+            <li key={id}>
+              <Link
+                href={`#${id}`}
+                className="mobile-link"
+                onClick={handleNavigate}
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section id="hero">
+      {/* solid background only; removed gradient and glow blobs */}
+      <div className="section-inner" style={{ textAlign: "left", marginTop: "2rem"}}>
+        <motion.span
+          className="eyebrow"
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          Composer • Producer • Multi-Instrumentalist
+        </motion.span>
+
+        <div style={{ display: "grid", gap: "1.5rem" }}>
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+          >
+            Soundscapes crafted for the moments that matter.
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+          >
+            Lean into immersive textures and evolving rhythms tailored for film,
+            stage, and the listening room. This space will soon house releases,
+            visuals, and stories from the studio floor.
+          </motion.p>
+        </div>
+
+        <motion.div
+          className="actions"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
+        >
+          <Link href="#music" className="btn btn-primary">
+            Explore the work
+          </Link>
+          <Link href="#contact" className="btn btn-ghost">
+            Booking & inquiries
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+type SectionProps = {
+  id: string;
+  title: string;
+  description: string;
+  placeholder?: string;
+  content?: ReactNode;
+};
+
+function ContentSection({
+  id,
+  title,
+  description,
+  placeholder,
+  content,
+}: SectionProps) {
+  return (
+    <section id={id}>
+      <div className="section-inner">
+        <div className="space-y-4">
+          <span className="eyebrow">{title}</span>
+          <h2>{content ? title : `${title} coming soon`}</h2>
+          <p>{description}</p>
+        </div>
+
+        <div className={`card ${content ? "card-feature" : ""}`}>
+          {content ?? <div>{placeholder}</div>}
+        </div>
+      </div>
+    </section>
   );
 }

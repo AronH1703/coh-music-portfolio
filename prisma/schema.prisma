@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(cuid())
+  name     String?
+  email    String?   @unique
+  password String?
+  image    String?
+  role     Role      @default(EDITOR)
+  accounts Account[]
+  sessions Session[]
+}
+
+model Release {
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  coverUrl     String
+  cloudinaryId String?
+  releaseDate  DateTime
+  featured     Boolean  @default(false)
+  platforms    Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model MediaAsset {
+  id           String    @id @default(cuid())
+  kind         AssetKind
+  url          String
+  cloudinaryId String
+  width        Int?
+  height       Int?
+  caption      String?
+  credit       String?
+  tags         Tag[] // add this
+  createdAt    DateTime  @default(now())
+}
+
+model Tag {
+  id     String       @id @default(cuid())
+  name   String       @unique
+  assets MediaAsset[] // implicit many-to-many
+}
+
+model Video {
+  id          String        @id @default(cuid())
+  title       String
+  platform    VideoPlatform
+  externalId  String
+  thumbnail   String?
+  publishedAt DateTime?
+}
+
+model PressItem {
+  id     String   @id @default(cuid())
+  outlet String
+  quote  String
+  url    String
+  date   DateTime
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum AssetKind {
+  IMAGE
+  VIDEO
+}
+
+enum VideoPlatform {
+  YOUTUBE
+  VIMEO
+  SPOTIFY
+}
