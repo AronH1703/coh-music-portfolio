@@ -6,6 +6,21 @@
 
 .embla {
   width: clamp(260px, 70vw, 42rem);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 1.75rem;
+  padding: 0.75rem;
+  background: color-mix(in oklab, var(--background) 92%, black);
+  box-shadow:
+    0 1.5rem 3rem -1.25rem rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.embla:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow:
+    0 1.75rem 3.25rem -1.25rem rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .viewport {
@@ -40,6 +55,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  cursor: zoom-in;
 }
 
 .imageWrap {
@@ -74,18 +90,20 @@
   font-size: 0.9rem;
 }
 
+
 .controls {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   width: 100%;
   max-width: clamp(260px, 70vw, 42rem);
+  flex-direction: column;
 }
 
 .buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 2.5rem);
+  display: flex;
   gap: 0.5rem;
 }
 
@@ -134,17 +152,166 @@
   background: rgba(255, 255, 255, 0.85);
 }
 
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 8, 8, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 80;
+}
+
+.lightboxOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lightboxInner {
+  position: relative;
+  width: min(90vw, 70rem);
+  max-height: 90vh;
+  display: grid;
+  gap: 1.25rem;
+  justify-items: center;
+  grid-template-areas:
+    "media"
+    "caption"
+    "controls";
+}
+
+.lightboxEmbla {
+  width: min(90vw, 70rem);
+  max-height: 80vh;
+  grid-area: media;
+}
+
+.lightboxViewport {
+  overflow: hidden;
+  border-radius: 1.5rem;
+}
+
+.lightboxContainer {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.lightboxSlide {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.lightboxImageWrap {
+  position: relative;
+  width: 40%;
+  max-height: 85vh;
+  aspect-ratio: 3 / 2;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 2.5rem 4rem -1.5rem rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @media (max-width: 500px) {
+    width: 90%;
+  }
+}
+
+.lightboxImg {
+  object-fit: contain;
+}
+
+.lightboxCaption {
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  display: grid;
+  gap: 0.25rem;
+  text-align: center;
+  margin-top: 0; /* rely on grid gap */
+  grid-area: caption;
+}
+
+.lightboxCaption span {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.lightboxCaption strong {
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+}
+
+.lightboxClose {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  right: calc(env(safe-area-inset-right, 0px) + 1rem);
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+
+.lightboxControls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* centered under image */
+  align-items: center;
+  gap: 1rem;
+  flex-direction: column;
+  grid-area: controls;
+}
+
+.lightboxButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.lightboxBtn {
+  width: 3rem;
+  height: 3rem;
+}
+
+.lightboxDots {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 @media (max-width: 640px) {
   .slide {
     flex-basis: 90%;
   }
 
   .controls {
-    grid-template-columns: 1fr;
-    justify-items: center;
+    justify-content: center;
   }
 
   .dots {
     justify-content: center;
   }
+
+  .lightboxControls {
+    justify-content: center;
+  }
+}
+
+.photo-carousel-module__z8oF5G__lightboxClose {
+  z-index: 1000;
 }

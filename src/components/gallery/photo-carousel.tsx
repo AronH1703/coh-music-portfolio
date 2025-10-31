@@ -193,9 +193,9 @@ function useDotButton(
 type ButtonProps = ComponentPropsWithoutRef<"button">;
 
 function PrevButton(props: ButtonProps) {
-  const { children, ...rest } = props;
+  const { children, className, ...rest } = props;
   return (
-    <button type="button" className={s.btn} {...rest}>
+    <button type="button" className={clsx(s.btn, className)} {...rest}>
       <svg className={s.btnSvg} viewBox="0 0 532 532" aria-hidden="true">
         <path
           fill="currentColor"
@@ -208,9 +208,9 @@ function PrevButton(props: ButtonProps) {
 }
 
 function NextButton(props: ButtonProps) {
-  const { children, ...rest } = props;
+  const { children, className, ...rest } = props;
   return (
-    <button type="button" className={s.btn} {...rest}>
+    <button type="button" className={clsx(s.btn, className)} {...rest}>
       <svg className={s.btnSvg} viewBox="0 0 532 532" aria-hidden="true">
         <path
           fill="currentColor"
@@ -233,12 +233,28 @@ function DotButton(props: ButtonProps) {
 
 export default function PhotoCarousel() {
   const [emblaRef, emblaApi] = useEmblaCarousel(CAROUSEL_OPTIONS);
+  const [lightboxRef, lightboxEmbla] = useEmblaCarousel({ loop: true, align: "center" });
   const tweenFactor = useRef(0);
   const tweenNodes = useRef<Array<HTMLElement | null>>([]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lightboxActiveRef = useRef(false);
 
   const { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick } =
     usePrevNextButtons(emblaApi);
   const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi);
+
+  const {
+    prevBtnDisabled: lightboxPrevDisabled,
+    nextBtnDisabled: lightboxNextDisabled,
+    onPrevButtonClick: onLightboxPrev,
+    onNextButtonClick: onLightboxNext,
+  } = usePrevNextButtons(lightboxEmbla);
+
+  const {
+    selectedIndex: lightboxSelectedIndex,
+    scrollSnaps: lightboxScrollSnaps,
+    onDotButtonClick: onLightboxDot,
+  } = useDotButton(lightboxEmbla);
 
   const setTweenNodes = useCallback((api: EmblaCarouselType) => {
     tweenNodes.current = api
@@ -328,6 +344,77 @@ export default function PhotoCarousel() {
     return () => window.removeEventListener("keydown", handler);
   }, [emblaApi]);
 
+  const openLightbox = useCallback(
+    (index: number) => {
+      const clickAllowed =
+        typeof emblaApi?.clickAllowed === "function"
+          ? emblaApi.clickAllowed()
+          : true;
+      if (!clickAllowed) return;
+      lightboxActiveRef.current = true;
+      setLightboxIndex(index);
+    },
+    [emblaApi],
+  );
+
+  const closeLightbox = useCallback(() => {
+    lightboxActiveRef.current = false;
+    setLightboxIndex(null);
+  }, []);
+
+  useEffect(() => {
+    lightboxActiveRef.current = lightboxIndex !== null;
+  }, [lightboxIndex]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeLightbox();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setLightboxIndex((prev) =>
+          prev === null ? null : (prev + 1) % photos.length,
+        );
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setLightboxIndex((prev) =>
+          prev === null ? null : (prev - 1 + photos.length) % photos.length,
+        );
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [closeLightbox, lightboxIndex]);
+
+  useEffect(() => {
+    if (lightboxIndex === null || !lightboxEmbla) return;
+    const raf = requestAnimationFrame(() => {
+      lightboxEmbla.reInit();
+      lightboxEmbla.scrollTo(lightboxIndex, true);
+    });
+    const handleSelect = () => {
+      if (lightboxActiveRef.current) {
+        setLightboxIndex(lightboxEmbla.selectedScrollSnap());
+      }
+    };
+    lightboxEmbla.on("select", handleSelect).on("reInit", handleSelect);
+    return () => {
+      cancelAnimationFrame(raf);
+      lightboxEmbla.off("select", handleSelect);
+      lightboxEmbla.off("reInit", handleSelect);
+    };
+  }, [lightboxEmbla, lightboxIndex]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [lightboxIndex]);
+
   return (
     <div className={s.root}>
       <div className={s.embla}>
@@ -336,7 +423,19 @@ export default function PhotoCarousel() {
             {photos.map((photo, index) => (
               <div className={s.slide} key={photo.src}>
                 <div className={s.parallax}>
-                  <div className={s.layer} data-embla-parallax-layer>
+                  <div
+                    className={s.layer}
+                    data-embla-parallax-layer
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openLightbox(index)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openLightbox(index);
+                      }
+                    }}
+                  >
                     <div
                       className={s.imageWrap}
                       style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
@@ -387,6 +486,95 @@ export default function PhotoCarousel() {
             />
           ))}
         </div>
+      </div>
+
+      <div
+        className={clsx(s.lightbox, lightboxIndex !== null && s.lightboxOpen)}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Full-size image viewer"
+        onClick={closeLightbox}
+      >
+        {lightboxIndex !== null && (
+          <div
+            className={s.lightboxInner}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={s.lightboxClose}
+              onClick={(event) => {
+                event.stopPropagation();
+                closeLightbox();
+              }}
+              aria-label="Close image viewer"
+            >
+              ×
+            </button>
+            <div className={s.lightboxEmbla}>
+              <div className={s.lightboxViewport} ref={lightboxRef}>
+                <div className={s.lightboxContainer}>
+                  {photos.map((photo) => (
+                    <div className={s.lightboxSlide} key={`lightbox-${photo.src}`}>
+                      <div
+                        className={s.lightboxImageWrap}
+                        style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
+                      >
+                        <Image
+                          src={photo.src}
+                          alt={photo.alt}
+                          fill
+                          sizes="100vw"
+                          className={s.lightboxImg}
+                          priority
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {(photos[lightboxIndex].title || photos[lightboxIndex].location) && (
+              <div className={s.lightboxCaption}>
+                {photos[lightboxIndex].location && (
+                  <span>{photos[lightboxIndex].location}</span>
+                )}
+                {photos[lightboxIndex].title && (
+                  <strong>{photos[lightboxIndex].title}</strong>
+                )}
+              </div>
+            )}
+            <div className={s.lightboxControls}>
+              <div className={s.lightboxButtons}>
+                <PrevButton
+                  onClick={onLightboxPrev}
+                  disabled={lightboxPrevDisabled}
+                  aria-label="Previous image"
+                  className={s.lightboxBtn}
+                />
+                <NextButton
+                  onClick={onLightboxNext}
+                  disabled={lightboxNextDisabled}
+                  aria-label="Next image"
+                  className={s.lightboxBtn}
+                />
+              </div>
+              <div className={s.lightboxDots}>
+                {lightboxScrollSnaps.map((_, dotIndex) => (
+                  <DotButton
+                    key={`lightbox-dot-${dotIndex}`}
+                    onClick={() => onLightboxDot(dotIndex)}
+                    className={clsx(
+                      s.dot,
+                      dotIndex === lightboxSelectedIndex && s.dotSelected,
+                    )}
+                    aria-label={`Show image ${dotIndex + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
