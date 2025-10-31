@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import PhotoCarousel from "../components/gallery/photo-carousel";
+import VideoCarousel from "../components/videos/video-carousel";
 
 type SectionConfig = {
   id: string;
@@ -33,8 +34,8 @@ const CONTENT_SECTIONS: SectionConfig[] = [
     id: "videos",
     title: "Videos",
     description:
-      "Highlight music videos, mini-documentaries, and live performances. Drop in embeds or a custom video player soon.",
-    placeholder: "Video showcase placeholder",
+      "Highlight music videos, mini-documentaries, and live performances with a focused carousel of featured clips.",
+    content: <VideoCarousel />,
   },
   {
     id: "about",
