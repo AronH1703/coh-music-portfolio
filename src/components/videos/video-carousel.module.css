@@ -5,19 +5,15 @@
  }
 
 .embla {
-   width: clamp(260px, 70%, 46rem);
+   width: min(90vw, 64rem);
    border: 1px solid rgba(255, 255, 255, 0.22);
-   border-radius: 1.75rem;
+   border-radius: 1.5rem;
    padding: 0.75rem;
    background: color-mix(in oklab, var(--background) 92%, black);
    box-shadow:
      0 1.5rem 3rem -1.25rem rgba(0, 0, 0, 0.55),
      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-
-   @media (max-width: 640px) {
-     width: clamp(260px, 100%, 46rem);
-   }
  }
 
 .embla:hover {
@@ -33,15 +29,29 @@
  }
 
 .container {
+   --slide-width: clamp(22rem, 68vw, 40rem);
    display: flex;
+   gap: 1rem;
    touch-action: pan-y pinch-zoom;
-   margin-left: -1rem;
+   padding: 0 0.75rem 0.75rem;
+   align-items: stretch;
  }
 
+@media (min-width: 640px) {
+  .container {
+    --slide-width: clamp(24rem, 58vw, 40rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    --slide-width: clamp(26rem, 48vw, 40rem);
+  }
+}
+
 .slide {
-   flex: 0 0 80%;
+   flex: 0 0 var(--slide-width);
    min-width: 0;
-   padding-left: 1rem;
  }
 
 .preview {
@@ -132,8 +142,7 @@
    align-items: center;
    justify-content: space-between;
    gap: 0.75rem;
-   width: 100%;
-   max-width: clamp(260px, 70vw, 46rem);
+   width: min(90vw, 64rem);
    flex-direction: column;
  }
 
