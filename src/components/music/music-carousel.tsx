@@ -12,6 +12,7 @@ import clsx from "clsx";
 import useEmblaCarousel from "embla-carousel-react";
 import type { EmblaCarouselType, EmblaOptionsType } from "embla-carousel";
 import { musicReleases } from "../../data/music";
+import frameStyles from "../carousel/carousel-frame.module.css";
 import s from "./music-carousel.module.css";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -37,10 +38,10 @@ export default function MusicCarousel() {
     useDotButton(emblaApi);
 
   return (
-    <div className={s.root}>
-      <div className={s.embla}>
-        <div className={s.viewport} ref={emblaRef}>
-          <div className={s.container}>
+    <div className={frameStyles.root}>
+      <div className={frameStyles.embla}>
+        <div className={frameStyles.viewport} ref={emblaRef}>
+          <div className={clsx(frameStyles.container, s.container)}>
             {musicReleases.map((release, index) => {
               const { slug, title, coverImage, status, releaseDate } = release;
               const isComingSoon = status === "coming-soon";
@@ -69,10 +70,10 @@ export default function MusicCarousel() {
                           </div>
                         )}
                       </div>
-                      <div className={s.info}>
-                        <h3 className={s.title}>{title}</h3>
+                      <div className={clsx(frameStyles.info, s.info)}>
+                        <h3 className={frameStyles.title}>{title}</h3>
                         <span
-                          className={clsx(s.meta, isComingSoon && s.metaMuted)}
+                          className={clsx(frameStyles.meta, isComingSoon && s.metaMuted)}
                         >
                           {isComingSoon ? "In production" : formattedDate}
                         </span>
@@ -86,8 +87,8 @@ export default function MusicCarousel() {
         </div>
       </div>
 
-      <div className={s.controls}>
-        <div className={s.buttons}>
+      <div className={frameStyles.controls}>
+        <div className={frameStyles.buttons}>
           <PrevButton
             onClick={onPrevButtonClick}
             disabled={prevBtnDisabled}
@@ -102,14 +103,16 @@ export default function MusicCarousel() {
 
         {scrollSnaps.length > 1 && (
           <div
-            className={s.dots}
+            className={frameStyles.dots}
             role="tablist"
             aria-label="Select release slide"
           >
             {scrollSnaps.map((_, index) => (
               <DotButton
                 key={index}
-                className={clsx(s.dot, index === selectedIndex && s.dotSelected)}
+                className={
+                  index === selectedIndex ? frameStyles.dotSelected : undefined
+                }
                 onClick={() => onDotButtonClick(index)}
                 aria-label={`Go to release ${index + 1}`}
                 aria-pressed={index === selectedIndex}
@@ -127,8 +130,16 @@ type ButtonProps = ComponentPropsWithoutRef<"button">;
 function PrevButton(props: ButtonProps) {
   const { children, className, ...rest } = props;
   return (
-    <button type="button" className={clsx(s.btn, className)} {...rest}>
-      <svg className={s.btnSvg} viewBox="0 0 532 532" aria-hidden="true">
+    <button
+      type="button"
+      className={clsx(frameStyles.btn, className)}
+      {...rest}
+    >
+      <svg
+        className={frameStyles.btnSvg}
+        viewBox="0 0 532 532"
+        aria-hidden="true"
+      >
         <path
           fill="currentColor"
           d="M355.66 11.354c13.793-13.805 36.208-13.805 50.001 0 13.785 13.804 13.785 36.238 0 50.034L201.22 266l204.442 204.61c13.785 13.805 13.785 36.239 0 50.044-13.793 13.796-36.208 13.796-50.002 0a5994246.277 5994246.277 0 0 0-229.332-229.454 35.065 35.065 0 0 1-10.326-25.126c0-9.2 3.393-18.26 10.326-25.2C172.192 194.973 332.731 34.31 355.66 11.354Z"
@@ -142,8 +153,16 @@ function PrevButton(props: ButtonProps) {
 function NextButton(props: ButtonProps) {
   const { children, className, ...rest } = props;
   return (
-    <button type="button" className={clsx(s.btn, className)} {...rest}>
-      <svg className={s.btnSvg} viewBox="0 0 532 532" aria-hidden="true">
+    <button
+      type="button"
+      className={clsx(frameStyles.btn, className)}
+      {...rest}
+    >
+      <svg
+        className={frameStyles.btnSvg}
+        viewBox="0 0 532 532"
+        aria-hidden="true"
+      >
         <path
           fill="currentColor"
           d="M176.34 520.646c-13.793 13.805-36.208 13.805-50.001 0-13.785-13.804-13.785-36.238 0-50.034L330.78 266 126.34 61.391c-13.785-13.805-13.785-36.239 0-50.044 13.793-13.796 36.208-13.796 50.002 0 22.928 22.947 206.395 206.507 229.332 229.454a35.065 35.065 0 0 1 10.326 25.126c0 9.2-3.393 18.26-10.326 25.2-45.865 45.901-206.404 206.564-229.332 229.52Z"
@@ -157,7 +176,11 @@ function NextButton(props: ButtonProps) {
 function DotButton(props: ButtonProps) {
   const { children, className, ...rest } = props;
   return (
-    <button type="button" className={className} {...rest}>
+    <button
+      type="button"
+      className={clsx(frameStyles.dot, className)}
+      {...rest}
+    >
       {children}
     </button>
   );

@@ -1,40 +1,5 @@
-.root {
-   display: grid;
-   justify-items: center;
-   gap: 1.25rem;
- }
-
-.embla {
-   width: min(90vw, 64rem);
-   border: 1px solid rgba(255, 255, 255, 0.22);
-   border-radius: 1.5rem;
-   padding: 0.75rem;
-   background: color-mix(in oklab, var(--background) 92%, black);
-   box-shadow:
-     0 1.5rem 3rem -1.25rem rgba(0, 0, 0, 0.55),
-     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-   transition: border-color 0.2s ease, box-shadow 0.2s ease;
- }
-
-.embla:hover {
-   border-color: rgba(255, 255, 255, 0.32);
-   box-shadow:
-     0 1.75rem 3.25rem -1.25rem rgba(0, 0, 0, 0.6),
-     inset 0 0 0 1px rgba(255, 255, 255, 0.06);
- }
-
-.viewport {
-   overflow: hidden;
-   border-radius: 1.5rem;
- }
-
 .container {
    --slide-width: clamp(22rem, 68vw, 40rem);
-   display: flex;
-   gap: 1rem;
-   touch-action: pan-y pinch-zoom;
-   padding: 0 0.75rem 0.75rem;
-   align-items: stretch;
  }
 
 @media (min-width: 640px) {
@@ -54,6 +19,40 @@
    min-width: 0;
  }
 
+.card {
+   display: grid;
+   gap: 0.9rem;
+   padding: 0.85rem;
+   background: color-mix(in oklab, var(--background) 75%, black 25%);
+   border-radius: 1.25rem;
+   border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+   position: relative;
+   height: 100%;
+   transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.card:hover {
+   transform: translateY(-4px);
+   border-color: color-mix(in oklab, var(--foreground) 28%, transparent);
+   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+}
+
+.previewButton {
+   appearance: none;
+   border: none;
+   padding: 0;
+   margin: 0;
+   background: none;
+   cursor: pointer;
+   text-align: inherit;
+   border-radius: 1.5rem;
+}
+
+.previewButton:focus-visible {
+   outline: 2px solid color-mix(in oklab, var(--foreground) 75%, transparent);
+   outline-offset: 4px;
+}
+
 .preview {
    position: relative;
    width: 100%;
@@ -62,9 +61,9 @@
    overflow: hidden;
    background: color-mix(in oklab, var(--background) 88%, black);
    box-shadow: 0 2rem 3.25rem -1.5rem rgba(0, 0, 0, 0.45);
-   cursor: zoom-in;
    display: flex;
    align-items: stretch;
+   cursor: inherit;
  }
 
 .thumbWrap {
@@ -85,10 +84,10 @@
    background: linear-gradient(
      160deg,
      rgba(0, 0, 0, 0.55) 10%,
-     rgba(0, 0, 0, 0.2) 60%
+     rgba(0, 0, 0, 0.15) 60%
    );
    color: rgba(255, 255, 255, 0.94);
-   transition: background 0.2s ease, color 0.2s ease;
+   transition: background 0.2s ease;
  }
 
 .preview:hover .overlay {
@@ -122,79 +121,13 @@
    transform: translate(-50%, -50%) scale(1.05);
  }
 
+.info {
+   text-align: left;
+}
+
 .meta {
-   display: grid;
-   gap: 0.4rem;
-   text-align: center;
-   text-transform: uppercase;
-   letter-spacing: 0.14em;
-   font-size: 0.75rem;
- }
-
-.meta strong {
-   font-size: 0.95rem;
-   letter-spacing: 0.12em;
- }
-
-.controls {
-   display: flex;
-   flex-wrap: wrap;
-   align-items: center;
-   justify-content: space-between;
-   gap: 0.75rem;
-   width: min(90vw, 64rem);
-   flex-direction: column;
- }
-
-.buttons {
-   display: flex;
-   gap: 0.5rem;
- }
-
-.btn {
-   appearance: none;
-   background: color-mix(in oklab, var(--background) 82%, transparent);
-   border: 1px solid rgba(255, 255, 255, 0.45);
-   border-radius: 999px;
-   width: 2.5rem;
-   height: 2.5rem;
-   display: inline-flex;
-   align-items: center;
-   justify-content: center;
-   color: rgba(255, 255, 255, 0.85);
-   cursor: pointer;
- }
-
-.btn:disabled {
-   opacity: 0.4;
-   cursor: not-allowed;
- }
-
-.btnSvg {
-   width: 38%;
-   height: 38%;
- }
-
-.dots {
-   display: flex;
-   justify-content: flex-end;
-   gap: 0.4rem;
- }
-
-.dot {
-   appearance: none;
-   width: 0.9rem;
-   height: 0.9rem;
-   border-radius: 999px;
-   border: 1px solid rgba(255, 255, 255, 0.45);
-   background: transparent;
-   cursor: pointer;
-   padding: 0;
- }
-
-.dotSelected {
-   background: rgba(255, 255, 255, 0.85);
- }
+   color: color-mix(in oklab, var(--foreground) 55%, transparent);
+}
 
 .lightbox {
    position: fixed;
