@@ -5,7 +5,7 @@
 }
 
 .embla {
-  width: clamp(260px, 70vw, 42rem);
+  width: clamp(260px, 70vw, 46rem);
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 1.75rem;
   padding: 0.75rem;
@@ -25,7 +25,7 @@
 
 .viewport {
   overflow: hidden;
-  border-radius: 1.75rem;
+  border-radius: 1.5rem;
 }
 
 .container {
@@ -42,8 +42,8 @@
 
 .parallax {
   position: relative;
-  height: clamp(200px, 32vh, 360px);
-  border-radius: 1.75rem;
+  height: clamp(230px, 38vh, 420px);
+  border-radius: 1.5rem;
   overflow: hidden;
   background: color-mix(in oklab, var(--background) 88%, black);
   box-shadow: 0 2rem 3.25rem -1.5rem rgba(0, 0, 0, 0.45);
@@ -98,7 +98,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   width: 100%;
-  max-width: clamp(260px, 70vw, 42rem);
+  max-width: clamp(260px, 70vw, 46rem);
   flex-direction: column;
 }
 

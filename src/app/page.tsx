@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Menu, X, Sun, Moon } from "lucide-react";
 import PhotoCarousel from "../components/gallery/photo-carousel";
 import VideoCarousel from "../components/videos/video-carousel";
+import MusicCarousel from "../components/music/music-carousel";
 
 type SectionConfig = {
   id: string;
@@ -15,13 +15,13 @@ type SectionConfig = {
   content?: ReactNode;
 };
 
-const CONTENT_SECTIONS: SectionConfig[] = [
+export const CONTENT_SECTIONS: SectionConfig[] = [
   {
     id: "music",
     title: "Music",
     description:
-      "Albums, singles, and live sessions will live here. Build out playlists or embed streaming players when the catalogue is ready.",
-    placeholder: "Music gallery placeholder",
+      "Browse released singles and works-in-progress. Each card opens a shareable release page with credits, artwork, and streaming links.",
+    content: <MusicCarousel />,
   },
   {
     id: "gallery",
@@ -53,141 +53,14 @@ const CONTENT_SECTIONS: SectionConfig[] = [
   },
 ];
 
-const NAV_ITEMS = [
-  { id: "hero", label: "Home" },
-  ...CONTENT_SECTIONS.map(({ id, title }) => ({ id, label: title })),
-];
-
-const applyTheme = (theme: "light" | "dark") => {
-  if (typeof document === "undefined") return;
-  const root = document.documentElement;
-  if (theme === "dark") root.classList.add("dark");
-  else root.classList.remove("dark");
-};
-
-function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-
-  // Mount: determine real theme, apply it, and show the control
-  useEffect(() => {
-    // Defer state updates to avoid cascading render warning
-    setTimeout(() => {
-      setMounted(true);
-      // Sync with the class set by the pre-hydration script
-      const initial = document.documentElement.classList.contains("dark")
-        ? "dark"
-        : "light";
-      setTheme(initial);
-      applyTheme(initial);
-    }, 0);
-  }, []);
-
-  // Persist on changes after mount
-  useEffect(() => {
-    if (!mounted) return;
-    applyTheme(theme);
-    try {
-      window.localStorage.setItem("theme", theme);
-    } catch {
-      // ignore storage errors
-    }
-  }, [mounted, theme]);
-
-  if (!mounted) {
-    // Stable placeholder to avoid SSR/CSR mismatch
-    return (
-      <button
-        className="toggle-btn"
-        type="button"
-        aria-hidden="true"
-        tabIndex={-1}
-      />
-    );
-  }
-
-  const next = theme === "dark" ? "light" : "dark";
-  return (
-    <button
-      className="toggle-btn"
-      type="button"
-      aria-label={`Switch to ${next} mode`}
-      onClick={() => setTheme(next)}
-      title={`Switch to ${next} mode`}
-    >
-      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-    </button>
-  );
-}
-
 export default function Home() {
   return (
-    <div>
-      <Navbar />
-      <main>
-        <Hero />
-        {CONTENT_SECTIONS.map((section) => (
-          <ContentSection key={section.id} {...section} />
-        ))}
-      </main>
-    </div>
-  );
-}
-
-function Navbar() {
-  const [open, setOpen] = useState(false);
-
-  const handleNavigate = () => {
-    setOpen(false);
-  };
-
-  return (
-    <header className="navbar">
-      <nav className="navbar-inner">
-        <Link href="#hero" className="brand" onClick={handleNavigate}>
-          Creature of Habit
-        </Link>
-
-        {/* Links in the middle (hidden on mobile) */}
-        <ul className="nav-links">
-          {NAV_ITEMS.map(({ id, label }) => (
-            <li key={id}>
-              <Link href={`#${id}`} className="nav-link">
-                {label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        {/* Controls on the far right */}
-        <div className="nav-controls">
-          <ThemeToggle />
-          <button
-            type="button"
-            className="menu-btn"
-            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
-            onClick={() => setOpen((prev) => !prev)}
-          >
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-      </nav>
-      <div className={`mobile-nav ${open ? "open" : ""}`}>
-        <ul className="mobile-list">
-          {NAV_ITEMS.map(({ id, label }) => (
-            <li key={id}>
-              <Link
-                href={`#${id}`}
-                className="mobile-link"
-                onClick={handleNavigate}
-              >
-                {label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </header>
+    <main>
+      <Hero />
+      {CONTENT_SECTIONS.map((section) => (
+        <ContentSection key={section.id} {...section} />
+      ))}
+    </main>
   );
 }
 

@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import Footer from "../components/footer";
 import PatternBackground from "../components/pattern-background";
+import Navbar from "../components/navbar";
+import { PRIMARY_NAV_ITEMS } from "../data/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +47,7 @@ export default function RootLayout({
             } catch (e) {}
           })();
         `}</Script>
+        <Navbar items={PRIMARY_NAV_ITEMS} />
         {children}
         <Footer />
       </body>
