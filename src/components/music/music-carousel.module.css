@@ -25,30 +25,30 @@
 }
 
 .container {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: min(82%, 18.5rem);
-  gap: 1rem;
-  padding: 0 0.75rem 0.75rem;
-  justify-content: center;
-  align-items: stretch;
+  --slide-width: clamp(14rem, 70vw, 18.5rem);
+  display: flex;
   touch-action: pan-y pinch-zoom;
+  margin-left: -1rem;
+  padding: 0 0 0.75rem;
+  align-items: stretch;
 }
 
 @media (min-width: 640px) {
   .container {
-    grid-auto-columns: clamp(16rem, 32vw, 18.5rem);
+    --slide-width: clamp(16rem, 30vw, 18.5rem);
   }
 }
 
 @media (min-width: 1024px) {
   .container {
-    grid-auto-columns: clamp(16rem, 26vw, 19rem);
+    --slide-width: clamp(16rem, 24vw, 19rem);
   }
 }
 
 .slide {
+  flex: 0 0 var(--slide-width);
   min-width: 0;
+  padding-left: 1rem;
 }
 
 .cardLink {

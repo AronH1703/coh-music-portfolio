@@ -108,8 +108,8 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* Use the root scroller (html) as the snap container to avoid nested snapping */
 section {
   min-height: 100dvh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  /* scroll-snap-align: start;
+  scroll-snap-stop: always; */
   /* Keep content close to top, below fixed navbar */
   padding: calc(var(--nav-h) + 1rem) 1.5rem 4rem;
   display: flex;
@@ -163,8 +163,8 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
 /* Footer: make it a snap point so it can be reached when using
    mandatory scroll snapping on the root scroller. */
 .footer {
-  scroll-snap-align: end;
-  scroll-snap-stop: always;
+  /* scroll-snap-align: end;
+  scroll-snap-stop: always; */
   padding: 2rem 1.5rem 3rem;
   border-top: 1px solid var(--border);
   background: color-mix(in oklab, var(--background) 92%, transparent);
