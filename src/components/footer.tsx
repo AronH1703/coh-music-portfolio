@@ -3,8 +3,8 @@ export default function Footer() {
   return (
     <footer id="footer" className="footer">
       <div className="section-inner">
-        <div className="space-y-2">
-          <span className="eyebrow">CoH Music</span>
+        <div className="footer-content">
+          <span className="eyebrow-footer">CoH Music</span>
           <p>© {year} CoH Music. All rights reserved.</p>
         </div>
       </div>

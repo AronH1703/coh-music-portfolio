@@ -107,7 +107,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* Sections + snap */
 /* Use the root scroller (html) as the snap container to avoid nested snapping */
 section {
-  min-height: 100dvh;
+  min-height: fit-content !important;
   /* scroll-snap-align: start;
   scroll-snap-stop: always; */
   /* Keep content close to top, below fixed navbar */
@@ -115,7 +115,47 @@ section {
   display: flex;
   align-items: flex-start;
 }
-.section-inner { width: 100%; max-width: 64rem; margin: 0 auto; display: grid; gap: 2.5rem; align-self: flex-start; margin-top: -2rem; }
+
+@media (max-width: 899px) {
+  section {
+    padding: calc(var(--nav-h) + 1rem) 1.5rem 2.5rem;
+  }
+}
+
+section#hero {
+  min-height: 100dvh !important;
+}
+
+@media screen and (min-width: 600px) and (max-width: 1024px)
+  and (min-height: 700px) and (max-height: 1400px) {
+  section#hero {
+    min-height: fit-content !important;
+  }
+}
+
+
+.section-inner { width: 100%; max-width: 64rem; margin: 0 auto; display: grid; gap: 2.5rem; align-self: flex-start; margin-top: -2rem; min-height: fit-content !important;}
+
+@media (max-width: 899px) {
+  .section-inner {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 899px) {
+  #hero .section-inner {
+    gap: 1.5rem;
+  }
+}
+
+@media screen and (min-width: 600px) and (max-width: 1024px)
+  and (min-height: 700px) and (max-height: 1400px) {
+  #hero .section-inner {
+    gap: 2rem;
+  }
+}
+
+
 .eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; color: oklch(0.7 0 0); font-family: "ltc-goudy-text-pro-shaded", sans-serif;
 font-weight: 400;
 font-style: normal; }
@@ -191,4 +231,28 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
   padding: 2rem 1.5rem 3rem;
   border-top: 1px solid var(--border);
   background: color-mix(in oklab, var(--background) 92%, transparent);
+}
+
+.eyebrow-footer { font-size: .7rem; letter-spacing: 0.3em; color: oklch(0.7 0 0); font-family: "ltc-goudy-text-pro-shaded", sans-serif;
+font-weight: 400;
+font-style: normal; }
+
+.footer-content { display: flex; gap: 1rem; flex-direction: row; align-items: center; text-align: center; color: oklch(0.8 0 0); justify-content: space-between; flex-wrap: wrap; }
+
+/* Footer-specific overrides to counter global layout quirks */
+.footer .section-inner { margin-top: 0; }
+
+.footer p {font-size: .7rem;}
+
+/* Responsive footer layout */
+@media (max-width: 640px) {
+  .footer { padding: 1.5rem 1rem 2rem; }
+  .footer-content { flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; text-align: center; }
+  .eyebrow-footer { font-size: 0.6rem; letter-spacing: 0.25em; }
+  .footer p { font-size: 0.6rem; margin: 0; }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .footer { padding: 1.75rem 1.25rem 2.25rem; }
+  .footer-content { gap: 0.75rem; }
 }
