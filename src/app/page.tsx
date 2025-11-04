@@ -15,6 +15,47 @@ type SectionConfig = {
   content?: ReactNode;
 };
 
+const ABOUT_HIGHLIGHTS = [
+  {
+    title: "Current focus",
+    detail:
+      "Writing an EP that blends modular synth improvisations with chamber strings and found-sound percussion.",
+  },
+  {
+    title: "Recent collaborators",
+    detail:
+      "Sessions with the Skövde Symphony, choreographer Lova Holm, and the multidisciplinary RAUM Collective.",
+  },
+  {
+    title: "Availability",
+    detail:
+      "Open for remote production, mix consulting, and bespoke scoring for film, theatre, and experiential media.",
+  },
+];
+
+const SOCIAL_LINKS = [
+  {
+    label: "Email",
+    handle: "hello@cohmusic.com",
+    href: "mailto:hello@cohmusic.com",
+  },
+  {
+    label: "Instagram",
+    handle: "@coh.music",
+    href: "https://instagram.com/coh.music",
+  },
+  {
+    label: "YouTube",
+    handle: "Studio Sessions",
+    href: "https://youtube.com/@cohmusic",
+  },
+  {
+    label: "Spotify",
+    handle: "Follow on Spotify",
+    href: "https://open.spotify.com/artist/6sIq0HbQz6OLOG0nKAnPrA",
+  },
+];
+
 export const CONTENT_SECTIONS: SectionConfig[] = [
   {
     id: "music",
@@ -42,14 +83,14 @@ export const CONTENT_SECTIONS: SectionConfig[] = [
     title: "About",
     description:
       "Share your story, influences, and creative milestones. This section can expand into a rich biography with press quotes.",
-    placeholder: "About content placeholder",
+    content: <AboutContent />,
   },
   {
     id: "contact",
     title: "Contact",
     description:
       "Offer booking, management, and collaboration details. Later, replace the placeholder with a form or contact cards.",
-    placeholder: "Contact form placeholder",
+    content: <ContactContent />,
   },
 ];
 
@@ -145,5 +186,81 @@ function ContentSection({
         </div>
       </div>
     </section>
+  );
+}
+
+function AboutContent() {
+  return (
+    <div className="about-content">
+      <div className="about-copy">
+        <p>
+          Aron Emilsson crafts cinematic pop and electronic scores that lean
+          into tactile textures, layered harmonies, and patient storytelling.
+          Each production is built around live instrumentation, modular rigs,
+          and field recordings captured on the road.
+        </p>
+        <p>
+          From intimate singer-songwriter releases to immersive theatre and
+          installation work, the studio approach centers collaboration, letting
+          every project find its own palette and dynamic arc.
+        </p>
+      </div>
+      <dl className="about-highlights">
+        {ABOUT_HIGHLIGHTS.map((item) => (
+          <div className="about-highlight" key={item.title}>
+            <dt>{item.title}</dt>
+            <dd>{item.detail}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function ContactContent() {
+  return (
+    <div className="contact-content">
+      <div className="contact-info">
+        <p>
+          Booking, commissions, and collaboration inquiries land directly with
+          the studio team. Add your email to receive release notes, session
+          invites, and behind-the-scenes dispatches.
+        </p>
+        <ul className="contact-socials">
+          {SOCIAL_LINKS.map((link) => (
+            <li key={link.label}>
+              <a href={link.href} target="_blank" rel="noreferrer">
+                <span className="contact-social-label">{link.label}</span>
+                <span className="contact-social-handle">{link.handle}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <form
+        className="contact-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+        }}
+      >
+        <label htmlFor="email">Join the release log</label>
+        <div className="contact-form-field">
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            required
+            autoComplete="email"
+          />
+          <button type="submit" className="btn btn-primary">
+            Notify me
+          </button>
+        </div>
+        <span className="contact-form-helper">
+          No spam—just key updates, and you can unsubscribe anytime.
+        </span>
+      </form>
+    </div>
   );
 }

@@ -157,7 +157,7 @@
  }
 
 .lightboxPlayerWrap {
-   width: min(90vw, 76rem);
+   width: min(80vw, 76rem);
    aspect-ratio: 16 / 9;
    border-radius: 1.5rem;
    overflow: hidden;

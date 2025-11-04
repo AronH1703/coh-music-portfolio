@@ -67,7 +67,7 @@ export default async function MusicReleasePage({ params }: PageProps) {
     : undefined;
 
   return (
-    <main className={s.page}>
+    <main className={`section ${s.page}`}>
       <div className={s.backRow}>
         <Link href="/" className={s.backLink}>
           {"<"} Back to main site
@@ -78,7 +78,7 @@ export default async function MusicReleasePage({ params }: PageProps) {
           </span>
         )}
       </div>
-      <section className={s.hero}>
+      <section className={`section ${s.hero} ${s.releaseHero}`}>
         <div className={s.cover}>
           <Image
             src={release.coverImage.src}
@@ -124,15 +124,17 @@ export default async function MusicReleasePage({ params }: PageProps) {
         </div>
       </section>
       {release.credits && release.credits.length > 0 && (
-        <section className={s.creditsSection}>
-          <h2 className={s.creditsHeading}>Credits</h2>
-          <ul className={s.creditList}>
-            {release.credits.map((credit) => (
-              <li key={credit} className={s.creditItem}>
-                {credit}
-              </li>
-            ))}
-          </ul>
+        <section className={`section ${s.creditsSection}`}>
+          <div className={s.creditsCard}>
+            <h2 className={s.creditsHeading}>Credits</h2>
+            <ul className={s.creditList}>
+              {release.credits.map((credit) => (
+                <li key={credit} className={s.creditItem}>
+                  {credit}
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
     </main>

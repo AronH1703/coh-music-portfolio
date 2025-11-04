@@ -1,10 +1,13 @@
 .page {
-  min-height: 100dvh;
+  min-height: 0; /* let content define height to avoid big empty space */
   padding: calc(var(--nav-h) + 2rem) 1.5rem 4rem;
   max-width: 72rem;
   margin: 0 auto;
   display: grid;
   gap: 2.5rem;
+}
+:global(.section).releaseHero {
+  min-height: fit-content !important;
 }
 
 .backRow {
@@ -49,6 +52,7 @@
   display: grid;
   gap: 1.75rem;
   justify-items: center;
+  min-height: 100dvh !important;
 }
 
 @media (min-width: 900px) {
@@ -194,26 +198,62 @@
 }
 
 .creditsSection {
-  border-top: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
-  padding-top: 1.5rem;
+  min-height: fit-content !important;
+}
+
+
+.creditsSection {
+  padding-top: 0.75rem;
+  display: grid;
+}
+
+.creditsCard {
+  width: 100%;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 20%, transparent);
+  background: color-mix(in oklab, var(--background) 76%, black 24%);
+  padding: clamp(1.25rem, 3vw, 2rem);
   display: grid;
   gap: 1rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
 }
 
 .creditsHeading {
   margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: 0.08em;
+  font-size: 1.2rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .creditList {
   margin: 0;
-  padding-left: 1.2rem;
+  padding: 0;
+  list-style: none;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.4rem 1.25rem;
 }
 
 .creditItem {
+  position: relative;
+  padding-left: 1.5rem;
   color: color-mix(in oklab, var(--foreground) 85%, transparent);
+}
+
+.creditItem::before {
+  content: "";
+  position: absolute;
+  top: 0.9em;
+  left: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 75%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 35%, transparent);
+  transform: translateY(-50%);
+}
+
+@media (min-width: 780px) {
+  .creditList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

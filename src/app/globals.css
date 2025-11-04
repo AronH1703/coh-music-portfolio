@@ -129,7 +129,7 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
 .btn-ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); }
 .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: white; }
 .card { height: 16rem; border-radius: 1.5rem; border: 1px dashed var(--border); background: var(--card); color: oklch(0.7 0 0); display: flex; align-items: center; justify-content: center; padding: 1.5rem; text-transform: uppercase; letter-spacing: 0.2em; }
-.card.card-feature { height: auto; border: none; background: transparent; padding: 0; justify-content: center; align-items: stretch; }
+.card.card-feature { height: auto; border: none; background: transparent; padding: 0; justify-content: center; align-items: stretch; text-transform: none; letter-spacing: normal; }
 .card.card-feature > * { width: 100%; }
 @media (min-width: 640px) { .card { height: 20rem; } }
 .nav-controls { display: flex; gap: 1rem; }
@@ -160,6 +160,29 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
   pointer-events: none;
   transform-origin: center;
 }
+.about-content { display: grid; gap: 2rem; align-items: start; }
+@media (min-width: 768px) { .about-content { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); } }
+.about-copy { display: grid; gap: 1rem; color: oklch(0.88 0 0); }
+.about-highlights { display: grid; gap: 1rem; margin: 0; }
+.about-highlight { padding: 1rem 1.25rem; border: 1px solid color-mix(in oklab, var(--border) 85%, transparent); border-radius: var(--radius); background: color-mix(in oklab, var(--background) 94%, transparent); display: grid; gap: 0.4rem; }
+.about-highlight dt { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: oklch(0.75 0 0); margin: 0; }
+.about-highlight dd { margin: 0; color: oklch(0.92 0 0); }
+.contact-content { display: grid; gap: 2rem; align-items: end; }
+@media (min-width: 768px) { .contact-content { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 2.25rem; } }
+.contact-info { display: grid; gap: 1.25rem; }
+.contact-socials { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.contact-socials a { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.85rem 1rem; border-radius: var(--radius); border: 1px solid color-mix(in oklab, var(--border) 70%, transparent); background: color-mix(in oklab, var(--background) 95%, transparent); text-decoration: none; color: inherit; transition: border-color 150ms ease, background 150ms ease, transform 150ms ease; }
+.contact-socials a:hover { border-color: white; background: color-mix(in oklab, var(--background) 98%, transparent); transform: translateY(-2px); }
+.contact-social-label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: oklch(0.75 0 0); }
+.contact-social-handle { font-size: 1rem; color: white; }
+.contact-form { display: grid; gap: 0.75rem; padding: 1.5rem; border-radius: var(--radius); border: 1px solid color-mix(in oklab, var(--border) 80%, transparent); background: color-mix(in oklab, var(--background) 92%, transparent); }
+.contact-form label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: oklch(0.75 0 0); }
+.contact-form-field { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.contact-form-field input { flex: 1 1 220px; min-height: 2.75rem; padding: 0.7rem 1rem; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--border) 80%, transparent); background: color-mix(in oklab, var(--background) 96%, transparent); color: white; transition: border-color 150ms ease, box-shadow 150ms ease; }
+.contact-form-field input::placeholder { color: oklch(0.75 0 0); }
+.contact-form-field input:focus { outline: none; border-color: white; box-shadow: 0 0 0 3px color-mix(in oklab, white 20%, transparent); }
+.contact-form-field .btn { flex: 0 0 auto; }
+.contact-form-helper { font-size: 0.85rem; color: oklch(0.8 0 0); }
 /* Footer: make it a snap point so it can be reached when using
    mandatory scroll snapping on the root scroller. */
 .footer {
