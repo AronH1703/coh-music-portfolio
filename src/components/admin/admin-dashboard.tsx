@@ -11,6 +11,7 @@ import { VideosSection } from "./sections/videos-section";
 import { AboutSection } from "./sections/about-section";
 import { ContactSection } from "./sections/contact-section";
 import { NewsletterSection } from "./sections/newsletter-section";
+import { SiteLabelsSection } from "./sections/site-labels-section";
 
 type SectionId =
   | "hero"
@@ -19,7 +20,8 @@ type SectionId =
   | "videos"
   | "about"
   | "contact"
-  | "newsletter";
+  | "newsletter"
+  | "labels";
 
 const SECTIONS: Array<{
   id: SectionId;
@@ -75,6 +77,12 @@ const SECTIONS: Array<{
     description:
       "Review sign-ups, export subscriber lists, or copy addresses for campaigns.",
     render: () => <NewsletterSection />,
+  },
+  {
+    id: "labels",
+    label: "Site Labels",
+    description: "Customize the eyebrow text shown above each home section.",
+    render: () => <SiteLabelsSection />,
   },
 ];
 

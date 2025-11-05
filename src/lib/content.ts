@@ -42,6 +42,34 @@ export async function getHeroContent(): Promise<HeroContent | null> {
   };
 }
 
+export type SiteLabels = {
+  heroLabel?: string | null;
+  musicLabel?: string | null;
+  galleryLabel?: string | null;
+  videosLabel?: string | null;
+  aboutLabel?: string | null;
+  contactLabel?: string | null;
+};
+
+export async function getSiteLabels(): Promise<SiteLabels> {
+  const clientAny = prisma as unknown as { siteLabels?: { findFirst: Function } };
+  const hasModel = typeof clientAny.siteLabels?.findFirst === "function";
+
+  let labels: any = null;
+  if (hasModel) {
+    labels = await (clientAny.siteLabels as any).findFirst({ orderBy: { updatedAt: "desc" } });
+  }
+
+  return {
+    heroLabel: labels?.heroLabel ?? 'Composer • Producer • Multi-Instrumentalist',
+    musicLabel: labels?.musicLabel ?? "Music",
+    galleryLabel: labels?.galleryLabel ?? "Gallery",
+    videosLabel: labels?.videosLabel ?? "Videos",
+    aboutLabel: labels?.aboutLabel ?? "About",
+    contactLabel: labels?.contactLabel ?? "Contact",
+  };
+}
+
 export type GalleryItemContent = {
   id: string;
   title: string;

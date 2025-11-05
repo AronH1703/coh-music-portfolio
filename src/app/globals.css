@@ -164,7 +164,7 @@ section#hero {
 }
 
 
-.eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; color: oklch(0.7 0 0); font-family: "ltc-goudy-text-pro-shaded", sans-serif;
+.eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; color: lab(65.2% 0 0); font-family: "ltc-goudy-text-pro-shaded", sans-serif;
 font-weight: 400;
 font-style: normal; }
 h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; margin: 0; color: white; font-weight: 650; }

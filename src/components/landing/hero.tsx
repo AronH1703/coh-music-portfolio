@@ -9,6 +9,7 @@ import type { HeroContent } from '@/lib/content';
 
 type HeroProps = {
   data: HeroContent | null;
+  eyebrowLabel?: string;
 };
 
 const DEFAULTS: Required<Pick<HeroContent, 'title' | 'subtitle'>> & {
@@ -28,19 +29,19 @@ const DEFAULTS: Required<Pick<HeroContent, 'title' | 'subtitle'>> & {
   eyebrow: 'Composer • Producer • Multi-Instrumentalist',
 };
 
-export function HeroSection({ data }: HeroProps) {
+export function HeroSection({ data, eyebrowLabel }: HeroProps) {
   const title = data?.title?.trim() || DEFAULTS.title;
   const subtitle = data?.subtitle?.trim() || DEFAULTS.subtitle;
   const primaryLabel = data?.primaryCtaLabel?.trim() || DEFAULTS.primaryCtaLabel;
   const primaryHref = data?.primaryCtaHref?.trim() || DEFAULTS.primaryCtaHref;
   const secondaryLabel = data?.secondaryCtaLabel?.trim() || DEFAULTS.secondaryCtaLabel;
   const secondaryHref = data?.secondaryCtaHref?.trim() || DEFAULTS.secondaryCtaHref;
-  const eyebrow = DEFAULTS.eyebrow;
+  const eyebrow = (eyebrowLabel && eyebrowLabel.trim()) || DEFAULTS.eyebrow;
 
   const backgroundColor = data?.backgroundColor?.trim() || '#0f172a';
   const titleColor = data?.titleColor?.trim() || '#ffffff';
   const subtitleColor = data?.subtitleColor?.trim() || 'rgba(255,255,255,0.82)';
-  const eyebrowColor = data?.eyebrowColor?.trim() || 'rgba(250, 204, 21, 0.85)';
+  // Eyebrow inherits from CSS (.eyebrow) to avoid admin overrides
   const titleFont = data?.titleFont?.trim();
   const subtitleFont = data?.subtitleFont?.trim();
 
@@ -54,9 +55,6 @@ export function HeroSection({ data }: HeroProps) {
     fontFamily: subtitleFont || undefined,
   };
 
-  const eyebrowStyle: CSSProperties = {
-    color: eyebrowColor,
-  };
 
   useEffect(() => {
     const root = document.documentElement;
@@ -64,16 +62,14 @@ export function HeroSection({ data }: HeroProps) {
     root.style.setProperty('--site-foreground', titleColor);
     root.style.setProperty('--foreground', titleColor);
     root.style.setProperty('--muted-foreground', subtitleColor);
-    root.style.setProperty('--accent-foreground', eyebrowColor);
-    root.style.setProperty('--accent', eyebrowColor);
-  }, [backgroundColor, titleColor, subtitleColor, eyebrowColor]);
+    // Do not set eyebrow/accents here; let .eyebrow CSS control it globally
+  }, [backgroundColor, titleColor, subtitleColor]);
 
   return (
     <section id="hero" className="relative overflow-hidden">
       <div className="section-inner" style={{ textAlign: 'left', marginTop: '2rem' }}>
         <motion.span
           className="eyebrow"
-          style={eyebrowStyle}
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}

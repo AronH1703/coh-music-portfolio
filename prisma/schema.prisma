@@ -168,6 +168,18 @@ model NewsletterSubscriber {
   updatedAt DateTime @updatedAt
 }
 
+model SiteLabels {
+  id            String   @id @default(cuid())
+  heroLabel     String?
+  musicLabel    String?
+  galleryLabel  String?
+  videosLabel   String?
+  aboutLabel    String?
+  contactLabel  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 enum Role {
   ADMIN
   EDITOR

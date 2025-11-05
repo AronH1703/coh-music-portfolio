@@ -120,3 +120,12 @@ export const newsletterSubscriptionSchema = z.object({
   email: z.string().trim().email(),
   source: z.string().trim().max(120).optional(),
 });
+
+export const siteLabelsSchema = z.object({
+  heroLabel: z.string().trim().max(120).optional(),
+  musicLabel: z.string().trim().max(80).optional(),
+  galleryLabel: z.string().trim().max(80).optional(),
+  videosLabel: z.string().trim().max(80).optional(),
+  aboutLabel: z.string().trim().max(80).optional(),
+  contactLabel: z.string().trim().max(80).optional(),
+});

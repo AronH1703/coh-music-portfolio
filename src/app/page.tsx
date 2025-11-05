@@ -10,6 +10,7 @@ import {
   getVideos,
   getAboutContent,
   getContactContent,
+  getSiteLabels,
   type AboutContentEntry,
   type ContactContentEntry,
 } from "@/lib/content";
@@ -23,13 +24,14 @@ type SectionConfig = {
 };
 
 export default async function Home() {
-  const [hero, gallery, music, videos, about, contact] = await Promise.all([
+  const [hero, gallery, music, videos, about, contact, labels] = await Promise.all([
     getHeroContent(),
     getGalleryItems(),
     getMusicReleases(),
     getVideos(),
     getAboutContent(),
     getContactContent(),
+    getSiteLabels(),
   ]);
 
   const gallerySlides: GalleryPhoto[] = gallery.map((item) => ({
@@ -64,7 +66,7 @@ export default async function Home() {
   const sections: SectionConfig[] = [
     {
       id: "music",
-      title: "Music",
+      title: labels.musicLabel ?? "Music",
       description:
         "Browse released singles and works-in-progress. Each card opens a shareable release page with credits, artwork, and streaming links.",
       content: musicSlides.length ? (
@@ -74,7 +76,7 @@ export default async function Home() {
     },
     {
       id: "gallery",
-      title: "Gallery",
+      title: labels.galleryLabel ?? "Gallery",
       description:
         "Capture behind-the-scenes shots, cover artwork, and stage moments. Upload imagery from the admin to curate the visual story.",
       content: gallerySlides.length ? (
@@ -84,7 +86,7 @@ export default async function Home() {
     },
     {
       id: "videos",
-      title: "Videos",
+      title: labels.videosLabel ?? "Videos",
       description:
         "Highlight music videos, mini-documentaries, and live performances with a focused carousel of featured clips.",
       content: videoSlides.length ? <VideoCarousel videos={videoSlides} /> : undefined,
@@ -92,14 +94,14 @@ export default async function Home() {
     },
     {
       id: "about",
-      title: "About",
+      title: labels.aboutLabel ?? "About",
       description:
         "Share your story, influences, and creative milestones. This section pulls directly from the About editor in the admin dashboard.",
       content: <AboutContent data={about} />,
     },
     {
       id: "contact",
-      title: "Contact",
+      title: labels.contactLabel ?? "Contact",
       description:
         "Offer booking, management, and collaboration details. Add social and streaming links from the admin to keep everything current.",
       content: <ContactContent data={contact} />,
@@ -108,7 +110,7 @@ export default async function Home() {
 
   return (
     <main>
-      <HeroSection data={hero} />
+      <HeroSection data={hero} eyebrowLabel={labels.heroLabel ?? undefined} />
       {sections.map((section) => (
         <ContentSection key={section.id} {...section} />
       ))}

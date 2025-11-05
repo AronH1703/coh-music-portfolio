@@ -17,6 +17,7 @@ type MessageState =
 
 export function HeroSection() {
   const [message, setMessage] = useState<MessageState>(null);
+  const SHOW_STYLE_FIELDS = false; // temporarily hide color/font controls
   const {
     register,
     handleSubmit,
@@ -118,49 +119,53 @@ export function HeroSection() {
           />
         </div>
 
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Background color"
-            placeholder="#0f172a"
-            helperText="Hex value or CSS variable (e.g. var(--hero-bg))."
-            {...register("backgroundColor")}
-            error={errors.backgroundColor}
-          />
-          <TextField
-            label="Title color"
-            placeholder="#ffffff"
-            {...register("titleColor")}
-            error={errors.titleColor}
-          />
-          <TextField
-            label="Subtitle color"
-            placeholder="#d1d5db"
-            {...register("subtitleColor")}
-            error={errors.subtitleColor}
-          />
-          <TextField
-            label="Eyebrow color"
-            placeholder="#facc15"
-            {...register("eyebrowColor")}
-            error={errors.eyebrowColor}
-          />
-        </div>
+        {SHOW_STYLE_FIELDS && (
+          <>
+            <div className={styles.fieldGroup}>
+              <TextField
+                label="Background color"
+                placeholder="#0f172a"
+                helperText="Hex value or CSS variable (e.g. var(--hero-bg))."
+                {...register("backgroundColor")}
+                error={errors.backgroundColor}
+              />
+              <TextField
+                label="Title color"
+                placeholder="#ffffff"
+                {...register("titleColor")}
+                error={errors.titleColor}
+              />
+              <TextField
+                label="Subtitle color"
+                placeholder="#d1d5db"
+                {...register("subtitleColor")}
+                error={errors.subtitleColor}
+              />
+              <TextField
+                label="Eyebrow color"
+                placeholder="#facc15"
+                {...register("eyebrowColor")}
+                error={errors.eyebrowColor}
+              />
+            </div>
 
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Title font"
-            placeholder="var(--font-display)"
-            helperText="Provide a CSS font-family or variable name."
-            {...register("titleFont")}
-            error={errors.titleFont}
-          />
-          <TextField
-            label="Subtitle font"
-            placeholder="var(--font-sans)"
-            {...register("subtitleFont")}
-            error={errors.subtitleFont}
-          />
-        </div>
+            <div className={styles.fieldGroup}>
+              <TextField
+                label="Title font"
+                placeholder="var(--font-display)"
+                helperText="Provide a CSS font-family or variable name."
+                {...register("titleFont")}
+                error={errors.titleFont}
+              />
+              <TextField
+                label="Subtitle font"
+                placeholder="var(--font-sans)"
+                {...register("subtitleFont")}
+                error={errors.subtitleFont}
+              />
+            </div>
+          </>
+        )}
 
         <div className={styles.fieldGroup}>
           <TextField
