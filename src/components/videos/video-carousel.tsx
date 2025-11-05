@@ -4,6 +4,7 @@ import {
   type ComponentPropsWithoutRef,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import Image from "next/image";
@@ -13,27 +14,18 @@ import type { EmblaCarouselType, EmblaOptionsType } from "embla-carousel";
 import frameStyles from "../carousel/carousel-frame.module.css";
 import s from "./video-carousel.module.css";
 
-type Video = {
+export type VideoCarouselItem = {
   id: string;
-  url: string;
-  title?: string;
-  description?: string;
+  externalId: string;
+  videoUrl: string;
+  title?: string | null;
+  description?: string | null;
+  thumbnailUrl?: string | null;
 };
 
-const videos: Video[] = [
-  {
-    id: "TQqReVXfXCw",
-    url: "https://www.youtube.com/watch?v=TQqReVXfXCw",
-    title: "Live Session",
-    description: "YouTube premiere",
-  },
-  {
-    id: "PnOd8cYwyhI",
-    url: "https://www.youtube.com/watch?v=PnOd8cYwyhI",
-    title: "Studio Visual",
-    description: "YouTube release",
-  },
-];
+type VideoCarouselProps = {
+  videos: VideoCarouselItem[];
+};
 
 const CAROUSEL_OPTIONS: EmblaOptionsType = { align: "center", loop: true };
 
@@ -191,7 +183,7 @@ function DotButton(props: ButtonProps) {
   );
 }
 
-export default function VideoCarousel() {
+export default function VideoCarousel({ videos }: VideoCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel(CAROUSEL_OPTIONS);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -199,14 +191,19 @@ export default function VideoCarousel() {
     usePrevNextButtons(emblaApi);
   const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi);
 
+  const slides = useMemo(
+    () => videos.filter((video) => video.externalId),
+    [videos],
+  );
+
   const openLightbox = useCallback(
     (index: number) => {
-      const clickAllowed =
-        typeof emblaApi?.clickAllowed === "function" ? emblaApi.clickAllowed() : true;
+      if (!slides[index]) return;
+      const clickAllowed = (emblaApi as any)?.clickAllowed?.() ?? true;
       if (!clickAllowed) return;
       setLightboxIndex(index);
     },
-    [emblaApi],
+    [emblaApi, slides],
   );
 
   const closeLightbox = useCallback(() => {
@@ -214,16 +211,18 @@ export default function VideoCarousel() {
   }, []);
 
   const showPrevVideo = useCallback(() => {
+    if (!slides.length) return;
     setLightboxIndex((prev) =>
-      prev === null ? null : (prev - 1 + videos.length) % videos.length,
+      prev === null ? null : (prev - 1 + slides.length) % slides.length,
     );
-  }, []);
+  }, [slides.length]);
 
   const showNextVideo = useCallback(() => {
+    if (!slides.length) return;
     setLightboxIndex((prev) =>
-      prev === null ? null : (prev + 1) % videos.length,
+      prev === null ? null : (prev + 1) % slides.length,
     );
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     if (!emblaApi || lightboxIndex !== null) return;
@@ -270,15 +269,27 @@ export default function VideoCarousel() {
     };
   }, [lightboxIndex]);
 
+  if (!slides.length) {
+    return (
+      <div
+        className={clsx(frameStyles.root, "p-8 text-center text-sm text-neutral-400")}
+        role="status"
+      >
+        Videos will appear here after adding YouTube links in the admin.
+      </div>
+    );
+  }
+
   return (
     <div className={frameStyles.root}>
       <div className={frameStyles.embla}>
         <div className={frameStyles.viewport} ref={emblaRef}>
           <div className={clsx(frameStyles.container, s.container)}>
-            {videos.map((video, index) => {
+            {slides.map((video, index) => {
               const title = video.title ?? `Video ${index + 1}`;
               const description = video.description ?? "Watch on YouTube";
-              const thumbnail = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;
+              const thumbnail =
+                video.thumbnailUrl ?? `https://img.youtube.com/vi/${video.externalId}/hqdefault.jpg`;
               return (
                 <div className={s.slide} key={video.id}>
                   <article className={s.card}>
@@ -352,7 +363,7 @@ export default function VideoCarousel() {
         aria-label="Video viewer"
         onClick={closeLightbox}
       >
-        {lightboxIndex !== null && (
+        {lightboxIndex !== null && slides[lightboxIndex] && (
           <div
             className={s.lightboxInner}
             onClick={(event) => event.stopPropagation()}
@@ -370,21 +381,21 @@ export default function VideoCarousel() {
             </button>
             <div className={s.lightboxPlayerWrap}>
               <iframe
-                key={videos[lightboxIndex].id}
+                key={slides[lightboxIndex].id}
                 className={s.lightboxIframe}
-                src={`https://www.youtube.com/embed/${videos[lightboxIndex].id}?autoplay=1&rel=0`}
-                title={videos[lightboxIndex].title ?? `Video ${lightboxIndex + 1}`}
+                src={`https://www.youtube.com/embed/${slides[lightboxIndex].externalId}?autoplay=1&rel=0`}
+                title={slides[lightboxIndex].title ?? `Video ${lightboxIndex + 1}`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
             </div>
-            {(videos[lightboxIndex].title || videos[lightboxIndex].description) && (
+            {(slides[lightboxIndex].title || slides[lightboxIndex].description) && (
               <div className={s.lightboxCaption}>
-                {videos[lightboxIndex].description && (
-                  <span>{videos[lightboxIndex].description}</span>
+                {slides[lightboxIndex].description && (
+                  <span>{slides[lightboxIndex].description}</span>
                 )}
-                {videos[lightboxIndex].title && (
-                  <strong>{videos[lightboxIndex].title}</strong>
+                {slides[lightboxIndex].title && (
+                  <strong>{slides[lightboxIndex].title}</strong>
                 )}
               </div>
             )}
@@ -395,7 +406,7 @@ export default function VideoCarousel() {
                     event.stopPropagation();
                     showPrevVideo();
                   }}
-                  disabled={videos.length <= 1}
+                  disabled={slides.length <= 1}
                   aria-label="Previous video"
                   className={s.lightboxBtn}
                 />
@@ -404,13 +415,13 @@ export default function VideoCarousel() {
                     event.stopPropagation();
                     showNextVideo();
                   }}
-                  disabled={videos.length <= 1}
+                  disabled={slides.length <= 1}
                   aria-label="Next video"
                   className={s.lightboxBtn}
                 />
               </div>
               <div className={s.lightboxDots}>
-                {videos.map((_, dotIndex) => (
+                {slides.map((_, dotIndex) => (
                   <DotButton
                     key={`lightbox-dot-${dotIndex}`}
                     onClick={(event) => {

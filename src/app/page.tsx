@@ -1,11 +1,18 @@
-"use client";
-
 import { type ReactNode } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import PhotoCarousel from "../components/gallery/photo-carousel";
-import VideoCarousel from "../components/videos/video-carousel";
-import MusicCarousel from "../components/music/music-carousel";
+import PhotoCarousel, { type GalleryPhoto } from "@/components/gallery/photo-carousel";
+import VideoCarousel, { type VideoCarouselItem } from "@/components/videos/video-carousel";
+import MusicCarousel, { type MusicCarouselRelease } from "@/components/music/music-carousel";
+import { HeroSection } from "@/components/landing/hero";
+import {
+  getHeroContent,
+  getGalleryItems,
+  getMusicReleases,
+  getVideos,
+  getAboutContent,
+  getContactContent,
+  type AboutContentEntry,
+  type ContactContentEntry,
+} from "@/lib/content";
 
 type SectionConfig = {
   id: string;
@@ -15,163 +22,103 @@ type SectionConfig = {
   content?: ReactNode;
 };
 
-const ABOUT_HIGHLIGHTS = [
-  {
-    title: "Current focus",
-    detail:
-      "Writing an EP that blends modular synth improvisations with chamber strings and found-sound percussion.",
-  },
-  {
-    title: "Recent collaborators",
-    detail:
-      "Sessions with the Skövde Symphony, choreographer Lova Holm, and the multidisciplinary RAUM Collective.",
-  },
-  {
-    title: "Availability",
-    detail:
-      "Open for remote production, mix consulting, and bespoke scoring for film, theatre, and experiential media.",
-  },
-];
+export default async function Home() {
+  const [hero, gallery, music, videos, about, contact] = await Promise.all([
+    getHeroContent(),
+    getGalleryItems(),
+    getMusicReleases(),
+    getVideos(),
+    getAboutContent(),
+    getContactContent(),
+  ]);
 
-const SOCIAL_LINKS = [
-  {
-    label: "Email",
-    handle: "hello@cohmusic.com",
-    href: "mailto:hello@cohmusic.com",
-  },
-  {
-    label: "Instagram",
-    handle: "@coh.music",
-    href: "https://instagram.com/coh.music",
-  },
-  {
-    label: "YouTube",
-    handle: "Studio Sessions",
-    href: "https://youtube.com/@cohmusic",
-  },
-  {
-    label: "Spotify",
-    handle: "Follow on Spotify",
-    href: "https://open.spotify.com/artist/6sIq0HbQz6OLOG0nKAnPrA",
-  },
-];
+  const gallerySlides: GalleryPhoto[] = gallery.map((item) => ({
+    id: item.id,
+    src: item.imageUrl,
+    alt: item.altText ?? item.title ?? "Gallery image",
+    width: item.width,
+    height: item.height,
+    title: item.title,
+    location: item.category ?? undefined,
+  }));
 
-export const CONTENT_SECTIONS: SectionConfig[] = [
-  {
-    id: "music",
-    title: "Music",
-    description:
-      "Browse released singles and works-in-progress. Each card opens a shareable release page with credits, artwork, and streaming links.",
-    content: <MusicCarousel />,
-  },
-  {
-    id: "gallery",
-    title: "Gallery",
-    description:
-      "Capture behind-the-scenes shots, cover artwork, and stage moments. Add an image grid or carousel once assets are available.",
-    content: <PhotoCarousel />,
-  },
-  {
-    id: "videos",
-    title: "Videos",
-    description:
-      "Highlight music videos, mini-documentaries, and live performances with a focused carousel of featured clips.",
-    content: <VideoCarousel />,
-  },
-  {
-    id: "about",
-    title: "About",
-    description:
-      "Share your story, influences, and creative milestones. This section can expand into a rich biography with press quotes.",
-    content: <AboutContent />,
-  },
-  {
-    id: "contact",
-    title: "Contact",
-    description:
-      "Offer booking, management, and collaboration details. Later, replace the placeholder with a form or contact cards.",
-    content: <ContactContent />,
-  },
-];
+  const musicSlides: MusicCarouselRelease[] = music.map((release) => ({
+    id: release.id,
+    slug: release.slug,
+    title: release.title,
+    coverImageUrl: release.coverImageUrl,
+    coverImageAlt: release.coverImageAlt,
+    releaseDate: release.releaseDate,
+    comingSoon: release.comingSoon,
+  }));
 
-export default function Home() {
+  const videoSlides: VideoCarouselItem[] = videos.map((video) => ({
+    id: video.id,
+    externalId: video.externalId,
+    videoUrl: video.videoUrl,
+    title: video.title,
+    description: video.description,
+    thumbnailUrl: video.thumbnailUrl,
+  }));
+
+  const sections: SectionConfig[] = [
+    {
+      id: "music",
+      title: "Music",
+      description:
+        "Browse released singles and works-in-progress. Each card opens a shareable release page with credits, artwork, and streaming links.",
+      content: musicSlides.length ? (
+        <MusicCarousel releases={musicSlides} />
+      ) : undefined,
+      placeholder: "Add releases via the admin panel to populate this carousel.",
+    },
+    {
+      id: "gallery",
+      title: "Gallery",
+      description:
+        "Capture behind-the-scenes shots, cover artwork, and stage moments. Upload imagery from the admin to curate the visual story.",
+      content: gallerySlides.length ? (
+        <PhotoCarousel photos={gallerySlides} />
+      ) : undefined,
+      placeholder: "Upload imagery through the admin Gallery section to showcase visuals here.",
+    },
+    {
+      id: "videos",
+      title: "Videos",
+      description:
+        "Highlight music videos, mini-documentaries, and live performances with a focused carousel of featured clips.",
+      content: videoSlides.length ? <VideoCarousel videos={videoSlides} /> : undefined,
+      placeholder: "Add YouTube links in the admin Videos section to feature them here.",
+    },
+    {
+      id: "about",
+      title: "About",
+      description:
+        "Share your story, influences, and creative milestones. This section pulls directly from the About editor in the admin dashboard.",
+      content: <AboutContent data={about} />,
+    },
+    {
+      id: "contact",
+      title: "Contact",
+      description:
+        "Offer booking, management, and collaboration details. Add social and streaming links from the admin to keep everything current.",
+      content: <ContactContent data={contact} />,
+    },
+  ];
+
   return (
     <main>
-      <Hero />
-      {CONTENT_SECTIONS.map((section) => (
+      <HeroSection data={hero} />
+      {sections.map((section) => (
         <ContentSection key={section.id} {...section} />
       ))}
     </main>
   );
 }
 
-function Hero() {
-  return (
-    <section id="hero">
-      {/* solid background only; removed gradient and glow blobs */}
-      <div className="section-inner" style={{ textAlign: "left", marginTop: "2rem"}}>
-        <motion.span
-          className="eyebrow"
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          Composer • Producer • Multi-Instrumentalist
-        </motion.span>
+type ContentSectionProps = SectionConfig;
 
-        <div style={{ display: "grid", gap: "1.5rem" }}>
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
-          >
-            Soundscapes crafted for the moments that matter.
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-          >
-            Lean into immersive textures and evolving rhythms tailored for film,
-            stage, and the listening room. This space will soon house releases,
-            visuals, and stories from the studio floor.
-          </motion.p>
-        </div>
-
-        <motion.div
-          className="actions"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
-        >
-          <Link href="#music" className="btn btn-primary">
-            Explore the work
-          </Link>
-          <Link href="#contact" className="btn btn-ghost">
-            Booking & inquiries
-          </Link>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-type SectionProps = {
-  id: string;
-  title: string;
-  description: string;
-  placeholder?: string;
-  content?: ReactNode;
-};
-
-function ContentSection({
-  id,
-  title,
-  description,
-  placeholder,
-  content,
-}: SectionProps) {
+function ContentSection({ id, title, description, placeholder, content }: ContentSectionProps) {
   return (
     <section id={id}>
       <div className="section-inner">
@@ -182,85 +129,166 @@ function ContentSection({
         </div>
 
         <div className={`card ${content ? "card-feature" : ""}`}>
-          {content ?? <div>{placeholder}</div>}
+          {content ?? <div>{placeholder ?? "Content managed from the admin dashboard will appear here."}</div>}
         </div>
       </div>
     </section>
   );
 }
 
-function AboutContent() {
+function splitTextIntoParagraphs(text: string) {
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
+
+function AboutContent({ data }: { data: AboutContentEntry | null }) {
+  const fallbackText =
+    "Aron Emilsson crafts cinematic pop and electronic scores that lean into tactile textures, layered harmonies, and patient storytelling.";
+  const aboutText = data?.aboutText ?? fallbackText;
+  const missionStatement = data?.missionStatement;
+  const featuredQuote = data?.featuredQuote;
+  const attribution = data?.quoteAttribution;
+
+  const paragraphs = splitTextIntoParagraphs(aboutText);
+
   return (
     <div className="about-content">
       <div className="about-copy">
-        <p>
-          Aron Emilsson crafts cinematic pop and electronic scores that lean
-          into tactile textures, layered harmonies, and patient storytelling.
-          Each production is built around live instrumentation, modular rigs,
-          and field recordings captured on the road.
-        </p>
-        <p>
-          From intimate singer-songwriter releases to immersive theatre and
-          installation work, the studio approach centers collaboration, letting
-          every project find its own palette and dynamic arc.
-        </p>
-      </div>
-      <dl className="about-highlights">
-        {ABOUT_HIGHLIGHTS.map((item) => (
-          <div className="about-highlight" key={item.title}>
-            <dt>{item.title}</dt>
-            <dd>{item.detail}</dd>
-          </div>
+        {missionStatement && <p className="mission-statement">{missionStatement}</p>}
+        {paragraphs.map((paragraph, index) => (
+          <p key={`about-paragraph-${index}`}>{paragraph}</p>
         ))}
-      </dl>
+      </div>
+      {(featuredQuote || attribution) && (
+        <blockquote className="about-quote">
+          {featuredQuote && <p>“{featuredQuote}”</p>}
+          {attribution && <cite>— {attribution}</cite>}
+        </blockquote>
+      )}
     </div>
   );
 }
 
-function ContactContent() {
+type ContactLink = {
+  label: string;
+  handle: string;
+  href: string;
+};
+
+function buildContactLinks(data: ContactContentEntry | null): ContactLink[] {
+  if (!data) return [];
+
+  const links: ContactLink[] = [];
+
+  const emailHandle = data.emailContact?.trim();
+  if (emailHandle) {
+    links.push({
+      label: "Email",
+      handle: emailHandle,
+      href: `mailto:${emailHandle}`,
+    });
+  }
+
+  const bookingEmail = data.bookingEmail?.trim();
+  if (bookingEmail) {
+    links.push({
+      label: "Booking",
+      handle: bookingEmail,
+      href: `mailto:${bookingEmail}`,
+    });
+  }
+
+  if (Array.isArray(data.socialLinks)) {
+    for (const link of data.socialLinks) {
+      if (!link || typeof link !== 'object') continue;
+      const { label, url } = link as { label?: string | null; url?: string | null };
+      if (!label || !url) continue;
+      const handle = formatHandle(url);
+      links.push({ label, handle, href: url });
+    }
+  }
+
+  return links;
+}
+
+function formatHandle(url: string) {
+  try {
+    const parsed = new URL(url);
+    const handle = parsed.pathname.replace(/\/+/g, "/").replace(/^\//, "");
+    return handle ? `${parsed.hostname}/${handle}` : parsed.hostname;
+  } catch {
+    return url;
+  }
+}
+
+function ContactContent({ data }: { data: ContactContentEntry | null }) {
+  const links = buildContactLinks(data);
+
+  const management = data?.managementContact;
+  const press = data?.pressContact;
+
   return (
     <div className="contact-content">
       <div className="contact-info">
         <p>
-          Booking, commissions, and collaboration inquiries land directly with
-          the studio team. Add your email to receive release notes, session
-          invites, and behind-the-scenes dispatches.
+          Booking, commissions, and collaboration inquiries land directly with the studio team. Update these details in the admin to keep partners in the loop.
         </p>
-        <ul className="contact-socials">
-          {SOCIAL_LINKS.map((link) => (
-            <li key={link.label}>
-              <a href={link.href} target="_blank" rel="noreferrer">
-                <span className="contact-social-label">{link.label}</span>
-                <span className="contact-social-handle">{link.handle}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        {links.length ? (
+          <ul className="contact-socials">
+            {links.map((link) => (
+              <li key={`${link.label}-${link.handle}`}>
+                <a href={link.href} target="_blank" rel="noreferrer">
+                  <span className="contact-social-label">{link.label}</span>
+                  <span className="contact-social-handle">{link.handle}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="contact-form-helper">
+            Set contact emails and social links via the admin to display them here.
+          </p>
+        )}
+        {management && (
+          <p className="contact-form-helper">
+            <span className="contact-social-label">Management</span>
+            <span className="contact-social-handle">{management}</span>
+          </p>
+        )}
+        {press && (
+          <p className="contact-form-helper">
+            <span className="contact-social-label">Press</span>
+            <span className="contact-social-handle">{press}</span>
+          </p>
+        )}
       </div>
-      <form
-        className="contact-form"
-        onSubmit={(event) => {
-          event.preventDefault();
-        }}
-      >
-        <label htmlFor="email">Join the release log</label>
-        <div className="contact-form-field">
-          <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="name@example.com"
-            required
-            autoComplete="email"
-          />
-          <button type="submit" className="btn btn-primary">
-            Notify me
-          </button>
-        </div>
-        <span className="contact-form-helper">
-          No spam—just key updates, and you can unsubscribe anytime.
-        </span>
-      </form>
+      <NewsletterCta email={data?.emailContact ?? ""} />
     </div>
+  );
+}
+
+function NewsletterCta({ email }: { email: string }) {
+  return (
+    <form className="contact-form">
+      <label htmlFor="newsletter-email">Join the release log</label>
+      <div className="contact-form-field">
+        <input
+          id="newsletter-email"
+          name="email"
+          type="email"
+          placeholder={email || "name@example.com"}
+          required
+          autoComplete="email"
+        />
+        <button type="submit" className="btn btn-primary">
+          Notify me
+        </button>
+      </div>
+      <span className="contact-form-helper">
+        No spam—just key updates, and you can unsubscribe anytime.
+      </span>
+    </form>
   );
 }

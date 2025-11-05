@@ -8,63 +8,16 @@ datasource db {
 }
 
 model User {
-  id       String    @id @default(cuid())
-  name     String?
-  email    String?   @unique
-  password String?
-  image    String?
-  role     Role      @default(EDITOR)
-  accounts Account[]
-  sessions Session[]
-}
-
-model Release {
-  id           String   @id @default(cuid())
-  title        String
-  slug         String   @unique
-  coverUrl     String
-  cloudinaryId String?
-  releaseDate  DateTime
-  featured     Boolean  @default(false)
-  platforms    Json
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model MediaAsset {
-  id           String    @id @default(cuid())
-  kind         AssetKind
-  url          String
-  cloudinaryId String
-  width        Int?
-  height       Int?
-  caption      String?
-  credit       String?
-  tags         Tag[] // add this
-  createdAt    DateTime  @default(now())
-}
-
-model Tag {
-  id     String       @id @default(cuid())
-  name   String       @unique
-  assets MediaAsset[] // implicit many-to-many
-}
-
-model Video {
-  id          String        @id @default(cuid())
-  title       String
-  platform    VideoPlatform
-  externalId  String
-  thumbnail   String?
-  publishedAt DateTime?
-}
-
-model PressItem {
-  id     String   @id @default(cuid())
-  outlet String
-  quote  String
-  url    String
-  date   DateTime
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  password  String?
+  image     String?
+  role      Role      @default(ADMIN)
+  accounts  Account[]
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Account {
@@ -93,18 +46,136 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Hero {
+  id                 String   @id @default(cuid())
+  title              String
+  subtitle           String
+  backgroundColor    String?
+  titleColor         String?
+  subtitleColor      String?
+  eyebrowColor       String?
+  titleFont          String?
+  subtitleFont       String?
+  primaryCtaLabel    String?
+  primaryCtaHref     String?
+  secondaryCtaLabel  String?
+  secondaryCtaHref   String?
+  metaTitle          String?
+  metaDescription    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model GalleryItem {
+  id                 String   @id @default(cuid())
+  title              String
+  caption            String?
+  imageUrl           String
+  altText            String?
+  cloudinaryPublicId String
+  width              Int?
+  height             Int?
+  category           String?
+  tags               Json?
+  sortOrder          Int       @default(0)
+  uploadedAt         DateTime  @default(now())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model MusicRelease {
+  id                 String   @id @default(cuid())
+  title              String
+  slug               String   @unique
+  description        String?
+  streamingLinks     Json?
+  coverImageUrl      String?
+  coverImageAlt      String?
+  coverCloudinaryPublicId String?
+  audioUrl           String?
+  audioCloudinaryPublicId String?
+  releaseDate        DateTime?
+  releaseTime        String?
+  timeZone           String?
+  releaseAt          DateTime?
+  comingSoon         Boolean  @default(false)
+  genre              String?
+  duration           String?
+  credits            String?
+  featured           Boolean  @default(false)
+  metaTitle          String?
+  metaDescription    String?
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Video {
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  videoUrl     String
+  provider     VideoProvider
+  externalId   String
+  thumbnailUrl String?
+  videoCloudinaryPublicId     String?
+  thumbnailCloudinaryPublicId String?
+  tags         Json?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model AboutContent {
+  id               String   @id @default(cuid())
+  aboutText        String
+  markdown         String?
+  missionStatement String?
+  featuredQuote    String?
+  quoteAttribution String?
+  artistPhotoUrl   String?
+  artistPhotoAlt   String?
+  artistPhotoCloudinaryPublicId String?
+  seoTitle         String?
+  seoDescription   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ContactProfile {
+  id                String   @id @default(cuid())
+  emailContact      String
+  bookingEmail      String?
+  socialLinks       Json?
+  managementContact String?
+  pressContact      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Role {
   ADMIN
   EDITOR
 }
 
-enum AssetKind {
-  IMAGE
-  VIDEO
-}
-
-enum VideoPlatform {
+enum VideoProvider {
   YOUTUBE
   VIMEO
-  SPOTIFY
+  OTHER
+  CLOUDINARY
 }

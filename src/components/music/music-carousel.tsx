@@ -4,6 +4,7 @@ import {
   type ComponentPropsWithoutRef,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import Image from "next/image";
@@ -11,7 +12,6 @@ import Link from "next/link";
 import clsx from "clsx";
 import useEmblaCarousel from "embla-carousel-react";
 import type { EmblaCarouselType, EmblaOptionsType } from "embla-carousel";
-import { musicReleases } from "../../data/music";
 import frameStyles from "../carousel/carousel-frame.module.css";
 import s from "./music-carousel.module.css";
 
@@ -26,7 +26,21 @@ const CAROUSEL_OPTIONS: EmblaOptionsType = {
   loop: true,
 };
 
-export default function MusicCarousel() {
+export type MusicCarouselRelease = {
+  id: string;
+  slug: string;
+  title: string;
+  coverImageUrl?: string | null;
+  coverImageAlt?: string | null;
+  releaseDate?: string | null;
+  comingSoon: boolean;
+};
+
+type MusicCarouselProps = {
+  releases: MusicCarouselRelease[];
+};
+
+export default function MusicCarousel({ releases }: MusicCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel(CAROUSEL_OPTIONS);
   const {
     prevBtnDisabled,
@@ -37,14 +51,24 @@ export default function MusicCarousel() {
   const { selectedIndex, scrollSnaps, onDotButtonClick } =
     useDotButton(emblaApi);
 
+  const items = useMemo(() => releases.filter((release) => release.slug), [releases]);
+
+  if (!items.length) {
+    return (
+      <div className={clsx(frameStyles.root, "p-8 text-center text-sm text-neutral-400")}
+           role="status">
+        Music releases will appear here once published via the admin.
+      </div>
+    );
+  }
+
   return (
     <div className={frameStyles.root}>
       <div className={frameStyles.embla}>
         <div className={frameStyles.viewport} ref={emblaRef}>
           <div className={clsx(frameStyles.container, s.container)}>
-            {musicReleases.map((release, index) => {
-              const { slug, title, coverImage, status, releaseDate } = release;
-              const isComingSoon = status === "coming-soon";
+            {items.map((release, index) => {
+              const { slug, title, coverImageUrl, coverImageAlt, comingSoon, releaseDate } = release;
               const formattedDate = releaseDate
                 ? dateFormatter.format(new Date(releaseDate))
                 : "Date TBA";
@@ -53,18 +77,25 @@ export default function MusicCarousel() {
                 <div className={s.slide} key={slug}>
                   <Link href={`/music/${slug}`} className={s.cardLink}>
                     <article
-                      className={clsx(s.card, isComingSoon && s.cardComingSoon)}
+                      className={clsx(s.card, comingSoon && s.cardComingSoon)}
                     >
                       <div className={s.cover}>
-                        <Image
-                          src={coverImage.src}
-                          alt={coverImage.alt}
-                          fill
-                          sizes="(min-width: 1280px) 240px, (min-width: 768px) 30vw, 85vw"
-                          className={s.image}
-                          priority={index === 0}
-                        />
-                        {isComingSoon && (
+                        {coverImageUrl ? (
+                          <Image
+                            src={coverImageUrl}
+                            alt={coverImageAlt || `${title} cover art`}
+                            fill
+                            sizes="(min-width: 1280px) 240px, (min-width: 768px) 30vw, 85vw"
+                            className={s.image}
+                            priority={index === 0}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-neutral-900 text-xs uppercase tracking-wide text-neutral-200"
+                               aria-hidden>
+                            No artwork yet
+                          </div>
+                        )}
+                        {comingSoon && (
                           <div className={s.overlay}>
                             <span className={s.overlayText}>Coming soon</span>
                           </div>
@@ -73,9 +104,9 @@ export default function MusicCarousel() {
                       <div className={clsx(frameStyles.info, s.info)}>
                         <h3 className={frameStyles.title}>{title}</h3>
                         <span
-                          className={clsx(frameStyles.meta, isComingSoon && s.metaMuted)}
+                          className={clsx(frameStyles.meta, comingSoon && s.metaMuted)}
                         >
-                          {isComingSoon ? "In production" : formattedDate}
+                          {comingSoon ? "In production" : formattedDate}
                         </span>
                       </div>
                     </article>

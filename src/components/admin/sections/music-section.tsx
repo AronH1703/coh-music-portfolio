@@ -1,0 +1,1170 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
+import styles from "../admin-dashboard.module.scss";
+import controls from "../form-controls.module.scss";
+import { TextField, TextareaField, ToggleField } from "../form-controls";
+import { musicReleaseSchema } from "@/lib/validation";
+import { uploadAsset } from "@/lib/admin/uploads";
+
+type MusicReleaseFormValues = z.input<typeof musicReleaseSchema>;
+
+type StreamingLink = {
+  id: string;
+  label: string;
+  url: string;
+};
+
+type MusicListState = Omit<MusicReleaseFormValues, "streamingLinks" | "sortOrder"> & {
+  streamingLinks: StreamingLink[];
+  sortOrder: number;
+};
+
+type MusicReleaseRecord = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  streamingLinks: StreamingLink[];
+  coverImageUrl: string | null;
+  coverImageAlt: string | null;
+  coverCloudinaryPublicId: string | null;
+  audioUrl: string | null;
+  audioCloudinaryPublicId: string | null;
+  releaseDate: string | null;
+  releaseTime: string | null;
+  timeZone: string | null;
+  releaseAt: string | null;
+  comingSoon: boolean;
+  genre: string | null;
+  duration: string | null;
+  credits: string | null;
+  featured: boolean;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type MessageState =
+  | { type: "success"; text: string }
+  | { type: "error"; text: string }
+  | null;
+
+const DEFAULT_VALUES: MusicReleaseFormValues = {
+  title: "",
+  slug: "",
+  description: "",
+  streamingLinks: [],
+  coverImageUrl: "",
+  coverImageAlt: "",
+  coverCloudinaryPublicId: "",
+  audioUrl: "",
+  audioCloudinaryPublicId: "",
+  releaseDate: "",
+  releaseTime: "",
+  timeZone: "",
+  comingSoon: false,
+  genre: "",
+  duration: "",
+  credits: "",
+  featured: false,
+  metaTitle: "",
+  metaDescription: "",
+  sortOrder: 0,
+};
+
+const LINK_SUGGESTIONS = [
+  "Spotify",
+  "Apple Music",
+  "YouTube",
+  "SoundCloud",
+  "Bandcamp",
+  "Tidal",
+  "Deezer",
+];
+
+function toInputDate(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().split("T")[0];
+}
+
+function normalizeStreamingLinks(raw: StreamingLink[] | null | undefined): StreamingLink[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null;
+      const label = typeof entry.label === "string" ? entry.label : "";
+      const url = typeof entry.url === "string" ? entry.url : "";
+      if (!label && !url) return null;
+      return {
+        id: entry.id ?? crypto.randomUUID(),
+        label,
+        url,
+      } satisfies StreamingLink;
+    })
+    .filter((entry): entry is StreamingLink => Boolean(entry));
+}
+
+export function MusicSection() {
+  const [releases, setReleases] = useState<MusicReleaseRecord[]>([]);
+  const [message, setMessage] = useState<MessageState>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCoverUploading, setIsCoverUploading] = useState(false);
+  const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
+  const [isAudioUploading, setIsAudioUploading] = useState(false);
+  const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
+
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isDirty, isSubmitting },
+  } = useForm<MusicReleaseFormValues>({
+    resolver: zodResolver(musicReleaseSchema),
+    defaultValues: DEFAULT_VALUES,
+  });
+
+  const {
+    fields: streamingFields,
+    append: appendStreamingLink,
+    remove: removeStreamingLink,
+  } = useFieldArray({
+    control,
+    name: "streamingLinks",
+  });
+
+  const streamingLinks = watch("streamingLinks") ?? [];
+
+  const addStreamingLink = () => {
+    const taken = new Set(
+      streamingLinks
+        .map((entry) => (entry?.label ? entry.label.toLowerCase() : ""))
+        .filter(Boolean),
+    );
+    const suggested = LINK_SUGGESTIONS.find(
+      (label) => !taken.has(label.toLowerCase()),
+    );
+    appendStreamingLink({
+      id: crypto.randomUUID(),
+      label: suggested ?? "Platform",
+      url: "",
+    });
+  };
+
+  const handleCoverUpload = useCallback(
+    async (file: File) => {
+      setCoverUploadError(null);
+      setIsCoverUploading(true);
+      try {
+        const result = await uploadAsset(file, {
+          folder: "coh-music/music/covers",
+          resourceType: "image",
+        });
+        setValue("coverImageUrl", result.secureUrl, { shouldDirty: true });
+        setValue("coverCloudinaryPublicId", result.publicId, { shouldDirty: true });
+      } catch (error) {
+        setCoverUploadError((error as Error).message);
+      } finally {
+        setIsCoverUploading(false);
+      }
+    },
+    [setValue],
+  );
+
+  const handleAudioUpload = useCallback(
+    async (file: File) => {
+      setAudioUploadError(null);
+      setIsAudioUploading(true);
+      try {
+        const result = await uploadAsset(file, {
+          folder: "coh-music/music/audio",
+          resourceType: "video",
+        });
+        setValue("audioUrl", result.secureUrl, { shouldDirty: true });
+        setValue("audioCloudinaryPublicId", result.publicId, { shouldDirty: true });
+      } catch (error) {
+        setAudioUploadError((error as Error).message);
+      } finally {
+        setIsAudioUploading(false);
+      }
+    },
+    [setValue],
+  );
+
+  const clearCoverUpload = useCallback(() => {
+    setValue("coverImageUrl", "", { shouldDirty: true });
+    setValue("coverCloudinaryPublicId", "", { shouldDirty: true });
+  }, [setValue]);
+
+  const clearAudioUpload = useCallback(() => {
+    setValue("audioUrl", "", { shouldDirty: true });
+    setValue("audioCloudinaryPublicId", "", { shouldDirty: true });
+  }, [setValue]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadReleases() {
+      setIsLoading(true);
+      const response = await fetch("/api/music", { cache: "no-store" });
+      if (response.ok) {
+        const { data } = await response.json();
+        if (mounted) {
+          const normalised = (data as MusicReleaseRecord[]).map((item) => ({
+            ...item,
+            streamingLinks: normalizeStreamingLinks(item.streamingLinks),
+          }));
+          setReleases(normalised);
+        }
+      }
+      if (mounted) setIsLoading(false);
+    }
+
+    void loadReleases();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const submitRelease = handleSubmit(async (values) => {
+    setMessage(null);
+    const response = await fetch("/api/music", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      setMessage({
+        type: "error",
+        text: payload?.error ?? "Failed to create release.",
+      });
+      return;
+    }
+
+    const { data } = await response.json();
+    const record = data as MusicReleaseRecord;
+    setReleases((previous) => [
+      {
+        ...record,
+        streamingLinks: normalizeStreamingLinks(record.streamingLinks),
+      },
+      ...previous,
+    ]);
+    reset(DEFAULT_VALUES);
+    setCoverUploadError(null);
+    setAudioUploadError(null);
+    setMessage({ type: "success", text: "Release created." });
+  });
+
+  const handleUpdate = useCallback(
+    async (id: string, payload: MusicReleaseFormValues) => {
+      const parsed = musicReleaseSchema.safeParse(payload);
+      if (!parsed.success) {
+        return { ok: false, message: "Validation failed. Check required fields." };
+      }
+
+      const response = await fetch("/api/music", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...parsed.data }),
+      });
+
+      if (!response.ok) {
+        const payloadError = await response.json().catch(() => null);
+        return {
+          ok: false,
+          message: payloadError?.error ?? "Failed to update release.",
+        };
+      }
+
+      const { data } = await response.json();
+      setReleases((previous) =>
+        previous.map((item) =>
+          item.id === id ? (data as MusicReleaseRecord) : item,
+        ),
+      );
+      return { ok: true };
+    },
+    [],
+  );
+
+  const handleDelete = useCallback(async (id: string) => {
+    const response = await fetch(`/api/music?id=${id}`, { method: "DELETE" });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      return { ok: false, message: payload?.error ?? "Failed to delete release." };
+    }
+    setReleases((previous) => previous.filter((item) => item.id !== id));
+    return { ok: true };
+  }, []);
+
+  const comingSoon = watch("comingSoon");
+  const featured = watch("featured");
+
+  return (
+    <div className={styles.card}>
+      <form onSubmit={submitRelease} className={styles.fieldset}>
+        <h2 className={styles.sectionTitle}>Add a new release</h2>
+
+        <div className={styles.fieldGroup}>
+          <TextField
+            label="Title"
+            placeholder="RUNNING (BOLD YELLOW)"
+            {...register("title")}
+            error={errors.title}
+          />
+          <TextField
+            label="Slug"
+            placeholder="running-bold-yellow"
+            helperText="Lowercase letters, digits, and hyphens."
+            {...register("slug")}
+            error={errors.slug}
+          />
+        </div>
+
+        <TextareaField
+          label="Description"
+          placeholder="Collaborators, textures, and story behind the release."
+          rows={4}
+          {...register("description")}
+          error={errors.description}
+        />
+
+        <div className={styles.fieldGroup} style={{ flexDirection: "column", gap: "0.75rem" }}>
+          <div
+            className={styles.fieldGroup}
+            style={{ justifyContent: "space-between", alignItems: "center" }}
+          >
+            <span className={controls.label}>Streaming links</span>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={addStreamingLink}
+            >
+              Add link
+            </button>
+          </div>
+          {streamingFields.length === 0 && (
+            <p className={controls.helper}>
+              Add streaming destinations to surface Spotify, Apple Music, YouTube, and more.
+            </p>
+          )}
+          {streamingFields.map((field, index) => (
+            <div key={field.id} className={styles.fieldGroup}>
+              <TextField
+                label="Platform"
+                placeholder="Spotify"
+                {...register(`streamingLinks.${index}.label` as const)}
+                error={errors.streamingLinks?.[index]?.label}
+              />
+              <TextField
+                label="Platform URL"
+                placeholder="https://open.spotify.com/..."
+                {...register(`streamingLinks.${index}.url` as const)}
+                error={errors.streamingLinks?.[index]?.url}
+              />
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => removeStreamingLink(index)}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+              void handleCoverUpload(file);
+              event.target.value = "";
+            }
+          }}
+        />
+
+        <div className={styles.fieldGroup}>
+          <TextField
+            label="Cover image URL"
+            placeholder="https://res.cloudinary.com/..."
+            helperText="Upload artwork or paste a hosted URL."
+            {...register("coverImageUrl")}
+            error={errors.coverImageUrl}
+          />
+          <TextField
+            label="Cover image alt"
+            placeholder="Bold yellow album artwork."
+            {...register("coverImageAlt")}
+            error={errors.coverImageAlt}
+          />
+          <TextField
+            label="Cover public ID"
+            placeholder="coh-music/music/covers/..."
+            helperText="Saved automatically when uploading."
+            {...register("coverCloudinaryPublicId")}
+            error={errors.coverCloudinaryPublicId}
+          />
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <div className={controls.formField}>
+            <span className={controls.label}>Upload cover artwork</span>
+            <div className={styles.fieldGroup}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => coverInputRef.current?.click()}
+                disabled={isCoverUploading}
+              >
+                {isCoverUploading ? "Uploading…" : "Upload from computer"}
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={clearCoverUpload}
+                disabled={isCoverUploading}
+              >
+                Clear cover
+              </button>
+            </div>
+            {coverUploadError && <span className={controls.error}>{coverUploadError}</span>}
+            {!coverUploadError && (
+              <span className={controls.helper}>
+                JPG, PNG, WEBP up to 5 MB. Uploading will store the public ID automatically.
+              </span>
+            )}
+          </div>
+        </div>
+
+        <input
+          ref={audioInputRef}
+          type="file"
+          accept="audio/*"
+          style={{ display: "none" }}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+              void handleAudioUpload(file);
+              event.target.value = "";
+            }
+          }}
+        />
+
+        <div className={styles.fieldGroup}>
+          <TextField
+            label="Audio file URL"
+            placeholder="https://res.cloudinary.com/.../track.mp3"
+            helperText="Optional direct audio upload for previews."
+            {...register("audioUrl")}
+            error={errors.audioUrl}
+          />
+          <TextField
+            label="Audio public ID"
+            placeholder="coh-music/music/audio/..."
+            helperText="Saved automatically when uploading from your computer."
+            {...register("audioCloudinaryPublicId")}
+            error={errors.audioCloudinaryPublicId}
+          />
+          <div className={controls.formField}>
+            <span className={controls.label}>Upload audio</span>
+            <div className={styles.fieldGroup}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => audioInputRef.current?.click()}
+                disabled={isAudioUploading}
+              >
+                {isAudioUploading ? "Uploading…" : "Upload from computer"}
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={clearAudioUpload}
+                disabled={isAudioUploading}
+              >
+                Clear audio
+              </button>
+            </div>
+            {audioUploadError && <span className={controls.error}>{audioUploadError}</span>}
+            {!audioUploadError && (
+              <span className={controls.helper}>
+                MP3, WAV, AAC supported. Stored on Cloudinary as video assets.
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <TextField
+            label="Release date"
+            type="date"
+            {...register("releaseDate")}
+            error={errors.releaseDate}
+          />
+          <TextField
+            label="Release time"
+            type="time"
+            {...register("releaseTime")}
+            error={errors.releaseTime}
+          />
+          <TextField
+            label="Time zone"
+            placeholder="Europe/Stockholm"
+            helperText="Use a valid IANA zone to keep countdowns accurate."
+            {...register("timeZone")}
+            error={errors.timeZone}
+          />
+        </div>
+
+        <ToggleField
+          label="Coming soon"
+          helperText="Disable automatically once the release time passes."
+          checked={!!comingSoon}
+          onChange={(value) => setValue("comingSoon", value, { shouldDirty: true })}
+        />
+
+        <div className={styles.fieldGroup}>
+          <TextField
+            label="Genre"
+            placeholder="Alternative electronic"
+            {...register("genre")}
+            error={errors.genre}
+          />
+          <TextField
+            label="Duration"
+            placeholder="03:42"
+            {...register("duration")}
+            error={errors.duration}
+          />
+          <TextField
+            label="Sort order"
+            type="number"
+            min={0}
+            {...register("sortOrder", { valueAsNumber: true })}
+            error={errors.sortOrder}
+          />
+        </div>
+
+        <TextareaField
+          label="Credits"
+          placeholder="Producer, mixer, featured artists…"
+          rows={3}
+          {...register("credits")}
+          error={errors.credits}
+        />
+
+        <ToggleField
+          label="Featured release"
+          helperText="Featured items surface first in carousels."
+          checked={!!featured}
+          onChange={(value) => setValue("featured", value, { shouldDirty: true })}
+        />
+
+        <div className={styles.fieldGroup}>
+          <TextField
+            label="Meta title"
+            placeholder="Exclusive premiere: RUNNING (BOLD YELLOW)"
+            {...register("metaTitle")}
+            error={errors.metaTitle}
+          />
+          <TextareaField
+            label="Meta description"
+            placeholder="SEO summary for socials and search."
+            rows={3}
+            {...register("metaDescription")}
+            error={errors.metaDescription}
+          />
+        </div>
+
+        {message && (
+          <div
+            className={
+              message.type === "success"
+                ? styles.successMessage
+                : styles.errorMessage
+            }
+          >
+            {message.text}
+          </div>
+        )}
+
+        <div className={styles.actions}>
+          <button
+            type="submit"
+            className={styles.primaryButton}
+            disabled={isSubmitting || !isDirty}
+          >
+            {isSubmitting ? "Saving…" : "Create release"}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => reset(DEFAULT_VALUES)}
+          >
+            Reset form
+          </button>
+        </div>
+      </form>
+
+      <div className={styles.divider} />
+
+      <h3 className={styles.sectionTitle}>Existing releases</h3>
+
+      {isLoading ? (
+        <div className={styles.emptyState}>Loading releases…</div>
+      ) : releases.length === 0 ? (
+        <div className={styles.emptyState}>
+          Add your first release to populate the music carousel.
+        </div>
+      ) : (
+        <div className={styles.list}>
+          {releases.map((release) => (
+            <MusicListItem
+              key={release.id}
+              record={release}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type MusicListItemProps = {
+  record: MusicReleaseRecord;
+  onUpdate: (id: string, payload: MusicReleaseFormValues) => Promise<{ ok: boolean; message?: string }>;
+  onDelete: (id: string) => Promise<{ ok: boolean; message?: string }>;
+};
+
+function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
+  const [state, setState] = useState<MusicListState>({
+    title: record.title ?? "",
+    slug: record.slug ?? "",
+    description: record.description ?? "",
+    streamingLinks: normalizeStreamingLinks(record.streamingLinks),
+    coverImageUrl: record.coverImageUrl ?? "",
+    coverImageAlt: record.coverImageAlt ?? "",
+    coverCloudinaryPublicId: record.coverCloudinaryPublicId ?? "",
+    audioUrl: record.audioUrl ?? "",
+    audioCloudinaryPublicId: record.audioCloudinaryPublicId ?? "",
+    releaseDate: toInputDate(record.releaseDate),
+    releaseTime: record.releaseTime ?? "",
+    timeZone: record.timeZone ?? "",
+    comingSoon: !!record.comingSoon,
+    genre: record.genre ?? "",
+    duration: record.duration ?? "",
+    credits: record.credits ?? "",
+    featured: !!record.featured,
+    metaTitle: record.metaTitle ?? "",
+    metaDescription: record.metaDescription ?? "",
+    sortOrder: record.sortOrder ?? 0,
+  });
+  const [status, setStatus] = useState<MessageState>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isCoverUploading, setIsCoverUploading] = useState(false);
+  const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
+  const [isAudioUploading, setIsAudioUploading] = useState(false);
+  const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
+
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+
+  const statusLabel = state.comingSoon
+    ? "Coming soon"
+    : record.releaseAt
+      ? `Released ${new Date(record.releaseAt).toLocaleDateString()}`
+      : "Release date TBA";
+
+  const addStreamingLink = useCallback(() => {
+    const existing = new Set(state.streamingLinks.map((link) => link.label.toLowerCase()));
+    const suggested = LINK_SUGGESTIONS.find((label) => !existing.has(label.toLowerCase()));
+    setState((prev) => ({
+      ...prev,
+      streamingLinks: [
+        ...prev.streamingLinks,
+        { id: crypto.randomUUID(), label: suggested ?? "Platform", url: "" },
+      ],
+    }));
+  }, [state.streamingLinks]);
+
+  const updateStreamingLink = (index: number, field: "label" | "url", value: string) => {
+    setState((prev) => {
+      const next = [...prev.streamingLinks];
+      next[index] = { ...next[index], [field]: value };
+      return { ...prev, streamingLinks: next };
+    });
+  };
+
+  const removeStreamingLink = (index: number) => {
+    setState((prev) => ({
+      ...prev,
+      streamingLinks: prev.streamingLinks.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleCoverUpload = async (file: File) => {
+    setCoverUploadError(null);
+    setIsCoverUploading(true);
+    try {
+      const result = await uploadAsset(file, {
+        folder: "coh-music/music/covers",
+        resourceType: "image",
+      });
+      setState((prev) => ({
+        ...prev,
+        coverImageUrl: result.secureUrl,
+        coverCloudinaryPublicId: result.publicId,
+      }));
+    } catch (error) {
+      setCoverUploadError((error as Error).message);
+    } finally {
+      setIsCoverUploading(false);
+    }
+  };
+
+  const handleAudioUpload = async (file: File) => {
+    setAudioUploadError(null);
+    setIsAudioUploading(true);
+    try {
+      const result = await uploadAsset(file, {
+        folder: "coh-music/music/audio",
+        resourceType: "video",
+      });
+      setState((prev) => ({
+        ...prev,
+        audioUrl: result.secureUrl,
+        audioCloudinaryPublicId: result.publicId,
+      }));
+    } catch (error) {
+      setAudioUploadError((error as Error).message);
+    } finally {
+      setIsAudioUploading(false);
+    }
+  };
+
+  const clearCover = () => {
+    setState((prev) => ({
+      ...prev,
+      coverImageUrl: "",
+      coverCloudinaryPublicId: "",
+    }));
+  };
+
+  const clearAudio = () => {
+    setState((prev) => ({
+      ...prev,
+      audioUrl: "",
+      audioCloudinaryPublicId: "",
+    }));
+  };
+
+  const save = async () => {
+    setIsSaving(true);
+    setStatus(null);
+
+    const result = await onUpdate(record.id, {
+      ...state,
+      sortOrder: Number(state.sortOrder) ?? 0,
+    });
+
+    if (!result.ok) {
+      setStatus({
+        type: "error",
+        text: result.message ?? "Failed to update release.",
+      });
+    } else {
+      setStatus({ type: "success", text: "Release updated." });
+    }
+
+    setIsSaving(false);
+  };
+
+  const remove = async () => {
+    if (!window.confirm("Permanently delete this release?")) return;
+    setIsDeleting(true);
+    const result = await onDelete(record.id);
+    if (!result.ok) {
+      setStatus({
+        type: "error",
+        text: result.message ?? "Failed to delete release.",
+      });
+    }
+    setIsDeleting(false);
+  };
+
+  return (
+    <article className={styles.listItem}>
+      <header className={styles.listItemHeader}>
+        <div>
+          <div className={styles.listItemTitle}>{state.title || record.title}</div>
+          <div className={styles.timestamp}>{statusLabel}</div>
+        </div>
+        <div
+          className={`${styles.status} ${
+            state.comingSoon ? styles.comingSoon : ""
+          }`}
+        >
+          {state.featured ? "Featured" : "Active"}
+        </div>
+      </header>
+
+      <div className={styles.fieldGroup}>
+        <input
+          className={controls.input}
+          value={state.title}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, title: event.target.value }))
+          }
+          placeholder="Title"
+        />
+        <input
+          className={controls.input}
+          value={state.slug}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, slug: event.target.value }))
+          }
+          placeholder="Slug"
+        />
+      </div>
+
+      <textarea
+        className={controls.textarea}
+        value={state.description ?? ""}
+        onChange={(event) =>
+          setState((prev) => ({ ...prev, description: event.target.value }))
+        }
+        rows={3}
+        placeholder="Description"
+      />
+
+      <div className={styles.fieldGroup} style={{ flexDirection: "column", gap: "0.75rem" }}>
+        <div
+          className={styles.fieldGroup}
+          style={{ justifyContent: "space-between", alignItems: "center" }}
+        >
+          <span className={controls.label}>Streaming links</span>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={addStreamingLink}
+          >
+            Add link
+          </button>
+        </div>
+        {state.streamingLinks.length === 0 && (
+          <p className={controls.helper}>No streaming links yet.</p>
+        )}
+        {state.streamingLinks.map((link, index) => (
+          <div key={link.id} className={styles.fieldGroup}>
+            <input
+              className={controls.input}
+              value={link.label}
+              onChange={(event) =>
+                updateStreamingLink(index, "label", event.target.value)
+              }
+              placeholder="Platform"
+            />
+            <input
+              className={controls.input}
+              value={link.url}
+              onChange={(event) =>
+                updateStreamingLink(index, "url", event.target.value)
+              }
+              placeholder="https://open.spotify.com/..."
+            />
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => removeStreamingLink(index)}
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <input
+        ref={coverInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void handleCoverUpload(file);
+            event.target.value = "";
+          }
+        }}
+      />
+
+      <div className={styles.fieldGroup}>
+        <input
+          className={controls.input}
+          value={state.coverImageUrl}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, coverImageUrl: event.target.value }))
+          }
+          placeholder="Cover image URL"
+        />
+        <input
+          className={controls.input}
+          value={state.coverImageAlt}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, coverImageAlt: event.target.value }))
+          }
+          placeholder="Cover image alt"
+        />
+        <input
+          className={controls.input}
+          value={state.coverCloudinaryPublicId ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({
+              ...prev,
+              coverCloudinaryPublicId: event.target.value,
+            }))
+          }
+          placeholder="Cover public ID"
+        />
+      </div>
+
+      <div className={styles.fieldGroup}>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={() => coverInputRef.current?.click()}
+          disabled={isCoverUploading}
+        >
+          {isCoverUploading ? "Uploading…" : "Upload cover"}
+        </button>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={clearCover}
+          disabled={isCoverUploading}
+        >
+          Clear cover
+        </button>
+        {coverUploadError ? (
+          <span className={controls.error}>{coverUploadError}</span>
+        ) : (
+          <span className={controls.helper}>Paste a URL or upload artwork.</span>
+        )}
+      </div>
+
+      <input
+        ref={audioInputRef}
+        type="file"
+        accept="audio/*"
+        style={{ display: "none" }}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            void handleAudioUpload(file);
+            event.target.value = "";
+          }
+        }}
+      />
+
+      <div className={styles.fieldGroup}>
+        <input
+          className={controls.input}
+          value={state.audioUrl ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, audioUrl: event.target.value }))
+          }
+          placeholder="Audio URL"
+        />
+        <input
+          className={controls.input}
+          value={state.audioCloudinaryPublicId ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({
+              ...prev,
+              audioCloudinaryPublicId: event.target.value,
+            }))
+          }
+          placeholder="Audio public ID"
+        />
+        <div className={styles.fieldGroup}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => audioInputRef.current?.click()}
+            disabled={isAudioUploading}
+          >
+            {isAudioUploading ? "Uploading…" : "Upload audio"}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={clearAudio}
+            disabled={isAudioUploading}
+          >
+            Clear audio
+          </button>
+        </div>
+      </div>
+      {audioUploadError ? (
+        <span className={controls.error}>{audioUploadError}</span>
+      ) : (
+        <span className={controls.helper}>Upload or link an optional audio preview.</span>
+      )}
+
+      <div className={styles.fieldGroup}>
+        <input
+          className={controls.input}
+          type="date"
+          value={state.releaseDate ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, releaseDate: event.target.value }))
+          }
+        />
+        <input
+          className={controls.input}
+          type="time"
+          value={state.releaseTime ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, releaseTime: event.target.value }))
+          }
+        />
+        <input
+          className={controls.input}
+          value={state.timeZone ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, timeZone: event.target.value }))
+          }
+          placeholder="Time zone"
+        />
+      </div>
+
+      <div className={styles.fieldGroup}>
+        <ToggleField
+          label="Coming soon"
+          checked={!!state.comingSoon}
+          onChange={(value) =>
+            setState((prev) => ({ ...prev, comingSoon: value }))
+          }
+        />
+        <ToggleField
+          label="Featured"
+          checked={!!state.featured}
+          onChange={(value) =>
+            setState((prev) => ({ ...prev, featured: value }))
+          }
+        />
+        <input
+          className={controls.input}
+          value={state.genre ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, genre: event.target.value }))
+          }
+          placeholder="Genre"
+        />
+        <input
+          className={controls.input}
+          value={state.duration ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, duration: event.target.value }))
+          }
+          placeholder="Duration"
+        />
+      </div>
+
+      <textarea
+        className={controls.textarea}
+        value={state.credits ?? ""}
+        onChange={(event) =>
+          setState((prev) => ({ ...prev, credits: event.target.value }))
+        }
+        rows={3}
+        placeholder="Credits"
+      />
+
+      <div className={styles.fieldGroup}>
+        <input
+          className={controls.input}
+          value={state.metaTitle ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, metaTitle: event.target.value }))
+          }
+          placeholder="Meta title"
+        />
+        <textarea
+          className={controls.textarea}
+          value={state.metaDescription ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, metaDescription: event.target.value }))
+          }
+          rows={2}
+          placeholder="Meta description"
+        />
+        <input
+          className={controls.input}
+          type="number"
+          min={0}
+          value={state.sortOrder}
+          onChange={(event) =>
+            setState((prev) => ({
+              ...prev,
+              sortOrder: Number(event.target.value),
+            }))
+          }
+          placeholder="Sort order"
+        />
+      </div>
+
+      {status && (
+        <div
+          className={
+            status.type === "success"
+              ? styles.successMessage
+              : styles.errorMessage
+          }
+        >
+          {status.text}
+        </div>
+      )}
+
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={save}
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving…" : "Save changes"}
+        </button>
+        <button
+          type="button"
+          className={styles.dangerButton}
+          onClick={remove}
+          disabled={isDeleting}
+        >
+          {isDeleting ? "Deleting…" : "Delete"}
+        </button>
+      </div>
+    </article>
+  );
+}

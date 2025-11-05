@@ -5,7 +5,8 @@
 }
 
 .embla {
-  width: min(90vw, 64rem);
+  width: min-content;
+  max-width: min(90vw, 64rem);
   border-radius: 1.5rem;
   padding: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -119,6 +120,6 @@
 .meta {
   font-size: 0.75rem;
   letter-spacing: 0.18em;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   color: color-mix(in oklab, var(--foreground) 65%, transparent);
 }

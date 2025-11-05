@@ -6,6 +6,8 @@ html { scroll-behavior: smooth; }
   --radius: 0.625rem;
   --background: #b91c1c; /* red-700 */
   --foreground: #ffffff; /* ensure readable text */
+  --site-background: #0b1120;
+  --site-foreground: #ffffff;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -39,6 +41,12 @@ html { scroll-behavior: smooth; }
   --layer2-x: 100px;
   --layer2-y: 100px;
   --gap-y: 300px; /* vertical space between layers */
+}
+
+body {
+  background: var(--site-background, #0b1120);
+  color: var(--site-foreground, var(--foreground));
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 .dark {

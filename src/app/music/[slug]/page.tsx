@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { musicReleases } from "../../../data/music";
+import {
+  getMusicReleaseBySlug,
+  getMusicReleases,
+  type MusicReleaseDetail,
+} from "@/lib/content";
 import s from "./page.module.css";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -11,60 +15,84 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   year: "numeric",
 });
 
-type PageParams = {
-  slug: string;
-};
-
 type PageProps = {
-  params: Promise<PageParams>;
+  params: { slug: string };
 };
 
-export function generateStaticParams() {
-  return musicReleases.map(({ slug }) => ({ slug }));
+export async function generateStaticParams() {
+  const releases = await getMusicReleases();
+  return releases.map(({ slug }) => ({ slug }));
 }
 
 export const revalidate = 0;
 export const dynamicParams = true;
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { slug: rawSlug } = await params;
-  const slug = decodeURIComponent(rawSlug);
-  const release = musicReleases.find((item) => item.slug === slug);
-  if (!release) {
-    return {};
-  }
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const slug = decodeURIComponent(params.slug);
+  const release = await getMusicReleaseBySlug(slug);
+  if (!release) return {};
 
-  const { title, blurb, coverImage } = release;
-  return {
-    title: `${title} · Creature of Habit`,
-    description: blurb,
-    openGraph: {
-      title: `${title} · Creature of Habit`,
-      description: blurb,
-      images: [
+  const title = release.metaTitle ?? `${release.title} · Creature of Habit`;
+  const description =
+    release.metaDescription ??
+    release.description ??
+    "New release from Creature of Habit.";
+
+  const images = release.coverImageUrl
+    ? [
         {
-          url: coverImage.src,
-          width: coverImage.width,
-          height: coverImage.height,
-          alt: coverImage.alt,
+          url: release.coverImageUrl,
+          width: 1200,
+          height: 1200,
+          alt: release.coverImageAlt ?? release.title,
         },
-      ],
+      ]
+    : undefined;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images,
     },
   };
 }
 
 export default async function MusicReleasePage({ params }: PageProps) {
-  const { slug: rawSlug } = await params;
-  const slug = decodeURIComponent(rawSlug);
-  const release =
-    musicReleases.find((item) => item.slug === slug) ?? notFound();
+  const slug = decodeURIComponent(params.slug);
+  const release = await getMusicReleaseBySlug(slug);
 
-  const isComingSoon = release.status === "coming-soon";
-  const formattedDate = release.releaseDate
-    ? dateFormatter.format(new Date(release.releaseDate))
-    : undefined;
+  if (!release) {
+    notFound();
+  }
+
+  return <ReleaseContent release={release} />;
+}
+
+function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
+  const {
+    title,
+    description,
+    streamingLinks,
+    coverImageUrl,
+    coverImageAlt,
+    audioUrl,
+    releaseDate,
+    comingSoon,
+    genre,
+    duration,
+    credits,
+  } = release;
+
+  const formattedDate = releaseDate ? dateFormatter.format(new Date(releaseDate)) : null;
+  const creditLines = credits
+    ? credits
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+    : [];
 
   return (
     <main className={`section ${s.page}`}>
@@ -72,63 +100,76 @@ export default async function MusicReleasePage({ params }: PageProps) {
         <Link href="/" className={s.backLink}>
           {"<"} Back to main site
         </Link>
-        {isComingSoon && (
+        {comingSoon && (
           <span className={s.badge} aria-label="Coming soon">
             Coming soon
           </span>
         )}
       </div>
+
       <section className={`section ${s.hero} ${s.releaseHero}`}>
         <div className={s.cover}>
-          <Image
-            src={release.coverImage.src}
-            alt={release.coverImage.alt}
-            width={release.coverImage.width}
-            height={release.coverImage.height}
-            className={s.coverImage}
-            priority
-          />
+          {coverImageUrl ? (
+            <Image
+              src={coverImageUrl}
+              alt={coverImageAlt ?? `${title} cover art`}
+              width={1200}
+              height={1200}
+              className={s.coverImage}
+              priority
+            />
+          ) : (
+            <div className={s.coverPlaceholder}>Artwork coming soon</div>
+          )}
         </div>
         <div className={s.summary}>
           <span className={s.eyebrow}>Music release</span>
-          <h1 className={s.title}>{release.title}</h1>
-          <p className={s.blurb}>{release.blurb}</p>
+          <h1 className={s.title}>{title}</h1>
           <div className={s.meta}>
             <span className={s.metaItem}>
               {formattedDate ? `Released ${formattedDate}` : "Release date TBA"}
             </span>
-            {release.comingSoonNote && (
-              <span className={s.metaItem}>{release.comingSoonNote}</span>
-            )}
+            {genre && <span className={s.metaItem}>{genre}</span>}
+            {duration && <span className={s.metaItem}>{duration}</span>}
           </div>
-          <p className={s.description}>{release.description}</p>
-          {release.streamingLinks.length > 0 ? (
+          {description && <p className={s.description}>{description}</p>}
+
+          {streamingLinks.length ? (
             <div className={s.linkGrid}>
-              {release.streamingLinks.map((link) => (
+              {streamingLinks.map((link) => (
                 <a
-                  key={link.platform}
+                  key={link.id}
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={s.linkButton}
                 >
-                  <span>{link.label ?? link.platform}</span>
+                  <span>{link.label}</span>
                 </a>
               ))}
             </div>
           ) : (
             <div className={s.placeholder}>
-              <p>Streaming links will appear here soon.</p>
+              <p>Streaming link will appear here once published.</p>
+            </div>
+          )}
+
+          {audioUrl && (
+            <div className={s.audioPreview}>
+              <audio controls preload="none" src={audioUrl}>
+                Your browser does not support the audio element.
+              </audio>
             </div>
           )}
         </div>
       </section>
-      {release.credits && release.credits.length > 0 && (
+
+      {creditLines.length > 0 && (
         <section className={`section ${s.creditsSection}`}>
           <div className={s.creditsCard}>
             <h2 className={s.creditsHeading}>Credits</h2>
             <ul className={s.creditList}>
-              {release.credits.map((credit) => (
+              {creditLines.map((credit) => (
                 <li key={credit} className={s.creditItem}>
                   {credit}
                 </li>
