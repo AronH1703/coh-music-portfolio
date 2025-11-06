@@ -5,8 +5,8 @@
 }
 
 .embla {
-  width: min-content;
-  max-width: min(90vw, 64rem);
+  /* width: fit-content; */
+  width: min(90vw, 64rem);
   border-radius: 1.5rem;
   padding: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.22);

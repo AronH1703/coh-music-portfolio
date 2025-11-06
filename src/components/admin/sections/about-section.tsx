@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import styles from "../admin-dashboard.module.scss";
+import controls from "../form-controls.module.scss";
 import { TextField, TextareaField } from "../form-controls";
 import { aboutSchema } from "@/lib/validation";
 import { uploadAsset } from "@/lib/admin/uploads";
