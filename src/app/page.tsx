@@ -14,11 +14,12 @@ import {
   type AboutContentEntry,
   type ContactContentEntry,
 } from "@/lib/content";
+import { SubscribeForm } from "@/components/newsletter/subscribe-form";
 
 type SectionConfig = {
   id: string;
   title: string;
-  description: string;
+  description?: string; // made optional
   placeholder?: string;
   content?: ReactNode;
 };
@@ -67,8 +68,7 @@ export default async function Home() {
     {
       id: "music",
       title: labels.musicLabel ?? "Music",
-      description:
-        "Browse released singles and works-in-progress. Each card opens a shareable release page with credits, artwork, and streaming links.",
+      // description:
       content: musicSlides.length ? (
         <MusicCarousel releases={musicSlides} />
       ) : undefined,
@@ -77,8 +77,7 @@ export default async function Home() {
     {
       id: "gallery",
       title: labels.galleryLabel ?? "Gallery",
-      description:
-        "Capture behind-the-scenes shots, cover artwork, and stage moments. Upload imagery from the admin to curate the visual story.",
+      // description:
       content: gallerySlides.length ? (
         <PhotoCarousel photos={gallerySlides} />
       ) : undefined,
@@ -87,23 +86,20 @@ export default async function Home() {
     {
       id: "videos",
       title: labels.videosLabel ?? "Videos",
-      description:
-        "Highlight music videos, mini-documentaries, and live performances with a focused carousel of featured clips.",
+      // description:
       content: videoSlides.length ? <VideoCarousel videos={videoSlides} /> : undefined,
       placeholder: "Add YouTube links in the admin Videos section to feature them here.",
     },
     {
       id: "about",
       title: labels.aboutLabel ?? "About",
-      description:
-        "Share your story, influences, and creative milestones. This section pulls directly from the About editor in the admin dashboard.",
+      // description:
       content: <AboutContent data={about} />,
     },
     {
       id: "contact",
       title: labels.contactLabel ?? "Contact",
-      description:
-        "Offer booking, management, and collaboration details. Add social and streaming links from the admin to keep everything current.",
+      // description:
       content: <ContactContent data={contact} />,
     },
   ];
@@ -127,9 +123,8 @@ function ContentSection({ id, title, description, placeholder, content }: Conten
         <div className="space-y-4">
           <span className="eyebrow">{title}</span>
           <h2>{content ? title : `${title} coming soon`}</h2>
-          <p>{description}</p>
+          {/* {description && <p>{description}</p>} */}
         </div>
-
         <div className={`card ${content ? "card-feature" : ""}`}>
           {content ?? <div>{placeholder ?? "Content managed from the admin dashboard will appear here."}</div>}
         </div>
@@ -272,25 +267,5 @@ function ContactContent({ data }: { data: ContactContentEntry | null }) {
 }
 
 function NewsletterCta({ email }: { email: string }) {
-  return (
-    <form className="contact-form">
-      <label htmlFor="newsletter-email">Join the release log</label>
-      <div className="contact-form-field">
-        <input
-          id="newsletter-email"
-          name="email"
-          type="email"
-          placeholder={email || "name@example.com"}
-          required
-          autoComplete="email"
-        />
-        <button type="submit" className="btn btn-primary">
-          Notify me
-        </button>
-      </div>
-      <span className="contact-form-helper">
-        No spam—just key updates, and you can unsubscribe anytime.
-      </span>
-    </form>
-  );
+  return <SubscribeForm placeholder={email} />;
 }

@@ -5,8 +5,8 @@
 }
 
 .embla {
-  /* width: fit-content; */
-  width: min(90vw, 64rem);
+  width: 100%;
+  max-width: min(90vw, 64rem);
   border-radius: 1.5rem;
   padding: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -35,6 +35,33 @@
   align-items: stretch;
   padding: 0 0.75rem 0.75rem;
   touch-action: pan-y pinch-zoom;
+}
+
+/* Explicit slide width via flex-basis (Safari-friendly) */
+.slide {
+  flex: 0 0 clamp(260px, 85vw, 560px);
+  display: block;
+}
+
+/* Card fills the slide */
+.card {
+  width: 100%;
+}
+
+/* Responsive media */
+.card img,
+.card video {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover; /* use 'contain' if you don't want cropping */
+  border-radius: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .slide {
+    flex-basis: clamp(320px, 42vw, 600px);
+  }
 }
 
 .controls {
