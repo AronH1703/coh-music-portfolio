@@ -15,9 +15,15 @@
 }
 
 .slide {
-   flex: 0 0 var(--slide-width);
+   flex: 0 1 var(--slide-width);
    min-width: 0;
  }
+
+ @media (max-width: 640px) {
+  .slide {
+    flex: 0 0 var(--slide-width);
+  }
+}
 
 .card {
    display: grid;
