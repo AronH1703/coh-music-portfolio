@@ -221,13 +221,32 @@
    pointer-events: auto;
 }
 
+.lightboxControls {
+   display: none;
+   gap: 0.25rem;
+   margin-top: 0.5rem;
+}
+
 .lightboxDots {
    display: flex;
    gap: 0.5rem;
    flex-wrap: wrap;
    justify-content: center;
    margin-top: 0.35rem;
- }
+}
+
+@media (max-width: 1024px) {
+  .lightboxPlayerNav {
+    display: none;
+  }
+
+  .lightboxControls {
+    display: flex;
+    width: min(80vw, 72rem);
+    justify-content: center;
+    align-items: center;
+  }
+}
 
 .lightboxClose {
    position: fixed;

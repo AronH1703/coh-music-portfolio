@@ -432,6 +432,26 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
                 />
               ))}
             </div>
+            <div className={s.lightboxControls}>
+              <PrevButton
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showPrevVideo();
+                }}
+                disabled={slides.length <= 1}
+                aria-label="Previous video"
+                className={s.lightboxBtn}
+              />
+              <NextButton
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showNextVideo();
+                }}
+                disabled={slides.length <= 1}
+                aria-label="Next video"
+                className={s.lightboxBtn}
+              />
+            </div>
           </div>
         )}
       </div>

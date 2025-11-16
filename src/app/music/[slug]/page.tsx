@@ -16,7 +16,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 });
 
 type PageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
@@ -28,8 +28,9 @@ export const revalidate = 0;
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const slug = decodeURIComponent(params.slug);
-  const release = await getMusicReleaseBySlug(slug);
+  const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
+  const release = await getMusicReleaseBySlug(decodedSlug);
   if (!release) return {};
 
   const title = release.metaTitle ?? `${release.title} · Creature of Habit`;
@@ -61,8 +62,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function MusicReleasePage({ params }: PageProps) {
-  const slug = decodeURIComponent(params.slug);
-  const release = await getMusicReleaseBySlug(slug);
+  const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
+  const release = await getMusicReleaseBySlug(decodedSlug);
 
   if (!release) {
     notFound();
