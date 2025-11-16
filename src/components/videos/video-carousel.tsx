@@ -388,19 +388,7 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
-            </div>
-            {(slides[lightboxIndex].title || slides[lightboxIndex].description) && (
-              <div className={s.lightboxCaption}>
-                {slides[lightboxIndex].description && (
-                  <span>{slides[lightboxIndex].description}</span>
-                )}
-                {slides[lightboxIndex].title && (
-                  <strong>{slides[lightboxIndex].title}</strong>
-                )}
-              </div>
-            )}
-            <div className={s.lightboxControls}>
-              <div className={s.lightboxButtons}>
+              <div className={s.lightboxPlayerNav}>
                 <PrevButton
                   onClick={(event) => {
                     event.stopPropagation();
@@ -420,21 +408,29 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
                   className={s.lightboxBtn}
                 />
               </div>
-              <div className={s.lightboxDots}>
-                {slides.map((_, dotIndex) => (
-                  <DotButton
-                    key={`lightbox-dot-${dotIndex}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setLightboxIndex(dotIndex);
-                    }}
-                    className={
-                      dotIndex === lightboxIndex ? frameStyles.dotSelected : undefined
-                    }
-                    aria-label={`Show video ${dotIndex + 1}`}
-                  />
-                ))}
-              </div>
+            </div>
+            <div className={s.lightboxCaption}>
+              {slides[lightboxIndex].description && (
+                <span>{slides[lightboxIndex].description}</span>
+              )}
+              {slides[lightboxIndex].title && (
+                <strong>{slides[lightboxIndex].title}</strong>
+              )}
+            </div>
+            <div className={s.lightboxDots}>
+              {slides.map((_, dotIndex) => (
+                <DotButton
+                  key={`lightbox-dot-${dotIndex}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setLightboxIndex(dotIndex);
+                  }}
+                  className={
+                    dotIndex === lightboxIndex ? frameStyles.dotSelected : undefined
+                  }
+                  aria-label={`Show video ${dotIndex + 1}`}
+                />
+              ))}
             </div>
           </div>
         )}
