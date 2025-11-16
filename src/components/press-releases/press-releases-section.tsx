@@ -107,66 +107,73 @@ export function PressReleasesSection({ releases }: PressReleasesSectionProps) {
         </div>
 
         <div className={styles.controlGroup}>
-          <label className={styles.visuallyHidden} htmlFor="press-category">
-            Filter by category
-          </label>
-          <select
-            id="press-category"
-            className={styles.select}
-            value={categoryFilter}
-            onChange={(event) => {
-              setCategoryFilter(event.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            <option value="all">All categories</option>
-            {categories.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+  <label className={styles.visuallyHidden} htmlFor="press-category">
+    Filter by category
+  </label>
+  <div className={styles.selectWrapper}>
+    <select
+      id="press-category"
+      className={styles.select}
+      value={categoryFilter}
+      onChange={(event) => {
+        setCategoryFilter(event.target.value);
+        setCurrentPage(1);
+      }}
+    >
+      <option value="all">All categories</option>
+      {categories.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  </div>
 
-          <label className={styles.visuallyHidden} htmlFor="press-year">
-            Filter by year
-          </label>
-          <select
-            id="press-year"
-            className={styles.select}
-            value={yearFilter}
-            onChange={(event) => {
-              setYearFilter(event.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            <option value="all">Any year</option>
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+  <label className={styles.visuallyHidden} htmlFor="press-year">
+    Filter by year
+  </label>
+  <div className={styles.selectWrapper}>
+    <select
+      id="press-year"
+      className={styles.select}
+      value={yearFilter}
+      onChange={(event) => {
+        setYearFilter(event.target.value);
+        setCurrentPage(1);
+      }}
+    >
+      <option value="all">Any year</option>
+      {years.map((year) => (
+        <option key={year} value={year}>
+          {year}
+        </option>
+      ))}
+    </select>
+  </div>
 
-          <label className={styles.visuallyHidden} htmlFor="press-page-size">
-            Releases per page
-          </label>
-          <select
-            id="press-page-size"
-            className={styles.select}
-            value={pageSize}
-            onChange={(event) => {
-              setPageSize(Number(event.target.value));
-              setCurrentPage(1);
-            }}
-          >
-            {PAGE_SIZE_OPTIONS.map((size) => (
-              <option key={size} value={size}>
-                {size} per page
-              </option>
-            ))}
-          </select>
+  <label className={styles.visuallyHidden} htmlFor="press-page-size">
+    Releases per page
+  </label>
+  <div className={styles.selectWrapper}>
+    <select
+      id="press-page-size"
+      className={styles.select}
+      value={pageSize}
+      onChange={(event) => {
+        setPageSize(Number(event.target.value));
+        setCurrentPage(1);
+      }}
+    >
+      {PAGE_SIZE_OPTIONS.map((size) => (
+        <option key={size} value={size}>
+          {size} per page
+        </option>
+      ))}
+    </select>
+  </div>
         </div>
       </div>
+
 
       <div className={styles.grid}>
         {visibleReleases.map((release) => (

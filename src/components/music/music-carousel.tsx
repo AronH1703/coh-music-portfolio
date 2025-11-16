@@ -33,6 +33,7 @@ export type MusicCarouselRelease = {
   coverImageUrl?: string | null;
   coverImageAlt?: string | null;
   releaseDate?: string | null;
+  releaseAt?: string | null;
   comingSoon: boolean;
 };
 
@@ -50,6 +51,14 @@ export default function MusicCarousel({ releases }: MusicCarouselProps) {
   } = usePrevNextButtons(emblaApi);
   const { selectedIndex, scrollSnaps, onDotButtonClick } =
     useDotButton(emblaApi);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const items = useMemo(() => releases.filter((release) => release.slug), [releases]);
 
@@ -68,16 +77,40 @@ export default function MusicCarousel({ releases }: MusicCarouselProps) {
         <div className={frameStyles.viewport} ref={emblaRef}>
           <div className={clsx(frameStyles.container, s.container)}>
             {items.map((release, index) => {
-              const { slug, title, coverImageUrl, coverImageAlt, comingSoon, releaseDate } = release;
-              const formattedDate = releaseDate
-                ? dateFormatter.format(new Date(releaseDate))
-                : "Date TBA";
+              const {
+                slug,
+                title,
+                coverImageUrl,
+                coverImageAlt,
+                comingSoon,
+                releaseDate,
+                releaseAt,
+              } = release;
+              const parsedReleaseDate = releaseDate ? Date.parse(releaseDate) : Number.NaN;
+              const releaseDateIsValid = !Number.isNaN(parsedReleaseDate);
+              const parsedReleaseAt = releaseAt ? Date.parse(releaseAt) : Number.NaN;
+              const releaseAtIsValid = !Number.isNaN(parsedReleaseAt);
+              const formattedDate =
+                releaseDateIsValid && releaseDate
+                  ? dateFormatter.format(new Date(releaseDate))
+                  : "Date TBA";
+              const releaseMoment =
+                releaseAtIsValid
+                  ? parsedReleaseAt
+                  : releaseDateIsValid
+                    ? parsedReleaseDate
+                    : Number.NaN;
+              const releaseMomentIsValid = !Number.isNaN(releaseMoment);
+              const isReleaseInFuture =
+                releaseMomentIsValid && releaseMoment > currentTime;
+              const showComingSoon =
+                comingSoon && (!releaseMomentIsValid || isReleaseInFuture);
 
               return (
                 <div className={s.slide} key={slug}>
                   <Link href={`/music/${slug}`} className={s.cardLink}>
                     <article
-                      className={clsx(s.card, comingSoon && s.cardComingSoon)}
+                      className={clsx(s.card, showComingSoon && s.cardComingSoon)}
                     >
                       <div className={s.cover}>
                         {coverImageUrl ? (
@@ -95,7 +128,7 @@ export default function MusicCarousel({ releases }: MusicCarouselProps) {
                             No artwork yet
                           </div>
                         )}
-                        {comingSoon && (
+                        {showComingSoon && (
                           <div className={s.overlay}>
                             <span className={s.overlayText}>Coming soon</span>
                           </div>
@@ -104,9 +137,9 @@ export default function MusicCarousel({ releases }: MusicCarouselProps) {
                       <div className={clsx(frameStyles.info, s.info)}>
                         <h3 className={frameStyles.title}>{title}</h3>
                         <span
-                          className={clsx(frameStyles.meta, comingSoon && s.metaMuted)}
+                          className={clsx(frameStyles.meta, showComingSoon && s.metaMuted)}
                         >
-                          {comingSoon ? "In production" : formattedDate}
+                          {showComingSoon ? "In production" : formattedDate}
                         </span>
                       </div>
                     </article>

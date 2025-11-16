@@ -34,6 +34,40 @@
   border-color: rgba(248, 113, 113, 0.7);
 }
 
+/* 🔽 NEW — Select wrapper + custom arrow */
+.selectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.selectWrapper .select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem;
+}
+
+.selectWrapper::after {
+  content: "";
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+
+  width: 0;
+  height: 0;
+
+  border-left: 0.35rem solid transparent;
+  border-right: 0.35rem solid transparent;
+  border-top: 0.45rem solid rgba(255, 255, 255, 0.75);
+}
+
+.selectWrapper:focus-within::after {
+  border-top-color: rgba(248, 113, 113, 0.9);
+}
+/* 🔼 END OF ARROW STYLING */
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

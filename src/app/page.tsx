@@ -56,6 +56,7 @@ export default async function Home() {
     coverImageUrl: release.coverImageUrl,
     coverImageAlt: release.coverImageAlt,
     releaseDate: release.releaseDate,
+    releaseAt: release.releaseAt,
     comingSoon: release.comingSoon,
   }));
 

@@ -38,7 +38,7 @@ function deriveReleaseDateTimes(data: {
     }
   }
 
-  const releaseDate = base.startOf("day").toDate();
+  const releaseDate = dayjs.utc(base.format("YYYY-MM-DD")).startOf("day").toDate();
   const releaseDateTime = releaseAt.toDate();
 
   const now = dayjs();

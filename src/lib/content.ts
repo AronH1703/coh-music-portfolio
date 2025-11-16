@@ -127,6 +127,7 @@ export type MusicReleaseContent = {
   coverImageUrl?: string | null;
   coverImageAlt?: string | null;
   releaseDate?: string | null;
+  releaseAt?: string | null;
   comingSoon: boolean;
 };
 
@@ -142,6 +143,7 @@ export async function getMusicReleases(): Promise<MusicReleaseContent[]> {
     coverImageUrl: release.coverImageUrl,
     coverImageAlt: release.coverImageAlt,
     releaseDate: release.releaseDate ? release.releaseDate.toISOString() : null,
+    releaseAt: release.releaseAt ? release.releaseAt.toISOString() : null,
     comingSoon: release.comingSoon,
   }));
 }
