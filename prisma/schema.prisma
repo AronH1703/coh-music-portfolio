@@ -118,6 +118,24 @@ model MusicRelease {
   updatedAt          DateTime @updatedAt
 }
 
+model PressRelease {
+  id                     String   @id @default(cuid())
+  title                  String
+  date                   DateTime
+  summary                String
+  fullContent            String?
+  category               String
+  coverImageUrl          String?
+  coverCloudinaryPublicId String?
+  pdfUrl                 String?
+  pdfCloudinaryPublicId  String?
+  dropboxUrl             String?
+  directDownloadUrl      String?
+  featured               Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
 model Video {
   id           String         @id @default(cuid())
   title        String

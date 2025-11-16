@@ -11,12 +11,14 @@ import { VideosSection } from "./sections/videos-section";
 import { AboutSection } from "./sections/about-section";
 import { ContactSection } from "./sections/contact-section";
 import { NewsletterSection } from "./sections/newsletter-section";
+import { PressReleasesSection } from "./sections/press-releases-section";
 import { SiteLabelsSection } from "./sections/site-labels-section";
 
 type SectionId =
   | "hero"
   | "gallery"
   | "music"
+  | "pressReleases"
   | "videos"
   | "about"
   | "contact"
@@ -49,6 +51,13 @@ const SECTIONS: Array<{
     description:
       "Add releases, set streaming links, configure scheduling, and toggle coming soon overlays.",
     render: () => <MusicSection />,
+  },
+  {
+    id: "pressReleases",
+    label: "Press Releases",
+    description:
+      "Publish official statements, upload PDFs, and share featured media updates in one place.",
+    render: () => <PressReleasesSection />,
   },
   {
     id: "videos",

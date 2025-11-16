@@ -3,6 +3,7 @@ import PhotoCarousel, { type GalleryPhoto } from "@/components/gallery/photo-car
 import VideoCarousel, { type VideoCarouselItem } from "@/components/videos/video-carousel";
 import MusicCarousel, { type MusicCarouselRelease } from "@/components/music/music-carousel";
 import { HeroSection } from "@/components/landing/hero";
+import { PressReleasesSection } from "@/components/press-releases/press-releases-section";
 import {
   getHeroContent,
   getGalleryItems,
@@ -11,6 +12,7 @@ import {
   getAboutContent,
   getContactContent,
   getSiteLabels,
+  getPressReleases,
   type AboutContentEntry,
   type ContactContentEntry,
 } from "@/lib/content";
@@ -26,7 +28,7 @@ type SectionConfig = {
 };
 
 export default async function Home() {
-  const [hero, gallery, music, videos, about, contact, labels] = await Promise.all([
+  const [hero, gallery, music, videos, about, contact, labels, pressReleases] = await Promise.all([
     getHeroContent(),
     getGalleryItems(),
     getMusicReleases(),
@@ -34,6 +36,7 @@ export default async function Home() {
     getAboutContent(),
     getContactContent(),
     getSiteLabels(),
+    getPressReleases(),
   ]);
 
   const gallerySlides: GalleryPhoto[] = gallery.map((item) => ({
@@ -75,6 +78,14 @@ export default async function Home() {
         <MusicCarousel releases={musicSlides} />
       ) : undefined,
       placeholder: "Add releases via the admin panel to populate this carousel.",
+    },
+    {
+      id: "press-releases",
+      eyebrow: "Press",
+      heading: "Press Releases",
+      description: "Official announcements, new music updates, and media statements.",
+      content: <PressReleasesSection releases={pressReleases} />,
+      placeholder: "Publish press announcements via the admin panel to populate this section.",
     },
     {
       id: "gallery",
@@ -122,7 +133,14 @@ export default async function Home() {
 
 type ContentSectionProps = SectionConfig;
 
-function ContentSection({ id, eyebrow, heading, placeholder, content }: ContentSectionProps) {
+function ContentSection({
+  id,
+  eyebrow,
+  heading,
+  description,
+  placeholder,
+  content,
+}: ContentSectionProps) {
   const baseHeading = heading?.trim() || eyebrow?.trim() || "";
   const availableHeading = baseHeading || "Coming soon";
   const comingSoonHeading = baseHeading ? `${baseHeading} coming soon` : "Coming soon";
@@ -133,7 +151,7 @@ function ContentSection({ id, eyebrow, heading, placeholder, content }: ContentS
         <div className="space-y-4">
           <span className="eyebrow">{eyebrow}</span>
           <h2>{content ? availableHeading : comingSoonHeading}</h2>
-          {/* {description && <p>{description}</p>} */}
+          {description && <p className="section-subtitle">{description}</p>}
         </div>
         <div className={`card ${content ? "card-feature" : ""}`}>
           {content ?? <div>{placeholder ?? "Content managed from the admin dashboard will appear here."}</div>}

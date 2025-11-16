@@ -84,6 +84,35 @@ export const musicReleaseSchema = z
     },
   );
 
+const optionalRichText = z
+  .string()
+  .max(5000)
+  .transform((value) => {
+    if (!value) return undefined;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  })
+  .optional();
+
+export const pressReleaseSchema = z.object({
+  title: z.string().trim().min(2).max(200),
+  date: z
+    .string()
+    .trim()
+    .refine((value) => !Number.isNaN(Date.parse(value)), {
+      message: "Provide a valid release date.",
+    }),
+  summary: z.string().trim().min(20).max(1000),
+  fullContent: optionalRichText.optional(),
+  category: z.string().trim().min(2).max(80),
+  coverImageUrl: optionalUrl,
+  coverCloudinaryPublicId: z.string().trim().max(200).optional(),
+  pdfUrl: optionalUrl,
+  pdfCloudinaryPublicId: z.string().trim().max(200).optional(),
+  dropboxUrl: optionalUrl,
+  featured: z.boolean().optional(),
+});
+
 export const videoSchema = z
   .object({
     title: z.string().trim().min(2).max(160),

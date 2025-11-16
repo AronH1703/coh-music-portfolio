@@ -146,6 +146,40 @@ export async function getMusicReleases(): Promise<MusicReleaseContent[]> {
   }));
 }
 
+export type PressReleaseEntry = {
+  id: string;
+  title: string;
+  summary: string;
+  fullContent?: string | null;
+  category: string;
+  date: string;
+  coverImageUrl?: string | null;
+  directDownloadUrl?: string | null;
+  featured: boolean;
+};
+
+export async function getPressReleases(): Promise<PressReleaseEntry[]> {
+  const releases = await prisma.pressRelease.findMany({
+    orderBy: [
+      { featured: "desc" },
+      { date: "desc" },
+      { createdAt: "desc" },
+    ],
+  });
+
+  return releases.map((release) => ({
+    id: release.id,
+    title: release.title,
+    summary: release.summary,
+    fullContent: release.fullContent,
+    category: release.category,
+    date: release.date.toISOString(),
+    coverImageUrl: release.coverImageUrl,
+    directDownloadUrl: release.directDownloadUrl,
+    featured: release.featured,
+  }));
+}
+
 export type MusicReleaseDetail = {
   id: string;
   title: string;

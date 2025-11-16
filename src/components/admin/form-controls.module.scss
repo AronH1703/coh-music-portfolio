@@ -114,3 +114,49 @@
   border-color: rgba(17, 24, 39, 0.35);
   background: rgba(17, 24, 39, 0.05);
 }
+
+.richTextToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.richTextButton {
+  appearance: none;
+  border: 1px solid rgba(17, 24, 39, 0.25);
+  border-radius: 0.65rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(249, 250, 251, 0.85);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.richTextButton:hover {
+  border-color: rgba(17, 24, 39, 0.5);
+  box-shadow: 0 3px 6px rgba(17, 24, 39, 0.12);
+}
+
+.richTextEditor {
+  min-height: 180px;
+  border: 1px solid rgba(17, 24, 39, 0.25);
+  border-radius: 0.75rem;
+  padding: 0.85rem;
+  background: #fff;
+  color: #111;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  overflow: auto;
+}
+
+.richTextEditor:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.7);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.richTextEditor[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(17, 24, 39, 0.4);
+}
