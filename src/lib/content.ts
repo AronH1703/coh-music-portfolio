@@ -45,10 +45,15 @@ export async function getHeroContent(): Promise<HeroContent | null> {
 export type SiteLabels = {
   heroLabel?: string | null;
   musicLabel?: string | null;
+  musicHeading?: string | null;
   galleryLabel?: string | null;
+  galleryHeading?: string | null;
   videosLabel?: string | null;
+  videosHeading?: string | null;
   aboutLabel?: string | null;
+  aboutHeading?: string | null;
   contactLabel?: string | null;
+  contactHeading?: string | null;
 };
 
 export async function getSiteLabels(): Promise<SiteLabels> {
@@ -63,10 +68,15 @@ export async function getSiteLabels(): Promise<SiteLabels> {
   return {
     heroLabel: labels?.heroLabel ?? 'Composer • Producer • Multi-Instrumentalist',
     musicLabel: labels?.musicLabel ?? "Music",
+    musicHeading: labels?.musicHeading ?? labels?.musicLabel ?? "Music",
     galleryLabel: labels?.galleryLabel ?? "Gallery",
+    galleryHeading: labels?.galleryHeading ?? labels?.galleryLabel ?? "Gallery",
     videosLabel: labels?.videosLabel ?? "Videos",
+    videosHeading: labels?.videosHeading ?? labels?.videosLabel ?? "Videos",
     aboutLabel: labels?.aboutLabel ?? "About",
+    aboutHeading: labels?.aboutHeading ?? labels?.aboutLabel ?? "About",
     contactLabel: labels?.contactLabel ?? "Contact",
+    contactHeading: labels?.contactHeading ?? labels?.contactLabel ?? "Contact",
   };
 }
 

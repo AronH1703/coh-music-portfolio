@@ -172,10 +172,15 @@ model SiteLabels {
   id            String   @id @default(cuid())
   heroLabel     String?
   musicLabel    String?
+  musicHeading  String?
   galleryLabel  String?
+  galleryHeading String?
   videosLabel   String?
+  videosHeading String?
   aboutLabel    String?
+  aboutHeading  String?
   contactLabel  String?
+  contactHeading String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

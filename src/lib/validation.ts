@@ -124,8 +124,13 @@ export const newsletterSubscriptionSchema = z.object({
 export const siteLabelsSchema = z.object({
   heroLabel: z.string().trim().max(120).optional(),
   musicLabel: z.string().trim().max(80).optional(),
+  musicHeading: z.string().trim().max(120).optional(),
   galleryLabel: z.string().trim().max(80).optional(),
+  galleryHeading: z.string().trim().max(120).optional(),
   videosLabel: z.string().trim().max(80).optional(),
+  videosHeading: z.string().trim().max(120).optional(),
   aboutLabel: z.string().trim().max(80).optional(),
+  aboutHeading: z.string().trim().max(120).optional(),
   contactLabel: z.string().trim().max(80).optional(),
+  contactHeading: z.string().trim().max(120).optional(),
 });

@@ -18,7 +18,8 @@ import { SubscribeForm } from "@/components/newsletter/subscribe-form";
 
 type SectionConfig = {
   id: string;
-  title: string;
+  eyebrow: string;
+  heading?: string;
   description?: string; // made optional
   placeholder?: string;
   content?: ReactNode;
@@ -67,7 +68,8 @@ export default async function Home() {
   const sections: SectionConfig[] = [
     {
       id: "music",
-      title: labels.musicLabel ?? "Music",
+      eyebrow: labels.musicLabel ?? "Music",
+      heading: labels.musicHeading ?? labels.musicLabel ?? "Music",
       // description:
       content: musicSlides.length ? (
         <MusicCarousel releases={musicSlides} />
@@ -76,7 +78,8 @@ export default async function Home() {
     },
     {
       id: "gallery",
-      title: labels.galleryLabel ?? "Gallery",
+      eyebrow: labels.galleryLabel ?? "Gallery",
+      heading: labels.galleryHeading ?? labels.galleryLabel ?? "Gallery",
       // description:
       content: gallerySlides.length ? (
         <PhotoCarousel photos={gallerySlides} />
@@ -85,20 +88,23 @@ export default async function Home() {
     },
     {
       id: "videos",
-      title: labels.videosLabel ?? "Videos",
+      eyebrow: labels.videosLabel ?? "Videos",
+      heading: labels.videosHeading ?? labels.videosLabel ?? "Videos",
       // description:
       content: videoSlides.length ? <VideoCarousel videos={videoSlides} /> : undefined,
       placeholder: "Add YouTube links in the admin Videos section to feature them here.",
     },
     {
       id: "about",
-      title: labels.aboutLabel ?? "About",
+      eyebrow: labels.aboutLabel ?? "About",
+      heading: labels.aboutHeading ?? labels.aboutLabel ?? "About",
       // description:
       content: <AboutContent data={about} />,
     },
     {
       id: "contact",
-      title: labels.contactLabel ?? "Contact",
+      eyebrow: labels.contactLabel ?? "Contact",
+      heading: labels.contactHeading ?? labels.contactLabel ?? "Contact",
       // description:
       content: <ContactContent data={contact} />,
     },
@@ -116,13 +122,17 @@ export default async function Home() {
 
 type ContentSectionProps = SectionConfig;
 
-function ContentSection({ id, title, description, placeholder, content }: ContentSectionProps) {
+function ContentSection({ id, eyebrow, heading, placeholder, content }: ContentSectionProps) {
+  const baseHeading = heading?.trim() || eyebrow?.trim() || "";
+  const availableHeading = baseHeading || "Coming soon";
+  const comingSoonHeading = baseHeading ? `${baseHeading} coming soon` : "Coming soon";
+
   return (
     <section id={id}>
       <div className="section-inner">
         <div className="space-y-4">
-          <span className="eyebrow">{title}</span>
-          <h2>{content ? title : `${title} coming soon`}</h2>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{content ? availableHeading : comingSoonHeading}</h2>
           {/* {description && <p>{description}</p>} */}
         </div>
         <div className={`card ${content ? "card-feature" : ""}`}>
@@ -142,7 +152,7 @@ function splitTextIntoParagraphs(text: string) {
 
 function AboutContent({ data }: { data: AboutContentEntry | null }) {
   const fallbackText =
-    "Aron Emilsson crafts cinematic pop and electronic scores that lean into tactile textures, layered harmonies, and patient storytelling.";
+    "Creature of Habit crafts cinematic pop and electronic scores that lean into tactile textures, layered harmonies, and patient storytelling.";
   const aboutText = data?.aboutText ?? fallbackText;
   const missionStatement = data?.missionStatement;
   const featuredQuote = data?.featuredQuote;
