@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { type ReactNode } from "react";
 import PhotoCarousel, { type GalleryPhoto } from "@/components/gallery/photo-carousel";
 import VideoCarousel, { type VideoCarouselItem } from "@/components/videos/video-carousel";
@@ -176,6 +177,8 @@ function AboutContent({ data }: { data: AboutContentEntry | null }) {
   const missionStatement = data?.missionStatement;
   const featuredQuote = data?.featuredQuote;
   const attribution = data?.quoteAttribution;
+  const artistPhotoUrl = data?.artistPhotoUrl;
+  const artistPhotoAlt = data?.artistPhotoAlt ?? "Portrait of Creature of Habit";
 
   const paragraphs = splitTextIntoParagraphs(aboutText);
 
@@ -187,12 +190,25 @@ function AboutContent({ data }: { data: AboutContentEntry | null }) {
           <p key={`about-paragraph-${index}`}>{paragraph}</p>
         ))}
       </div>
-      {(featuredQuote || attribution) && (
-        <blockquote className="about-quote">
-          {featuredQuote && <p>“{featuredQuote}”</p>}
-          {attribution && <cite>— {attribution}</cite>}
-        </blockquote>
-      )}
+      <div className="about-panel">
+        {artistPhotoUrl && (
+          <figure className="about-photo">
+            <Image
+              src={artistPhotoUrl}
+              alt={artistPhotoAlt}
+              fill
+              sizes="(min-width: 768px) 340px, 100vw"
+              className="about-photo-image"
+            />
+          </figure>
+        )}
+        {(featuredQuote || attribution) && (
+          <blockquote className="about-quote">
+            {featuredQuote && <p>“{featuredQuote}”</p>}
+            {attribution && <cite>— {attribution}</cite>}
+          </blockquote>
+        )}
+      </div>
     </div>
   );
 }

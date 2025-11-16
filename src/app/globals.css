@@ -131,7 +131,7 @@ section {
 }
 
 section#hero {
-  min-height: 100dvh !important;
+  min-height: min(100dvh, 100svh, 100vh) !important;
 }
 
 @media screen and (min-width: 600px) and (max-width: 1024px)
@@ -216,6 +216,34 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
   transform-origin: center;
 }
 .about-content { display: grid; gap: 2rem; align-items: start; }
+.about-panel { display: grid; gap: 1.25rem; }
+.about-photo {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  background: color-mix(in oklab, var(--background) 92%, transparent);
+  overflow: hidden;
+}
+.about-photo-image { object-fit: cover; object-position: center; }
+.about-quote {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background: color-mix(in oklab, var(--background) 94%, transparent);
+}
+.about-quote p {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.about-quote cite {
+  display: block;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: oklch(0.75 0 0);
+}
 @media (min-width: 768px) { .about-content { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); } }
 .about-copy { display: grid; gap: 1rem; color: oklch(0.88 0 0); }
 .about-highlights { display: grid; gap: 1rem; margin: 0; }
