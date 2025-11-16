@@ -4,6 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
+import {
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
 import styles from "../admin-dashboard.module.scss";
 import controls from "../form-controls.module.scss";
 import { TextField, TextareaField, ToggleField } from "../form-controls";
@@ -42,7 +59,6 @@ type MusicReleaseRecord = {
   genre: string | null;
   duration: string | null;
   credits: string | null;
-  featured: boolean;
   metaTitle: string | null;
   metaDescription: string | null;
   sortOrder: number;
@@ -72,7 +88,6 @@ const DEFAULT_VALUES: MusicReleaseFormValues = {
   genre: "",
   duration: "",
   credits: "",
-  featured: false,
   metaTitle: "",
   metaDescription: "",
   sortOrder: 0,
@@ -112,6 +127,10 @@ function normalizeStreamingLinks(raw: StreamingLink[] | null | undefined): Strea
     .filter((entry): entry is StreamingLink => Boolean(entry));
 }
 
+function sortReleases(items: MusicReleaseRecord[]) {
+  return [...items].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+}
+
 export function MusicSection() {
   const [releases, setReleases] = useState<MusicReleaseRecord[]>([]);
   const [message, setMessage] = useState<MessageState>(null);
@@ -120,6 +139,60 @@ export function MusicSection() {
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  );
+
+  const persistOrder = useCallback(
+    async (ordered: MusicReleaseRecord[]) => {
+      try {
+        const response = await fetch("/api/music/order", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: ordered.map((release) => release.id) }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null);
+          setMessage({
+            type: "error",
+            text: payload?.error ?? "Failed to save release order.",
+          });
+          return false;
+        }
+        setMessage({ type: "success", text: "Release order saved." });
+        return true;
+      } catch (error) {
+        setMessage({ type: "error", text: "Failed to save release order." });
+        return false;
+      }
+    },
+    [setMessage],
+  );
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const previousReleases = releases;
+      const oldIndex = previousReleases.findIndex((release) => release.id === active.id);
+      const newIndex = previousReleases.findIndex((release) => release.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const nextReleases = arrayMove(previousReleases, oldIndex, newIndex).map((release, index) => ({
+        ...release,
+        sortOrder: index,
+      }));
+      setReleases(nextReleases);
+
+      const saved = await persistOrder(nextReleases);
+      if (!saved) {
+        setReleases(previousReleases);
+      }
+    },
+    [persistOrder, releases],
+  );
 
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
@@ -226,7 +299,7 @@ export function MusicSection() {
             ...item,
             streamingLinks: normalizeStreamingLinks(item.streamingLinks),
           }));
-          setReleases(normalised);
+          setReleases(sortReleases(normalised));
         }
       }
       if (mounted) setIsLoading(false);
@@ -257,13 +330,15 @@ export function MusicSection() {
 
     const { data } = await response.json();
     const record = data as MusicReleaseRecord;
-    setReleases((previous) => [
-      {
-        ...record,
-        streamingLinks: normalizeStreamingLinks(record.streamingLinks),
-      },
-      ...previous,
-    ]);
+    setReleases((previous) =>
+      sortReleases([
+        {
+          ...record,
+          streamingLinks: normalizeStreamingLinks(record.streamingLinks),
+        },
+        ...previous,
+      ]),
+    );
     reset(DEFAULT_VALUES);
     setCoverUploadError(null);
     setAudioUploadError(null);
@@ -292,10 +367,14 @@ export function MusicSection() {
       }
 
       const { data } = await response.json();
-      setReleases((previous) =>
-        previous.map((item) =>
-          item.id === id ? (data as MusicReleaseRecord) : item,
+      const normalized = {
+        ...(data as MusicReleaseRecord),
+        streamingLinks: normalizeStreamingLinks(
+          (data as MusicReleaseRecord).streamingLinks,
         ),
+      };
+      setReleases((previous) =>
+        sortReleases(previous.map((item) => (item.id === id ? normalized : item))),
       );
       return { ok: true };
     },
@@ -313,7 +392,7 @@ export function MusicSection() {
   }, []);
 
   const comingSoon = watch("comingSoon");
-  const featured = watch("featured");
+  const orderedReleases = sortReleases(releases);
 
   return (
     <div className={styles.card}>
@@ -572,13 +651,6 @@ export function MusicSection() {
           error={errors.credits}
         />
 
-        <ToggleField
-          label="Featured release"
-          helperText="Featured items surface first in carousels."
-          checked={!!featured}
-          onChange={(value) => setValue("featured", value, { shouldDirty: true })}
-        />
-
         <div className={styles.fieldGroup}>
           <TextField
             label="Meta title"
@@ -631,21 +703,33 @@ export function MusicSection() {
 
       {isLoading ? (
         <div className={styles.emptyState}>Loading releases…</div>
-      ) : releases.length === 0 ? (
+      ) : orderedReleases.length === 0 ? (
         <div className={styles.emptyState}>
           Add your first release to populate the music carousel.
         </div>
       ) : (
-        <div className={styles.list}>
-          {releases.map((release) => (
-            <MusicListItem
-              key={release.id}
-              record={release}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={orderedReleases.map((release) => release.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className={styles.list}>
+              {orderedReleases.map((release) => (
+                <MusicListItem
+                  key={release.id}
+                  record={release}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
@@ -675,7 +759,6 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
     genre: record.genre ?? "",
     duration: record.duration ?? "",
     credits: record.credits ?? "",
-    featured: !!record.featured,
     metaTitle: record.metaTitle ?? "",
     metaDescription: record.metaDescription ?? "",
     sortOrder: record.sortOrder ?? 0,
@@ -780,6 +863,21 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
     }));
   };
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: record.id });
+
+  const dragStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 2 : undefined,
+  };
+
   const save = async () => {
     setIsSaving(true);
     setStatus(null);
@@ -815,18 +913,33 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
   };
 
   return (
-    <article className={styles.listItem}>
+    <article
+      ref={setNodeRef}
+      className={`${styles.listItem} ${isDragging ? styles.listItemDragging : ""}`}
+      style={dragStyle}
+    >
       <header className={styles.listItemHeader}>
-        <div>
-          <div className={styles.listItemTitle}>{state.title || record.title}</div>
-          <div className={styles.timestamp}>{statusLabel}</div>
+        <div className={styles.listItemHeaderMain}>
+          <button
+            type="button"
+            className={styles.dragHandle}
+            {...attributes}
+            {...listeners}
+            aria-label="Drag release to reorder"
+          >
+            <span className={styles.dragGrip} />
+          </button>
+          <div>
+            <div className={styles.listItemTitle}>{state.title || record.title}</div>
+            <div className={styles.timestamp}>{statusLabel}</div>
+          </div>
         </div>
         <div
           className={`${styles.status} ${
             state.comingSoon ? styles.comingSoon : ""
           }`}
         >
-          {state.featured ? "Featured" : "Active"}
+          {state.comingSoon ? "Coming soon" : "Active"}
         </div>
       </header>
 
@@ -1065,13 +1178,6 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           checked={!!state.comingSoon}
           onChange={(value) =>
             setState((prev) => ({ ...prev, comingSoon: value }))
-          }
-        />
-        <ToggleField
-          label="Featured"
-          checked={!!state.featured}
-          onChange={(value) =>
-            setState((prev) => ({ ...prev, featured: value }))
           }
         />
         <input

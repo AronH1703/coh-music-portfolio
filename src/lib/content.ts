@@ -133,7 +133,11 @@ export type MusicReleaseContent = {
 
 export async function getMusicReleases(): Promise<MusicReleaseContent[]> {
   const releases = await prisma.musicRelease.findMany({
-    orderBy: [{ sortOrder: "asc" }, { releaseAt: "desc" }, { createdAt: "desc" }],
+    orderBy: [
+      { sortOrder: "asc" },
+      { releaseAt: "desc" },
+      { createdAt: "desc" },
+    ],
   });
 
   return releases.map((release) => ({

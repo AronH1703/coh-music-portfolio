@@ -206,7 +206,7 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
   position: fixed;
   /* Overscan in all directions so no edges show on rotation/zoom */
   inset: -60vmax;
-  background-image: url('/ryanAir.png'), url('/ryanAir_.png');
+  background-image: url('/ryanAir-min.png'), url('/ryanAir_-min.png');
   background-repeat: repeat, repeat;
   background-size: var(--tile) var(--tile), var(--tile) var(--tile);
   background-position: 0 0, var(--layer2-x) calc(var(--layer2-y) + var(--gap-y));

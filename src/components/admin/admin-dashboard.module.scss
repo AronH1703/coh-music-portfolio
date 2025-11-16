@@ -195,8 +195,46 @@
 .listItemHeader {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 1rem;
+}
+
+.listItemHeaderMain {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.dragHandle {
+  appearance: none;
+  border: none;
+  background: rgba(15, 23, 42, 0.04);
+  border-radius: 0.65rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.dragGrip {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 0.2rem;
+  background: rgba(55, 65, 81, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.listItemDragging {
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.25);
+  border-color: rgba(15, 23, 42, 0.2);
 }
 
 .listItemTitle {
