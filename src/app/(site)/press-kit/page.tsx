@@ -8,7 +8,7 @@ export default async function PressKitPage() {
   return (
     <main>
       <section id="press-kit">
-        <div className="section-inner">
+        <div className="section-inner" style={{ marginTop: "2rem" }}>
           <div className={styles.header}>
             <span className="eyebrow">Press</span>
             <h1>Press Kit</h1>
