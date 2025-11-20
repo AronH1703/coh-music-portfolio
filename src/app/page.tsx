@@ -15,10 +15,10 @@ import {
   getVideos,
   type AboutContentEntry,
   type ContactContentEntry,
-  type PressKitAssetUrlKey,
 } from "@/lib/content";
 import { SubscribeForm } from "@/components/newsletter/subscribe-form";
 import pressKitStyles from "@/components/press-kit/press-kit-section.module.css";
+import { PressKitActions } from "./press-kit/actions";
 
 type SectionConfig = {
   id: string;
@@ -29,61 +29,6 @@ type SectionConfig = {
   content?: ReactNode;
 };
 
-type PressKitButtonConfig = {
-  urlKey: PressKitAssetUrlKey;
-  title: string;
-  helper: string;
-  buttonLabel: string;
-};
-
-type PressKitItem = PressKitButtonConfig & {
-  link: string;
-};
-
-const PRESS_KIT_BUTTONS: PressKitButtonConfig[] = [
-  {
-    urlKey: "fullPressKitZipUrl",
-    title: "Full Press Kit (ZIP)",
-    helper: "Everything bundled for press and partner sharing.",
-    buttonLabel: "Download Full Press Kit (ZIP)",
-  },
-  {
-    urlKey: "onePagerPdfUrl",
-    title: "One-Pager (PDF)",
-    helper: "Concise single-sheet overview for quick sharing.",
-    buttonLabel: "Download One-Pager (PDF)",
-  },
-  {
-    urlKey: "pressPhotosFolderUrl",
-    title: "Press Photos Folder",
-    helper: "High-resolution imagery and performance stills.",
-    buttonLabel: "Download Press Photos",
-  },
-  {
-    urlKey: "logosFolderUrl",
-    title: "Logos Folder",
-    helper: "Updated brand marks, icons, and wordmarks.",
-    buttonLabel: "Download Logos",
-  },
-  {
-    urlKey: "artworkFolderUrl",
-    title: "Artwork Folder",
-    helper: "Campaign artwork, singles, and album visuals.",
-    buttonLabel: "Download Artwork",
-  },
-  {
-    urlKey: "stagePlotPdfUrl",
-    title: "Stage Plot (PDF)",
-    helper: "Stage layout, risers, and technical diagram.",
-    buttonLabel: "Download Stage Plot (PDF)",
-  },
-  {
-    urlKey: "inputListPdfUrl",
-    title: "Input List (PDF)",
-    helper: "FOH + monitor-friendly channel list.",
-    buttonLabel: "Download Input List (PDF)",
-  },
-];
 
 export default async function Home() {
   const [
@@ -181,19 +126,6 @@ export default async function Home() {
     },
   ];
 
-  const pressKitItems: PressKitItem[] = PRESS_KIT_BUTTONS.flatMap((button) => {
-    const rawUrl = pressKitAssets[button.urlKey];
-    const url = typeof rawUrl === "string" ? rawUrl.trim() : "";
-    if (!url) return [];
-
-    return [
-      {
-        ...button,
-        link: url,
-      },
-    ];
-  });
-
   return (
     <main>
       <HeroSection data={hero} eyebrowLabel={labels.heroLabel ?? undefined} />
@@ -209,40 +141,7 @@ export default async function Home() {
               Curated downloads for recording, touring, and production partners plus press outlets. All links are managed from the admin panel.
             </p>
           </div>
-          <div className={pressKitStyles.actions}>
-            {pressKitItems.length ? (
-              pressKitItems.map((action) => (
-                <article key={action.urlKey} className={pressKitStyles.actionCard}>
-                  <div>
-                    <p className={pressKitStyles.actionTitle}>{action.title}</p>
-                    <p className={pressKitStyles.actionHelper}>{action.helper}</p>
-                  </div>
-                  {action.link ? (
-                    <a
-                      className={pressKitStyles.actionButton}
-                      href={action.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {action.buttonLabel}
-                    </a>
-                  ) : (
-                    <span className={pressKitStyles.actionDisabled}>Link coming soon</span>
-                  )}
-                </article>
-              ))
-            ) : (
-              <article className={pressKitStyles.actionCard}>
-                <div>
-                  <p className={pressKitStyles.actionTitle}>Press kit links coming soon</p>
-                  <p className={pressKitStyles.actionHelper}>
-                    Add URLs through the admin Press Kit section to surface downloads on the homepage.
-                  </p>
-                </div>
-                <span className={pressKitStyles.actionDisabled}>Not configured</span>
-              </article>
-            )}
-          </div>
+          <PressKitActions assets={pressKitAssets} />
         </div>
       </section>
     </main>

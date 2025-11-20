@@ -10,6 +10,27 @@
   color: #1f2937;
 }
 
+.editableLabel {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.editableLabelHint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+.editableLabelInput {
+  border: none;
+  border-bottom: 1px dashed rgba(17, 24, 39, 0.4);
+  padding: 0;
+  font: inherit;
+  background: transparent;
+  min-width: 0;
+}
+
 .input,
 .textarea,
 .select {

@@ -1,14 +1,19 @@
 "use client";
 
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { TextField } from "../form-controls";
 import { pressKitAssetsSchema } from "@/lib/validation";
 import type { PressKitAssetsRecord } from "@/lib/press-kit";
+import {
+  DEFAULT_PRESS_KIT_LABELS,
+  readPressKitLabels,
+  writePressKitLabels,
+  type PressKitLabelKey,
+} from "@/lib/press-kit-labels";
 import styles from "../admin-dashboard.module.scss";
 import controls from "../form-controls.module.scss";
 
@@ -27,40 +32,42 @@ const FIELD_CONFIGS: Array<{
 }> = [
   {
     urlName: "fullPressKitZipUrl",
-    label: "Full Press Kit (ZIP)",
+    label: DEFAULT_PRESS_KIT_LABELS.fullPressKitZipUrl,
     helper: "Direct link to the zipped asset bundle.",
   },
   {
     urlName: "onePagerPdfUrl",
-    label: "One-Pager (PDF)",
+    label: DEFAULT_PRESS_KIT_LABELS.onePagerPdfUrl,
     helper: "Single-sheet bio or press overview.",
   },
   {
     urlName: "pressPhotosFolderUrl",
-    label: "Press Photos Folder",
+    label: DEFAULT_PRESS_KIT_LABELS.pressPhotosFolderUrl,
     helper: "Dropbox, Google Drive, or Cloudinary folder URL.",
   },
   {
     urlName: "logosFolderUrl",
-    label: "Logos Folder",
+    label: DEFAULT_PRESS_KIT_LABELS.logosFolderUrl,
     helper: "High-resolution logos organized by format.",
   },
   {
     urlName: "artworkFolderUrl",
-    label: "Artwork Folder",
+    label: DEFAULT_PRESS_KIT_LABELS.artworkFolderUrl,
     helper: "Campaign, cover, and promo art.",
   },
   {
     urlName: "stagePlotPdfUrl",
-    label: "Stage Plot (PDF)",
+    label: DEFAULT_PRESS_KIT_LABELS.stagePlotPdfUrl,
     helper: "Stage plot, tech diagram, and rigging notes.",
   },
   {
     urlName: "inputListPdfUrl",
-    label: "Input List (PDF)",
+    label: DEFAULT_PRESS_KIT_LABELS.inputListPdfUrl,
     helper: "Input list for FOH/monitor engineers.",
   },
 ];
+
+type UrlLabelMap = Record<UrlFieldName, string>;
 
 const DEFAULT_FORM_VALUES: PressKitFormValues = {
   fullPressKitZipUrl: "",
@@ -102,6 +109,13 @@ export function PressKitSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
+  const [labelsByField, setLabelsByField] = useState<UrlLabelMap>(() => {
+    const base: UrlLabelMap = {} as UrlLabelMap;
+    for (const field of FIELD_CONFIGS) {
+      base[field.urlName] = field.label;
+    }
+    return base;
+  });
 
   const {
     register,
@@ -133,6 +147,38 @@ export function PressKitSection() {
       isActive = false;
     };
   }, [reset]);
+
+  useEffect(() => {
+    hydratePressKitLabelsFromStorage(setLabelsByField);
+  }, []);
+
+  const handleLabelChange = (fieldName: UrlFieldName, nextLabel: string) => {
+    const fallback =
+      DEFAULT_PRESS_KIT_LABELS[fieldName as unknown as PressKitLabelKey];
+    const trimmed = nextLabel.trim();
+    setLabelsByField((current) => {
+      const updated: UrlLabelMap = {
+        ...current,
+        [fieldName]: trimmed || fallback,
+      };
+
+      const payload: Record<PressKitLabelKey, string> = {
+        ...DEFAULT_PRESS_KIT_LABELS,
+      };
+
+      (Object.keys(payload) as PressKitLabelKey[]).forEach((key) => {
+        const keyAsField = key as unknown as UrlFieldName;
+        const label = updated[keyAsField];
+        if (typeof label === "string" && label.trim()) {
+          payload[key] = label;
+        }
+      });
+
+      writePressKitLabels(payload);
+
+      return updated;
+    });
+  };
 
   const onSubmit = async (formValues: PressKitFormValues) => {
     setIsSaving(true);
@@ -178,18 +224,29 @@ export function PressKitSection() {
           <div className={styles.emptyState}>Loading stored press kit links…</div>
         )}
 
-        {FIELD_CONFIGS.map(({ urlName, label, helper }) => {
+        {FIELD_CONFIGS.map(({ urlName, helper }) => {
           const urlError = errors[urlName] as FieldError | undefined;
+          const label = labelsByField[urlName];
           return (
             <div key={urlName} className={styles.fieldRow}>
-              <TextField
-                label={label}
-                name={urlName}
-                placeholder="https://"
-                helperText={helper}
-                {...register(urlName)}
-                error={urlError}
-              />
+              <div className={controls.formField}>
+                <label className={controls.label} htmlFor={urlName}>
+                  <InlineEditableLabel
+                    value={label}
+                    onChange={(value) => handleLabelChange(urlName, value)}
+                  />
+                </label>
+                <input
+                  id={urlName}
+                  placeholder="https://"
+                  className={controls.input}
+                  {...register(urlName)}
+                />
+                {helper && !urlError && (
+                  <span className={controls.helper}>{helper}</span>
+                )}
+                {urlError && <span className={controls.error}>{urlError.message}</span>}
+              </div>
             </div>
           );
         })}
@@ -219,6 +276,83 @@ export function PressKitSection() {
   );
 }
 
+type InlineEditableLabelProps = {
+  value: string;
+  onChange: (value: string) => void;
+};
+
+function InlineEditableLabel({ value, onChange }: InlineEditableLabelProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const startEditing = (event?: React.MouseEvent | React.KeyboardEvent) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    setDraft(value);
+    setIsEditing(true);
+  };
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    onChange(trimmed || value);
+    setIsEditing(false);
+  };
+
+  const cancel = () => {
+    setDraft(value);
+    setIsEditing(false);
+  };
+
+  if (!isEditing) {
+    return (
+      <span
+        className={controls.editableLabel}
+        role="button"
+        tabIndex={0}
+        onClick={(event) => startEditing(event)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            startEditing(event);
+          }
+        }}
+      >
+        <span>{value}</span>
+        <span className={controls.editableLabelHint}>Click to rename</span>
+      </span>
+    );
+  }
+
+  return (
+    <input
+      ref={inputRef}
+      className={controls.editableLabelInput}
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          commit();
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cancel();
+        }
+      }}
+    />
+  );
+}
+
 function sanitizeFormValues(values: PressKitFormValues): PressKitFormValues {
   const next: PressKitFormValues = { ...values };
   for (const field of FIELD_CONFIGS) {
@@ -236,4 +370,24 @@ function sanitizeFormValues(values: PressKitFormValues): PressKitFormValues {
     next[field.urlName] = trimmed;
   }
   return next;
+}
+
+function hydratePressKitLabelsFromStorage(
+  update: React.Dispatch<React.SetStateAction<UrlLabelMap>>,
+) {
+  const stored = readPressKitLabels();
+
+  update((current) => {
+    const next = { ...current };
+
+    (Object.keys(stored) as PressKitLabelKey[]).forEach((key) => {
+      const label = stored[key];
+      if (typeof label === "string" && label.trim()) {
+        const fieldKey = key as unknown as UrlFieldName;
+        next[fieldKey] = label;
+      }
+    });
+
+    return next;
+  });
 }
