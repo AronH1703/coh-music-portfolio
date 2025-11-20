@@ -4,20 +4,21 @@ import PhotoCarousel, { type GalleryPhoto } from "@/components/gallery/photo-car
 import VideoCarousel, { type VideoCarouselItem } from "@/components/videos/video-carousel";
 import MusicCarousel, { type MusicCarouselRelease } from "@/components/music/music-carousel";
 import { HeroSection } from "@/components/landing/hero";
-import { PressReleasesSection } from "@/components/press-releases/press-releases-section";
 import {
-  getHeroContent,
-  getGalleryItems,
-  getMusicReleases,
-  getVideos,
   getAboutContent,
   getContactContent,
+  getGalleryItems,
+  getHeroContent,
+  getMusicReleases,
+  getPressKitAssets,
   getSiteLabels,
-  getPressReleases,
+  getVideos,
   type AboutContentEntry,
   type ContactContentEntry,
+  type PressKitAssetUrlKey,
 } from "@/lib/content";
 import { SubscribeForm } from "@/components/newsletter/subscribe-form";
+import pressKitStyles from "@/components/press-kit/press-kit-section.module.css";
 
 type SectionConfig = {
   id: string;
@@ -28,8 +29,73 @@ type SectionConfig = {
   content?: ReactNode;
 };
 
+type PressKitButtonConfig = {
+  urlKey: PressKitAssetUrlKey;
+  title: string;
+  helper: string;
+  buttonLabel: string;
+};
+
+type PressKitItem = PressKitButtonConfig & {
+  link: string;
+};
+
+const PRESS_KIT_BUTTONS: PressKitButtonConfig[] = [
+  {
+    urlKey: "fullPressKitZipUrl",
+    title: "Full Press Kit (ZIP)",
+    helper: "Everything bundled for press and partner sharing.",
+    buttonLabel: "Download Full Press Kit (ZIP)",
+  },
+  {
+    urlKey: "onePagerPdfUrl",
+    title: "One-Pager (PDF)",
+    helper: "Concise single-sheet overview for quick sharing.",
+    buttonLabel: "Download One-Pager (PDF)",
+  },
+  {
+    urlKey: "pressPhotosFolderUrl",
+    title: "Press Photos Folder",
+    helper: "High-resolution imagery and performance stills.",
+    buttonLabel: "Download Press Photos",
+  },
+  {
+    urlKey: "logosFolderUrl",
+    title: "Logos Folder",
+    helper: "Updated brand marks, icons, and wordmarks.",
+    buttonLabel: "Download Logos",
+  },
+  {
+    urlKey: "artworkFolderUrl",
+    title: "Artwork Folder",
+    helper: "Campaign artwork, singles, and album visuals.",
+    buttonLabel: "Download Artwork",
+  },
+  {
+    urlKey: "stagePlotPdfUrl",
+    title: "Stage Plot (PDF)",
+    helper: "Stage layout, risers, and technical diagram.",
+    buttonLabel: "Download Stage Plot (PDF)",
+  },
+  {
+    urlKey: "inputListPdfUrl",
+    title: "Input List (PDF)",
+    helper: "FOH + monitor-friendly channel list.",
+    buttonLabel: "Download Input List (PDF)",
+  },
+];
+
 export default async function Home() {
-  const [hero, gallery, music, videos, about, contact, labels, pressReleases] = await Promise.all([
+  const [
+    hero,
+    gallery,
+    music,
+    videos,
+    about,
+    contact,
+    labels,
+    pressKitAssets,
+  ] = await Promise.all([
     getHeroContent(),
     getGalleryItems(),
     getMusicReleases(),
@@ -37,7 +103,7 @@ export default async function Home() {
     getAboutContent(),
     getContactContent(),
     getSiteLabels(),
-    getPressReleases(),
+    getPressKitAssets(),
   ]);
 
   const gallerySlides: GalleryPhoto[] = gallery.map((item) => ({
@@ -82,14 +148,6 @@ export default async function Home() {
       placeholder: "Add releases via the admin panel to populate this carousel.",
     },
     {
-      id: "press-releases",
-      eyebrow: "Press",
-      heading: "Press Releases",
-      description: "Official announcements, new music updates, and media statements.",
-      content: <PressReleasesSection releases={pressReleases} />,
-      placeholder: "Publish press announcements via the admin panel to populate this section.",
-    },
-    {
       id: "gallery",
       eyebrow: labels.galleryLabel ?? "Gallery",
       heading: labels.galleryHeading ?? labels.galleryLabel ?? "Gallery",
@@ -123,12 +181,70 @@ export default async function Home() {
     },
   ];
 
+  const pressKitItems: PressKitItem[] = PRESS_KIT_BUTTONS.flatMap((button) => {
+    const rawUrl = pressKitAssets[button.urlKey];
+    const url = typeof rawUrl === "string" ? rawUrl.trim() : "";
+    if (!url) return [];
+
+    return [
+      {
+        ...button,
+        link: url,
+      },
+    ];
+  });
+
   return (
     <main>
       <HeroSection data={hero} eyebrowLabel={labels.heroLabel ?? undefined} />
       {sections.map((section) => (
         <ContentSection key={section.id} {...section} />
       ))}
+      <section id="press-kit">
+        <div className="section-inner">
+          <div className={pressKitStyles.header}>
+            <span className="eyebrow">Press</span>
+            <h2>Press Kit</h2>
+            <p className="section-subtitle">
+              Curated downloads for recording, touring, and production partners plus press outlets. All links are managed from the admin panel.
+            </p>
+          </div>
+          <div className={pressKitStyles.actions}>
+            {pressKitItems.length ? (
+              pressKitItems.map((action) => (
+                <article key={action.urlKey} className={pressKitStyles.actionCard}>
+                  <div>
+                    <p className={pressKitStyles.actionTitle}>{action.title}</p>
+                    <p className={pressKitStyles.actionHelper}>{action.helper}</p>
+                  </div>
+                  {action.link ? (
+                    <a
+                      className={pressKitStyles.actionButton}
+                      href={action.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {action.buttonLabel}
+                    </a>
+                  ) : (
+                    <span className={pressKitStyles.actionDisabled}>Link coming soon</span>
+                  )}
+                </article>
+              ))
+            ) : (
+              <article className={pressKitStyles.actionCard}>
+                <div>
+                  <p className={pressKitStyles.actionTitle}>Press kit links coming soon</p>
+                  <p className={pressKitStyles.actionHelper}>
+                    Add URLs through the admin Press Kit section to surface downloads on the homepage.
+                  </p>
+                </div>
+                <span className={pressKitStyles.actionDisabled}>Not configured</span>
+              </article>
+            )}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

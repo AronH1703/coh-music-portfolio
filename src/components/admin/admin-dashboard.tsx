@@ -11,14 +11,14 @@ import { VideosSection } from "./sections/videos-section";
 import { AboutSection } from "./sections/about-section";
 import { ContactSection } from "./sections/contact-section";
 import { NewsletterSection } from "./sections/newsletter-section";
-import { PressReleasesSection } from "./sections/press-releases-section";
+import { PressKitSection } from "./sections/press-kit-section";
 import { SiteLabelsSection } from "./sections/site-labels-section";
 
 type SectionId =
   | "hero"
   | "gallery"
   | "music"
-  | "pressReleases"
+  | "pressKit"
   | "videos"
   | "about"
   | "contact"
@@ -53,11 +53,11 @@ const SECTIONS: Array<{
     render: () => <MusicSection />,
   },
   {
-    id: "pressReleases",
-    label: "Press Releases",
+    id: "pressKit",
+    label: "Press Kit",
     description:
-      "Publish official statements, upload PDFs, and share featured media updates in one place.",
-    render: () => <PressReleasesSection />,
+      "Provide curated download links for press and production assets via the new URL-based kit.",
+    render: () => <PressKitSection />,
   },
   {
     id: "videos",

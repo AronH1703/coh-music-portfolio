@@ -21,25 +21,18 @@ export default function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://use.typekit.net" />
-        <link rel="stylesheet" href="https://use.typekit.net/nmi8pmj.css" />
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Script id="theme-init" strategy="beforeInteractive">{`
-          (function(){
-            try {
-              var stored = localStorage.getItem('theme');
-              var prefers = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-              var dark = stored ? stored === 'dark' : prefers;
-              document.documentElement.classList.toggle('dark', dark);
-            } catch (e) {}
-          })();
-        `}</Script>
-        {children}
-      </body>
-    </html>
+    <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <Script id="admin-theme-init" strategy="beforeInteractive">{`
+        (function(){
+          try {
+            var stored = localStorage.getItem('theme');
+            var prefers = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var dark = stored ? stored === 'dark' : prefers;
+            document.documentElement.classList.toggle('dark', dark);
+          } catch (e) {}
+        })();
+      `}</Script>
+      {children}
+    </div>
   );
 }
-
