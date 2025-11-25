@@ -173,7 +173,16 @@
    background: rgba(0, 0, 0, 0.7);
    box-shadow: 0 2.5rem 4rem -1.5rem rgba(0, 0, 0, 0.55);
    position: relative;
- }
+}
+
+/* 1100px and up */
+@media (min-width: 1100px) {
+  .lightboxPlayerWrap {
+    width: min(65vw, 60rem); /* or any other width you want */
+    /* max-height: calc(100vh - 11rem); */
+    aspect-ratio: 16 / 8;
+  }
+}
 
 .lightboxPlayerNav {
    position: absolute;

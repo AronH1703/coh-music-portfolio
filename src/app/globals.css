@@ -85,7 +85,7 @@ body {
 
 /* Base reset + primitives */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-snap-type: y mandatory; scroll-padding-top: var(--nav-h); }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
 body { margin: 0; min-height: 100dvh; background: var(--background); color: var(--foreground); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; overflow-x: hidden; }
 img, svg, video, canvas, audio, iframe, embed, object { display: block; max-width: 100%; }
 button, input, textarea, select { font: inherit; color: inherit; }
@@ -95,7 +95,16 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* Layout helpers */
 .container { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1.5rem; }
 /* Navbar */
-.navbar { position: fixed; inset-inline: 0; top: 0; z-index: 50; backdrop-filter: blur(8px); background: color-mix(in oklab, var(--background) 85%, transparent); border-bottom: 1px solid var(--border); }
+.navbar {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in oklab, var(--background) 85%, rgba(0, 0, 0, 0.45));
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 0.65rem 1.5rem rgba(0, 0, 0, 0.25);
+  backdrop-filter: none;
+}
 .navbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; max-width: 64rem; margin: 0 auto; }
 .brand { font-weight: bold; letter-spacing: 0.3em; color: oklch(0.85 0 0); text-decoration: none; }
 .brand { font-family: "ltc-goudy-text-pro", serif; font-weight: 400; }
@@ -194,32 +203,50 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
 @media (min-width: 640px) { .card { height: 20rem; } }
 .nav-controls { display: flex; gap: 1rem; }
 
-@keyframes movePattern {
+.pattern-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+
+.pattern {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(2000px, 100vmax, 3200px);
+  height: clamp(2000px, 100vmax, 3200px);
+
+  transform-origin: center;
+  background-image: url('/ryanAir-min-4-min.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+
+  opacity: 0.35;
+  will-change: transform;
+
+  animation: spin 240s linear infinite;
+}
+
+@keyframes spin {
   from {
-    background-position:
-      0 0,
-      var(--layer2-x) calc(var(--layer2-y) + var(--gap-y));
+    transform: translate(-50%, -50%) rotate(0deg);
   }
   to {
-    background-position:
-      var(--tile) var(--tile),
-      calc(var(--layer2-x) + var(--tile)) calc(var(--layer2-y) + var(--gap-y) + var(--tile));
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
-.pattern {
-  position: fixed;
-  /* Overscan in all directions so no edges show on rotation/zoom */
-  inset: -60vmax;
-  background-image: url('/ryanAir-min.png'), url('/ryanAir_-min.png');
-  background-repeat: repeat, repeat;
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile);
-  background-position: 0 0, var(--layer2-x) calc(var(--layer2-y) + var(--gap-y));
-  animation: movePattern 60s linear infinite; /* was 15s; 4x to preserve speed */
-  z-index: -1;
-  pointer-events: none;
-  transform-origin: center;
+@media (prefers-reduced-motion: reduce) {
+  .pattern {
+    animation: none;
+  }
 }
+
+
+
 .about-content { display: grid; gap: 2rem; align-items: start; }
 .about-panel { display: grid; gap: 1.25rem; }
 .about-photo {

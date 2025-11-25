@@ -15,7 +15,9 @@ export default function SiteLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <>
-      <PatternBackground />
+
+        <PatternBackground />
+
       <Script id="theme-init" strategy="beforeInteractive">
         {`
           (function(){
