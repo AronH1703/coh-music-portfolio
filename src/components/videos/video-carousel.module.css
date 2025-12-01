@@ -135,6 +135,54 @@
    color: color-mix(in oklab, var(--foreground) 55%, transparent);
 }
 
+.descToggle {
+   position: relative;
+   display: inline-flex;
+   flex-direction: column;
+   align-items: flex-start;
+   gap: 0.4rem;
+   margin-top: 0.15rem;
+ }
+
+.descButton {
+   appearance: none;
+   border-radius: 999px;
+   border: 1px solid color-mix(in oklab, var(--foreground) 30%, transparent);
+   background: color-mix(in oklab, var(--background) 92%, black 8%);
+   color: color-mix(in oklab, var(--foreground) 85%, transparent);
+   font-size: 0.75rem;
+   padding: 0.25rem 0.75rem;
+   cursor: pointer;
+   letter-spacing: 0.08em;
+   text-transform: uppercase;
+ }
+
+.descButton:hover {
+   background: color-mix(in oklab, var(--background) 86%, black 14%);
+ }
+
+.descPopover {
+   position: static;
+   margin-top: 0.5rem;
+   width: 100%;
+   max-height: 7.5rem;
+   overflow-y: auto;
+   padding: 0.75rem 0.9rem;
+   border-radius: 0.9rem;
+   background: color-mix(in oklab, var(--background) 96%, black 4%);
+   border: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent);
+   box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.35);
+   font-size: 0.8rem;
+   line-height: 1.5;
+   color: color-mix(in oklab, var(--foreground) 88%, transparent);
+   z-index: 5;
+ }
+
+.descPopover p {
+   margin: 0;
+   white-space: pre-wrap;
+ }
+
 .lightbox {
    position: fixed;
    inset: 0;
@@ -219,6 +267,38 @@
 .lightboxCaption strong {
    font-size: 1rem;
    letter-spacing: 0.12em;
+ }
+
+.lightboxDescToggle {
+   display: grid;
+   gap: 0.4rem;
+   justify-items: center;
+ }
+
+.lightboxDescButton {
+   appearance: none;
+   border-radius: 999px;
+   border: 1px solid rgba(255, 255, 255, 0.35);
+   background: rgba(0, 0, 0, 0.45);
+   color: rgba(255, 255, 255, 0.9);
+   font-size: 0.75rem;
+   padding: 0.25rem 0.9rem;
+   cursor: pointer;
+   letter-spacing: 0.08em;
+ }
+
+.lightboxDescButton:hover {
+   background: rgba(0, 0, 0, 0.7);
+ }
+
+.lightboxDescBody {
+   font-size: 0.8rem;
+   letter-spacing: normal;
+   text-transform: none;
+   max-width: min(60rem, 78vw);
+   color: rgba(255, 255, 255, 0.86);
+   line-height: 1.6;
+   white-space: pre-wrap;
  }
 
 .lightboxBtn {
