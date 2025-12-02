@@ -324,7 +324,7 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
                       </div>
                     </button>
                     <div className={clsx(frameStyles.info, s.info)}>
-                      <h3 className={frameStyles.title}>{title}</h3>
+                      <h3 className={clsx(frameStyles.title, s.title)}>{title}</h3>
                       {description ? (
                         <div className={s.descToggle}>
                           <button

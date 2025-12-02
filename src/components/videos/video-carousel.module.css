@@ -10,7 +10,7 @@
 
 @media (min-width: 1024px) {
   .container {
-    --slide-width: clamp(16rem, 24vw, 19rem);
+    --slide-width: clamp(22rem, 32vw, 34rem);
   }
 }
 
@@ -21,7 +21,7 @@
 
 .card {
    display: grid;
-   gap: 0.9rem;
+   gap: 1rem;
    padding: 0.85rem;
    background: color-mix(in oklab, var(--background) 75%, black 25%);
    border-radius: 1.25rem;
@@ -123,6 +123,18 @@
 
 .info {
    text-align: left;
+   display: grid;
+   gap: 0.6rem;
+ }
+
+.title {
+   display: -webkit-box;
+   -webkit-line-clamp: 2;
+   -webkit-box-orient: vertical;
+   line-clamp: 2;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   line-height: 1.25;
 }
 
 .meta {
