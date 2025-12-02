@@ -416,6 +416,11 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
+              {lightboxDescriptionOpen && slides[lightboxIndex].description && (
+                <div className={s.lightboxDescriptionOverlay}>
+                  <p>{slides[lightboxIndex].description}</p>
+                </div>
+              )}
               <div className={s.lightboxPlayerNav}>
                 <PrevButton
                   onClick={(event) => {
@@ -454,11 +459,6 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
                   >
                     {lightboxDescriptionOpen ? "Hide description" : "View description"}
                   </button>
-                  {lightboxDescriptionOpen && (
-                    <div className={s.lightboxDescBody}>
-                      {slides[lightboxIndex].description}
-                    </div>
-                  )}
                 </div>
               )}
             </div>

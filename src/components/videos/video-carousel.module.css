@@ -10,7 +10,7 @@
 
 @media (min-width: 1024px) {
   .container {
-    --slide-width: clamp(22rem, 32vw, 34rem);
+    --slide-width: clamp(22rem, 32vw, 16rem);
   }
 }
 
@@ -229,6 +229,42 @@
    position: relative;
 }
 
+.lightboxDescriptionOverlay {
+   position: absolute;
+   left: 1.25rem;
+   right: 1.25rem;
+   bottom: 1.25rem;
+   padding: 1rem 1.15rem;
+   background: rgba(5, 5, 5, 0.78);
+   border-radius: 1rem;
+   box-shadow: 0 1.25rem 2.25rem rgba(0, 0, 0, 0.45);
+   font-size: 0.9rem;
+   line-height: 1.55;
+   color: rgba(255, 255, 255, 0.9);
+   max-height: 40%;
+   overflow-y: auto;
+   pointer-events: auto;
+   z-index: 2;
+}
+
+.lightboxDescriptionOverlay p {
+   margin: 0;
+   white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .lightboxDescriptionOverlay {
+     left: 0;
+     right: 0;
+     top: 0;
+     bottom: 0;
+     border-radius: 0;
+     padding: 1.5rem 1.25rem 2rem;
+     background: rgba(5, 5, 5, 0.92);
+     max-height: none;
+  }
+}
+
 /* 1100px and up */
 @media (min-width: 1100px) {
   .lightboxPlayerWrap {
@@ -246,6 +282,7 @@
    justify-content: space-between;
    pointer-events: none;
    padding: 0 1.25rem;
+   z-index: 3;
 }
 
 .lightboxIframe {
@@ -279,6 +316,7 @@
    display: grid;
    gap: 0.4rem;
    justify-items: center;
+   margin-top: 1rem;
  }
 
 .lightboxDescButton {
@@ -295,16 +333,6 @@
 
 .lightboxDescButton:hover {
    background: rgba(0, 0, 0, 0.7);
- }
-
-.lightboxDescBody {
-   font-size: 0.8rem;
-   letter-spacing: normal;
-   text-transform: none;
-   max-width: min(60rem, 78vw);
-   color: rgba(255, 255, 255, 0.86);
-   line-height: 1.6;
-   white-space: pre-wrap;
  }
 
 .lightboxBtn {
