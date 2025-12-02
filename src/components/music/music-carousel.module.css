@@ -4,7 +4,11 @@
 
 @media (min-width: 640px) {
   .container {
-    --slide-width: clamp(16rem, 30vw, 18.5rem);
+    --slide-width: clamp(17rem, 46%, 30rem);
+  }
+
+  .dots {
+    justify-content: center;
   }
 }
 

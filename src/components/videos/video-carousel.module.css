@@ -4,13 +4,17 @@
 
 @media (min-width: 640px) {
   .container {
-    --slide-width: clamp(20rem, 46vw, 32rem);
+    --slide-width: clamp(17rem, 46%, 30rem);
+  }
+
+  .dots {
+    justify-content: center;
   }
 }
 
 @media (min-width: 1024px) {
   .container {
-    --slide-width: clamp(22rem, 32vw, 16rem);
+    --slide-width: clamp(20rem, 32%, 28rem);
   }
 }
 
@@ -56,7 +60,7 @@
 .preview {
    position: relative;
    width: 100%;
-   aspect-ratio: 16 / 12;
+   aspect-ratio: 16 / 14;
    border-radius: 1.5rem;
    overflow: hidden;
    background: color-mix(in oklab, var(--background) 88%, black);
