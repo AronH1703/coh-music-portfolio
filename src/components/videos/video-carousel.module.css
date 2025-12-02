@@ -1,30 +1,23 @@
 .container {
-   --slide-width: clamp(22rem, 68vw, 40rem);
-   align-items: flex-start;
+   --slide-width: clamp(18rem, 70vw, 26rem);
  }
 
 @media (min-width: 640px) {
   .container {
-    --slide-width: clamp(24rem, 58vw, 40rem);
+    --slide-width: clamp(20rem, 46vw, 32rem);
   }
 }
 
 @media (min-width: 1024px) {
   .container {
-    --slide-width: clamp(26rem, 48vw, 40rem);
+    --slide-width: clamp(16rem, 24vw, 19rem);
   }
 }
 
 .slide {
-   flex: 0 1 var(--slide-width);
+   flex: 0 0 var(--slide-width);
    min-width: 0;
  }
-
- @media (max-width: 640px) {
-  .slide {
-    flex: 0 0 var(--slide-width);
-  }
-}
 
 .card {
    display: grid;
@@ -356,10 +349,6 @@
  }
 
 @media (max-width: 640px) {
-  .slide {
-     flex-basis: 90%;
-   }
-
   .controls {
      justify-content: center;
    }
