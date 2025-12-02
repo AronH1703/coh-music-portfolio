@@ -204,9 +204,6 @@ function AboutContent({ data }: { data: AboutContentEntry | null }) {
   const fallbackText =
     "Creature of Habit crafts cinematic pop and electronic scores that lean into tactile textures, layered harmonies, and patient storytelling.";
   const aboutText = data?.aboutText ?? fallbackText;
-  const missionStatement = data?.missionStatement;
-  const featuredQuote = data?.featuredQuote;
-  const attribution = data?.quoteAttribution;
   const artistPhotoUrl = data?.artistPhotoUrl;
   const artistPhotoAlt = data?.artistPhotoAlt ?? "Portrait of Creature of Habit";
 
@@ -215,7 +212,6 @@ function AboutContent({ data }: { data: AboutContentEntry | null }) {
   return (
     <div className="about-content">
       <div className="about-copy">
-        {missionStatement && <p className="mission-statement">{missionStatement}</p>}
         {paragraphs.map((paragraph, index) => (
           <p key={`about-paragraph-${index}`}>{paragraph}</p>
         ))}
@@ -231,12 +227,6 @@ function AboutContent({ data }: { data: AboutContentEntry | null }) {
               className="about-photo-image"
             />
           </figure>
-        )}
-        {(featuredQuote || attribution) && (
-          <blockquote className="about-quote">
-            {featuredQuote && <p>“{featuredQuote}”</p>}
-            {attribution && <cite>— {attribution}</cite>}
-          </blockquote>
         )}
       </div>
     </div>

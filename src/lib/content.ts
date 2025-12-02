@@ -252,10 +252,6 @@ export async function getVideos(): Promise<VideoContent[]> {
 
 export type AboutContentEntry = {
   aboutText: string;
-  markdown?: string | null;
-  missionStatement?: string | null;
-  featuredQuote?: string | null;
-  quoteAttribution?: string | null;
   artistPhotoUrl?: string | null;
   artistPhotoAlt?: string | null;
   artistPhotoCloudinaryPublicId?: string | null;
@@ -270,10 +266,6 @@ export async function getAboutContent(): Promise<AboutContentEntry | null> {
 
   return {
     aboutText: about.aboutText,
-    markdown: about.markdown,
-    missionStatement: about.missionStatement,
-    featuredQuote: about.featuredQuote,
-    quoteAttribution: about.quoteAttribution,
     artistPhotoUrl: about.artistPhotoUrl,
     artistPhotoAlt: about.artistPhotoAlt,
     artistPhotoCloudinaryPublicId: about.artistPhotoCloudinaryPublicId,

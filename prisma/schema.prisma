@@ -156,15 +156,9 @@ model Video {
 model AboutContent {
   id               String   @id @default(cuid())
   aboutText        String
-  markdown         String?
-  missionStatement String?
-  featuredQuote    String?
-  quoteAttribution String?
   artistPhotoUrl   String?
   artistPhotoAlt   String?
   artistPhotoCloudinaryPublicId String?
-  seoTitle         String?
-  seoDescription   String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

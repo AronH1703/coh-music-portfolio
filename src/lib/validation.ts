@@ -98,15 +98,9 @@ export const videoSchema = z
 
 export const aboutSchema = z.object({
   aboutText: z.string().trim().min(40),
-  markdown: z.string().trim().optional(),
-  missionStatement: z.string().trim().max(240).optional(),
-  featuredQuote: z.string().trim().max(280).optional(),
-  quoteAttribution: z.string().trim().max(120).optional(),
   artistPhotoUrl: optionalUrl,
   artistPhotoAlt: z.string().trim().max(160).optional(),
   artistPhotoCloudinaryPublicId: z.string().trim().max(200).optional(),
-  seoTitle: z.string().trim().max(70).optional(),
-  seoDescription: z.string().trim().max(300).optional(),
 });
 
 export const contactSchema = z.object({

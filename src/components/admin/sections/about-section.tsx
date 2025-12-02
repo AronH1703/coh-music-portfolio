@@ -32,15 +32,9 @@ export function AboutSection() {
     resolver: zodResolver(aboutSchema),
     defaultValues: {
       aboutText: "",
-      markdown: "",
-      missionStatement: "",
-      featuredQuote: "",
-      quoteAttribution: "",
       artistPhotoUrl: "",
       artistPhotoAlt: "",
       artistPhotoCloudinaryPublicId: "",
-      seoTitle: "",
-      seoDescription: "",
     },
   });
 
@@ -53,15 +47,9 @@ export function AboutSection() {
       if (mounted && data) {
         reset({
           aboutText: data.aboutText ?? "",
-          markdown: data.markdown ?? "",
-          missionStatement: data.missionStatement ?? "",
-          featuredQuote: data.featuredQuote ?? "",
-          quoteAttribution: data.quoteAttribution ?? "",
           artistPhotoUrl: data.artistPhotoUrl ?? "",
           artistPhotoAlt: data.artistPhotoAlt ?? "",
           artistPhotoCloudinaryPublicId: data.artistPhotoCloudinaryPublicId ?? "",
-          seoTitle: data.seoTitle ?? "",
-          seoDescription: data.seoDescription ?? "",
         });
       }
     }
@@ -126,38 +114,6 @@ export function AboutSection() {
           error={errors.aboutText}
         />
 
-        <TextareaField
-          label="Markdown"
-          placeholder="Optional rich Markdown content for expanded bios."
-          rows={6}
-          {...register("markdown")}
-          error={errors.markdown}
-        />
-
-        <div className={styles.fieldGroup}>
-          <TextareaField
-            label="Mission statement"
-            placeholder="Concise mission or creative statement."
-            rows={3}
-            {...register("missionStatement")}
-            error={errors.missionStatement}
-          />
-          <TextareaField
-            label="Featured quote"
-            placeholder="Add a memorable press or collaborator quote."
-            rows={3}
-            {...register("featuredQuote")}
-            error={errors.featuredQuote}
-          />
-        </div>
-
-        <TextField
-          label="Quote attribution"
-          placeholder="Publication or collaborator name."
-          {...register("quoteAttribution")}
-          error={errors.quoteAttribution}
-        />
-
         <div className={styles.fieldGroup}>
           <TextField
             label="Artist photo URL"
@@ -217,22 +173,6 @@ export function AboutSection() {
               Use high-resolution images for the bio section. Uploading stores the Cloudinary reference automatically.
             </span>
           )}
-        </div>
-
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="SEO title"
-            placeholder="Composer & Producer | Coh Music"
-            {...register("seoTitle")}
-            error={errors.seoTitle}
-          />
-          <TextareaField
-            label="SEO description"
-            placeholder="Short description for metadata."
-            rows={3}
-            {...register("seoDescription")}
-            error={errors.seoDescription}
-          />
         </div>
 
         {message && (
