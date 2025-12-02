@@ -100,7 +100,7 @@ export function NewsletterSection() {
   };
 
   return (
-    <section className={styles.card}>
+    <section className={`${styles.card} ${styles.newsletterCard}`}>
       <div className={styles.actions}>
         <button
           type="button"
@@ -156,7 +156,7 @@ export function NewsletterSection() {
                 </div>
               </header>
               {subscriber.source && (
-                <div className={styles.sectionDescription}>
+                <div className={styles.newsletterSource}>
                   Source: {subscriber.source}
                 </div>
               )}

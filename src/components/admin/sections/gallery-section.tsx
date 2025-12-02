@@ -254,32 +254,38 @@ export function GallerySection() {
         <div className={styles.fieldGroup}>
           <div className={controls.formField}>
             <label className={controls.label}>Select image</label>
-            <div className={styles.actions}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => {
-                  const selected = event.target.files?.[0];
-                  if (!selected) {
-                    setFile(null);
-                    return;
-                  }
-                  if (selected.size > FIVE_MB) {
-                    setMessage({
-                      type: "error",
-                      text: "Image must be 5 MB or smaller.",
-                    });
-                    event.target.value = "";
-                    return;
-                  }
-                  setFile(selected);
-                }}
-              />
-              {file && (
-                <span className={controls.helper}>
-                  {file.name} ({Math.round(file.size / 1024)} KB)
+            <div className={controls.fileInput}>
+              <label className={controls.fileField}>
+                <span className={controls.fileFieldLabel}>
+                  {file ? "Change selected image" : "Click to choose image"}
                 </span>
-              )}
+                <span className={controls.fileFieldHint}>
+                  {file
+                    ? `${file.name} (${Math.round(file.size / 1024)} KB)`
+                    : "Max 5 MB • JPG, PNG, or WebP"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={controls.fileNativeInput}
+                  onChange={(event) => {
+                    const selected = event.target.files?.[0];
+                    if (!selected) {
+                      setFile(null);
+                      return;
+                    }
+                    if (selected.size > FIVE_MB) {
+                      setMessage({
+                        type: "error",
+                        text: "Image must be 5 MB or smaller.",
+                      });
+                      event.target.value = "";
+                      return;
+                    }
+                    setFile(selected);
+                  }}
+                />
+              </label>
             </div>
           </div>
         </div>

@@ -1,59 +1,89 @@
+/* --- FORM LAYOUT --- */
+
 .formField {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.55rem;
+  width: 100%;
 }
 
+.fieldGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .fieldGroup {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* --- LABELS --- */
+
 .label {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #1f2937;
 }
 
 .editableLabel {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .editableLabelHint {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 400;
   color: #9ca3af;
 }
 
 .editableLabelInput {
   border: none;
-  border-bottom: 1px dashed rgba(17, 24, 39, 0.4);
+  border-bottom: 1px dashed rgba(17, 24, 39, 0.35);
   padding: 0;
   font: inherit;
   background: transparent;
   min-width: 0;
 }
 
+/* --- FIELDS --- */
+
 .input,
 .textarea,
 .select {
-  border: 1px solid rgba(17, 24, 39, 0.18);
-  border-radius: 0.5rem;
-  padding: 0.6rem 0.75rem;
+  width: 100%;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 0.65rem;
+  padding: 0.75rem 0.9rem;
   font-size: 0.95rem;
   background-color: #ffffff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+}
+
+.input:hover,
+.textarea:hover,
+.select:hover {
+  border-color: rgba(17, 24, 39, 0.25);
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus {
-  border-color: rgba(17, 24, 39, 0.45);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
   outline: none;
 }
 
 .textarea {
-  min-height: 120px;
+  min-height: 140px;
   resize: vertical;
 }
+
+/* --- HELP TEXT / ERROR --- */
 
 .helper {
   font-size: 0.8rem;
@@ -62,26 +92,29 @@
 
 .error {
   font-size: 0.8rem;
-  color: #b91c1c;
+  color: #dc2626;
+  font-weight: 500;
 }
+
+/* --- TOGGLE --- */
 
 .toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 0.65rem;
-  border: 1px solid rgba(17, 24, 39, 0.14);
-  background: rgba(249, 250, 251, 0.85);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(249, 250, 251, 0.95);
 }
 
 .toggleSwitch {
   position: relative;
-  width: 40px;
-  height: 22px;
+  width: 44px;
+  height: 24px;
   border-radius: 999px;
-  background: rgba(17, 24, 39, 0.25);
+  background: rgba(17, 24, 39, 0.28);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -97,61 +130,85 @@
 
 .toggleKnob {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 4px;
+  left: 4px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: #ffffff;
   transition: transform 0.2s ease;
-  box-shadow: 0 3px 8px rgba(17, 24, 39, 0.2);
+  box-shadow: 0 3px 8px rgba(17, 24, 39, 0.25);
 }
 
 .toggleInput:checked + .toggleKnob {
-  transform: translateX(18px);
+  transform: translateX(20px);
 }
 
 .toggleInput:checked ~ .toggleSwitch {
   background: #111827;
 }
 
+/* --- FILE INPUT --- */
+
 .fileInput {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
 .fileField {
-  border: 2px dashed rgba(17, 24, 39, 0.15);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  background: rgba(17, 24, 39, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: 2px dashed rgba(17, 24, 39, 0.14);
+  border-radius: 0.9rem;
+  padding: 1.5rem;
+  background: rgba(17, 24, 39, 0.025);
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
 }
 
 .fileField:hover {
-  border-color: rgba(17, 24, 39, 0.35);
-  background: rgba(17, 24, 39, 0.05);
+  border-color: rgba(17, 24, 39, 0.45);
+  background: rgba(17, 24, 39, 0.06);
 }
+
+.fileFieldLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.fileFieldHint {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.fileNativeInput {
+  display: none;
+}
+
+/* --- RICH TEXT --- */
 
 .richTextToolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.6rem;
 }
 
 .richTextButton {
   appearance: none;
   border: 1px solid rgba(17, 24, 39, 0.25);
   border-radius: 0.65rem;
-  padding: 0.35rem 0.85rem;
+  padding: 0.4rem 0.9rem;
   background: rgba(249, 250, 251, 0.85);
   cursor: pointer;
   font-size: 0.85rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .richTextButton:hover {
@@ -160,21 +217,21 @@
 }
 
 .richTextEditor {
-  min-height: 180px;
-  border: 1px solid rgba(17, 24, 39, 0.25);
+  min-height: 200px;
+  border: 1px solid rgba(17, 24, 39, 0.18);
   border-radius: 0.75rem;
-  padding: 0.85rem;
+  padding: 0.9rem;
   background: #fff;
   color: #111;
   font-size: 0.95rem;
-  line-height: 1.6;
+  line-height: 1.65;
   overflow: auto;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .richTextEditor:focus {
-  outline: none;
-  border-color: rgba(37, 99, 235, 0.7);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 .richTextEditor[data-placeholder]:empty::before {

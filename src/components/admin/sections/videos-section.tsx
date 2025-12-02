@@ -147,15 +147,22 @@ useEffect(() => {
     setIsSaving(true);
     setMessage(null);
 
+    const title = formData.title.trim();
+    const videoUrl = formData.videoUrl.trim();
+    const description =
+      formData.description && formData.description.trim().length > 0
+        ? formData.description.trim()
+        : undefined;
+
     const tags = formData.tags
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean);
 
     const parsed = videoSchema.safeParse({
-      title: formData.title,
-      description: formData.description || undefined,
-      videoUrl: formData.videoUrl,
+      title,
+      description,
+      videoUrl,
       videoCloudinaryPublicId:
         formData.videoCloudinaryPublicId || undefined,
       thumbnailUrl: formData.thumbnailUrl || undefined,
@@ -165,9 +172,16 @@ useEffect(() => {
     });
 
     if (!parsed.success) {
+      const flat = parsed.error.flatten();
+      const firstKey = Object.keys(flat.fieldErrors)[0] as
+        | keyof typeof flat.fieldErrors
+        | undefined;
+      const firstMessage =
+        (firstKey && flat.fieldErrors[firstKey]?.[0]) ||
+        "Validation failed. Double-check required fields.";
       setMessage({
         type: "error",
-        text: "Validation failed. Double-check required fields.",
+        text: firstMessage,
       });
       setIsSaving(false);
       return;
@@ -301,6 +315,7 @@ useEffect(() => {
           }
         />
 
+        {/* Cloudinary video upload (optional; re-enable if needed)
         <input
           ref={videoInputRef}
           type="file"
@@ -343,7 +358,9 @@ useEffect(() => {
             </span>
           )}
         </div>
+        */}
 
+        {/* Cloudinary video ID (optional; re-enable if needed)
         <TextField
           label="Video public ID"
           name="videoCloudinaryPublicId"
@@ -356,9 +373,10 @@ useEffect(() => {
               videoCloudinaryPublicId: event.target.value,
             }))
           }
-        />
+        /> */}
 
         <div className={styles.fieldGroup}>
+          {/* Cloudinary thumbnail fields (optional; re-enable if needed)
           <TextField
             label="Thumbnail URL"
             name="thumbnailUrl"
@@ -383,7 +401,7 @@ useEffect(() => {
                 thumbnailCloudinaryPublicId: event.target.value,
               }))
             }
-          />
+          /> */}
           <TextField
             label="Tags"
             name="tags"
@@ -396,6 +414,7 @@ useEffect(() => {
           />
         </div>
 
+        {/* Cloudinary thumbnail upload (optional; re-enable if needed)
         <input
           ref={thumbnailInputRef}
           type="file"
@@ -437,6 +456,7 @@ useEffect(() => {
             </span>
           )}
         </div>
+        */}
 
         {message && (
           <div
@@ -661,6 +681,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           }
           placeholder="Video URL"
         />
+        {/* Cloudinary video ID (optional; re-enable if needed)
         <input
           className={controls.input}
           value={state.videoCloudinaryPublicId}
@@ -671,9 +692,10 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
             }))
           }
           placeholder="Video public ID"
-        />
+        /> */}
       </div>
 
+      {/* Cloudinary video upload (optional; re-enable if needed)
       <input
         ref={videoInputRef}
         type="file"
@@ -713,6 +735,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           </span>
         )}
       </div>
+      */}
 
       <textarea
         className={controls.textarea}
@@ -725,6 +748,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
       />
 
       <div className={styles.fieldGroup}>
+        {/* Cloudinary thumbnail fields (optional; re-enable if needed)
         <input
           className={controls.input}
           value={state.thumbnailUrl}
@@ -744,6 +768,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           }
           placeholder="Thumbnail public ID"
         />
+        */}
         <input
           className={controls.input}
           value={state.tags}
@@ -754,6 +779,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
         />
       </div>
 
+      {/* Cloudinary thumbnail upload (optional; re-enable if needed)
       <input
         ref={thumbnailInputRef}
         type="file"
@@ -793,6 +819,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           </span>
         )}
       </div>
+      */}
 
       {message && (
         <div

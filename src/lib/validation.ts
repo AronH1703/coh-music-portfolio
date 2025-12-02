@@ -88,7 +88,7 @@ export const musicReleaseSchema = z
 export const videoSchema = z
   .object({
     title: z.string().trim().min(2).max(160),
-    description: z.string().trim().max(500).optional(),
+    description: z.string().trim().max(1200).optional(),
     videoUrl: urlSchema,
     videoCloudinaryPublicId: z.string().trim().max(200).optional(),
     thumbnailUrl: optionalUrl,

@@ -186,6 +186,8 @@ function DotButton(props: ButtonProps) {
 export default function VideoCarousel({ videos }: VideoCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel(CAROUSEL_OPTIONS);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [openDescriptionIndex, setOpenDescriptionIndex] = useState<number | null>(null);
+  const [lightboxDescriptionOpen, setLightboxDescriptionOpen] = useState(false);
 
   const { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick } =
     usePrevNextButtons(emblaApi);
@@ -202,6 +204,7 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
       const clickAllowed = (emblaApi as any)?.clickAllowed?.() ?? true;
       if (!clickAllowed) return;
       setLightboxIndex(index);
+      setLightboxDescriptionOpen(false);
     },
     [emblaApi, slides],
   );
@@ -287,9 +290,10 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
           <div className={clsx(frameStyles.container, s.container)}>
             {slides.map((video, index) => {
               const title = video.title ?? `Video ${index + 1}`;
-              const description = video.description ?? "Watch on YouTube";
+              const description = video.description ?? null;
               const thumbnail =
                 video.thumbnailUrl ?? `https://img.youtube.com/vi/${video.externalId}/hqdefault.jpg`;
+              const isDescriptionOpen = openDescriptionIndex === index;
               return (
                 <div className={s.slide} key={video.id}>
                   <article className={s.card}>
@@ -321,7 +325,31 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
                     </button>
                     <div className={clsx(frameStyles.info, s.info)}>
                       <h3 className={frameStyles.title}>{title}</h3>
-                      <span className={clsx(frameStyles.meta, s.meta)}>{description}</span>
+                      {description ? (
+                        <div className={s.descToggle}>
+                          <button
+                            type="button"
+                            className={s.descButton}
+                            onClick={() =>
+                              setOpenDescriptionIndex(
+                                isDescriptionOpen ? null : index,
+                              )
+                            }
+                            aria-expanded={isDescriptionOpen}
+                          >
+                            {isDescriptionOpen ? "Hide description" : "View description"}
+                          </button>
+                          {isDescriptionOpen && (
+                            <div className={s.descPopover}>
+                              <p>{description}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className={clsx(frameStyles.meta, s.meta)}>
+                          Watch on YouTube
+                        </span>
+                      )}
                     </div>
                   </article>
                 </div>
@@ -410,11 +438,28 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
               </div>
             </div>
             <div className={s.lightboxCaption}>
-              {slides[lightboxIndex].description && (
-                <span>{slides[lightboxIndex].description}</span>
-              )}
               {slides[lightboxIndex].title && (
                 <strong>{slides[lightboxIndex].title}</strong>
+              )}
+              {slides[lightboxIndex].description && (
+                <div className={s.lightboxDescToggle}>
+                  <button
+                    type="button"
+                    className={s.lightboxDescButton}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setLightboxDescriptionOpen((prev) => !prev);
+                    }}
+                    aria-expanded={lightboxDescriptionOpen}
+                  >
+                    {lightboxDescriptionOpen ? "Hide description" : "View description"}
+                  </button>
+                  {lightboxDescriptionOpen && (
+                    <div className={s.lightboxDescBody}>
+                      {slides[lightboxIndex].description}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             <div className={s.lightboxDots}>

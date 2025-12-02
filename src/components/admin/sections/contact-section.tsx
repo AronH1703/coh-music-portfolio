@@ -123,10 +123,7 @@ export function ContactSection() {
           />
         </div>
 
-        <div
-          className={styles.fieldGroup}
-          style={{ flexDirection: "column", gap: "0.75rem" }}
-        >
+        <div className={styles.fieldGroupStacked}>
           <div
             className={styles.fieldGroup}
             style={{ justifyContent: "space-between", alignItems: "center" }}

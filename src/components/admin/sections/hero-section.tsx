@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import clsx from "clsx";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -101,18 +102,18 @@ export function HeroSection() {
   });
 
   return (
-    <section className={styles.card}>
+    <section className={clsx(styles.card, styles.heroCard)}>
       <form onSubmit={onSubmit} className={styles.fieldset}>
         <div className={styles.fieldGroup}>
           <TextField
-            label="Hero title"
-            placeholder="Soundscapes crafted for the moments that matter."
+            label="Aðalfyrirsögn (Hero title)"
+            placeholder="Tónlist fyrir augnablikin sem skipta máli."
             {...register("title")}
             error={errors.title}
           />
           <TextareaField
-            label="Hero subtitle"
-            placeholder="Add supporting copy that reinforces the headline."
+            label="Undirfyrirsögn (Hero subtitle)"
+            placeholder="Bættu við stuttum texta sem styður og útskýrir aðalfyrirsögnina."
             rows={4}
             {...register("subtitle")}
             error={errors.subtitle}
@@ -169,14 +170,14 @@ export function HeroSection() {
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Primary CTA label"
-            placeholder="Explore the work"
+            label="Texti á aðalhnappi"
+            placeholder="Skoða verk"
             {...register("primaryCtaLabel")}
             error={errors.primaryCtaLabel}
           />
           <TextField
-            label="Primary CTA link"
-            placeholder="#music"
+            label="Slóð fyrir aðalhnapp"
+            placeholder="https://example.com/#music"
             {...register("primaryCtaHref")}
             error={errors.primaryCtaHref}
           />
@@ -184,14 +185,14 @@ export function HeroSection() {
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Secondary CTA label"
-            placeholder="Booking & inquiries"
+            label="Texti á aukahnappi"
+            placeholder="Bókanir & fyrirspurnir"
             {...register("secondaryCtaLabel")}
             error={errors.secondaryCtaLabel}
           />
           <TextField
-            label="Secondary CTA link"
-            placeholder="#contact"
+            label="Slóð fyrir aukahnapp"
+            placeholder="https://example.com/#contact"
             {...register("secondaryCtaHref")}
             error={errors.secondaryCtaHref}
           />
@@ -199,14 +200,14 @@ export function HeroSection() {
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Meta title"
-            placeholder="Producer & Composer | Coh Music"
+            label="SEO-titill"
+            placeholder="Tónlistarmaður & Framleiðandi | Coh Music"
             {...register("metaTitle")}
             error={errors.metaTitle}
           />
           <TextareaField
-            label="Meta description"
-            placeholder="Rich meta description for search and social previews."
+            label="SEO-lýsing"
+            placeholder="Rík og hnitmiðuð lýsing sem birtist í leitarniðurstöðum og samfélagsmiðlaforskoðunum."
             rows={3}
             {...register("metaDescription")}
             error={errors.metaDescription}

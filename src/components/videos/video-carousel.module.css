@@ -1,5 +1,6 @@
 .container {
    --slide-width: clamp(22rem, 68vw, 40rem);
+   align-items: flex-start;
  }
 
 @media (min-width: 640px) {
@@ -62,7 +63,7 @@
 .preview {
    position: relative;
    width: 100%;
-   aspect-ratio: 16 / 9;
+   aspect-ratio: 16 / 12;
    border-radius: 1.5rem;
    overflow: hidden;
    background: color-mix(in oklab, var(--background) 88%, black);

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { type ReactNode } from "react";
 import PhotoCarousel, { type GalleryPhoto } from "@/components/gallery/photo-carousel";
@@ -29,6 +30,20 @@ type SectionConfig = {
   content?: ReactNode;
 };
 
+
+export async function generateMetadata(): Promise<Metadata> {
+  const hero = await getHeroContent();
+
+  const title = hero?.metaTitle?.trim() || "Coh Music";
+  const description =
+    hero?.metaDescription?.trim() ||
+    "Creature of Habit crafts cinematic pop and electronic projects.";
+
+  return {
+    title,
+    description,
+  };
+}
 
 export default async function Home() {
   const [

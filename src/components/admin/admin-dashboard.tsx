@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { signOut } from "next-auth/react";
+import { Menu, X } from "lucide-react";
 import clsx from "clsx";
 import styles from "./admin-dashboard.module.scss";
 import { HeroSection } from "./sections/hero-section";
@@ -35,21 +36,21 @@ const SECTIONS: Array<{
     id: "hero",
     label: "Hero",
     description:
-      "Control the headline, supporting copy, and background assets that appear on the landing hero.",
+      "Stjórnaðu fyrirsögn, texta o.s.frv. sem birtist í aðalhluta forsíðunnar.",
     render: () => <HeroSection />,
   },
   {
     id: "gallery",
     label: "Gallery",
     description:
-      "Upload imagery to Cloudinary, manage captions, alt text, tags, and sort order for the visuals carousel.",
+      "Settu inn myndir (Cloudinary) og stjórnaðu myndasafni á vefsíðunni.",
     render: () => <GallerySection />,
   },
   {
     id: "music",
     label: "Music",
     description:
-      "Add releases, set streaming links, configure scheduling, and toggle coming soon overlays.",
+      "Bættu við útgáfum, skráðu streymistengla, stilltu tímasetningar og virkjaðu eða aftengdu coming soon yfirlag.",
     render: () => <MusicSection />,
   },
   {
@@ -97,14 +98,36 @@ const SECTIONS: Array<{
 
 export function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<SectionId>("hero");
+  const [navOpen, setNavOpen] = useState(false);
 
   const sectionConfig = SECTIONS.find((section) => section.id === activeSection)!;
+
+  const handleSelectSection = (id: SectionId) => {
+    setActiveSection(id);
+    setNavOpen(false);
+  };
 
   return (
     <div className={styles.root}>
       <aside className={styles.sidebar}>
         <div className={styles.brand}>Admin Control</div>
-        <nav className={styles.navSection}>
+
+        <button
+          type="button"
+          className={styles.navToggleButton}
+          aria-label={navOpen ? "Close admin navigation" : "Open admin navigation"}
+          onClick={() => setNavOpen((prev) => !prev)}
+        >
+          <span className={styles.navToggleIcon}>
+            {navOpen ? <X size={18} /> : <Menu size={18} />}
+          </span>
+        </button>
+
+        <nav
+          className={clsx(styles.navSection, {
+            [styles.navSectionCollapsed]: !navOpen,
+          })}
+        >
           {SECTIONS.map((section) => (
             <button
               key={section.id}
@@ -112,16 +135,35 @@ export function AdminDashboard() {
               className={clsx(styles.navButton, {
                 [styles.navButtonActive]: section.id === activeSection,
               })}
-              onClick={() => setActiveSection(section.id)}
+              onClick={() => handleSelectSection(section.id)}
             >
               {section.label}
             </button>
           ))}
+
+          <button
+            type="button"
+            className={clsx(
+              styles.navButton,
+              styles.logoutButton,
+              styles.logoutMobile,
+            )}
+            onClick={() => {
+              setNavOpen(false);
+              signOut({ callbackUrl: "/login" });
+            }}
+          >
+            Sign out
+          </button>
         </nav>
 
         <button
           type="button"
-          className={clsx(styles.navButton, styles.logoutButton)}
+          className={clsx(
+            styles.navButton,
+            styles.logoutButton,
+            styles.logoutDesktop,
+          )}
           onClick={() => signOut({ callbackUrl: "/login" })}
         >
           Sign out

@@ -20,6 +20,18 @@ import controls from "../form-controls.module.scss";
 type PressKitFormValues = z.input<typeof pressKitAssetsSchema>;
 type UrlFieldName = Extract<keyof PressKitFormValues, `${string}Url`>;
 
+const ALL_URL_FIELDS: UrlFieldName[] = [
+  "fullPressKitZipUrl",
+  "onePagerPdfUrl",
+  "pressPhotosFolderUrl",
+  "logosFolderUrl",
+  "artworkFolderUrl",
+  "stagePlotPdfUrl",
+  "inputListPdfUrl",
+];
+
+const MAX_VISIBLE_LINKS = 10;
+
 type MessageState =
   | { type: "success"; text: string }
   | { type: "error"; text: string }
@@ -116,11 +128,15 @@ export function PressKitSection() {
     }
     return base;
   });
+  const [visibleFields, setVisibleFields] = useState<UrlFieldName[]>(() =>
+    determineVisibleFields(DEFAULT_FORM_VALUES),
+  );
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PressKitFormValues>({
     resolver: zodResolver(pressKitAssetsSchema),
@@ -137,7 +153,11 @@ export function PressKitSection() {
         const payload = await response.json().catch(() => null);
         const record = payload?.data as PressKitAssetsRecord | undefined;
         if (record) {
-          reset(mapRecordToFormValues(record));
+          const values = mapRecordToFormValues(record);
+          reset(values);
+          setVisibleFields(determineVisibleFields(values));
+        } else {
+          setVisibleFields(determineVisibleFields(DEFAULT_FORM_VALUES));
         }
       }
       setIsLoading(false);
@@ -204,7 +224,9 @@ export function PressKitSection() {
 
     const updated = payload?.data as PressKitAssetsRecord | undefined;
     if (updated) {
-      reset(mapRecordToFormValues(updated));
+      const values = mapRecordToFormValues(updated);
+      reset(values);
+      setVisibleFields(determineVisibleFields(values));
     }
 
     setMessage({ type: "success", text: "Press kit links saved." });
@@ -224,7 +246,9 @@ export function PressKitSection() {
           <div className={styles.emptyState}>Loading stored press kit links…</div>
         )}
 
-        {FIELD_CONFIGS.map(({ urlName, helper }) => {
+        {FIELD_CONFIGS.filter(({ urlName }) =>
+          visibleFields.includes(urlName),
+        ).map(({ urlName, helper }) => {
           const urlError = errors[urlName] as FieldError | undefined;
           const label = labelsByField[urlName];
           return (
@@ -247,9 +271,44 @@ export function PressKitSection() {
                 )}
                 {urlError && <span className={controls.error}>{urlError.message}</span>}
               </div>
+              <button
+                type="button"
+                className={styles.dangerButton}
+                onClick={() => {
+                  setVisibleFields((current) =>
+                    current.filter((field) => field !== urlName),
+                  );
+                  setValue(urlName, "");
+                }}
+              >
+                Fjarlægja
+              </button>
             </div>
           );
         })}
+
+        {visibleFields.length <
+          Math.min(MAX_VISIBLE_LINKS, ALL_URL_FIELDS.length) && (
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => {
+                setVisibleFields((current) => {
+                  const limit = Math.min(MAX_VISIBLE_LINKS, ALL_URL_FIELDS.length);
+                  if (current.length >= limit) return current;
+                  const nextField = ALL_URL_FIELDS.find(
+                    (field) => !current.includes(field),
+                  );
+                  if (!nextField) return current;
+                  return [...current, nextField];
+                });
+              }}
+            >
+              Add link
+            </button>
+          </div>
+        )}
 
         {message && (
           <div
@@ -370,6 +429,22 @@ function sanitizeFormValues(values: PressKitFormValues): PressKitFormValues {
     next[field.urlName] = trimmed;
   }
   return next;
+}
+
+function determineVisibleFields(values: PressKitFormValues): UrlFieldName[] {
+  const withUrls: UrlFieldName[] = [];
+  for (const field of ALL_URL_FIELDS) {
+    const raw = values[field];
+    if (typeof raw === "string" && raw.trim()) {
+      withUrls.push(field);
+    }
+  }
+
+  if (withUrls.length > 0) {
+    return withUrls;
+  }
+
+  return ALL_URL_FIELDS.slice(0, 1);
 }
 
 function hydratePressKitLabelsFromStorage(
