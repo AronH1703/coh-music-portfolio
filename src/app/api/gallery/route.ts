@@ -29,12 +29,9 @@ export async function POST(request: Request) {
   const formData = await request.formData();
 
   const file = formData.get("file");
+  const hasFile = file instanceof File;
 
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Image file is required." }, { status: 400 });
-  }
-
-  if (file.size > MAX_IMAGE_BYTES) {
+  if (hasFile && (file as File).size > MAX_IMAGE_BYTES) {
     return NextResponse.json(
       { error: "Image exceeds 5 MB limit." },
       { status: 400 },
@@ -57,7 +54,10 @@ export async function POST(request: Request) {
     }
   }
 
-  const metadata = galleryItemSchema.safeParse({
+  const imageUrlField = formData.get("imageUrl");
+  const cloudinaryPublicIdField = formData.get("cloudinaryPublicId");
+
+  const metadataPayload: Record<string, unknown> = {
     title: formData.get("title"),
     caption:
       typeof formData.get("caption") === "string" &&
@@ -78,7 +78,23 @@ export async function POST(request: Request) {
     sortOrder: formData.get("sortOrder")
       ? Number(formData.get("sortOrder"))
       : undefined,
-  });
+  };
+
+  if (
+    typeof imageUrlField === "string" &&
+    imageUrlField.trim().length > 0
+  ) {
+    metadataPayload.imageUrl = imageUrlField.trim();
+  }
+
+  if (
+    typeof cloudinaryPublicIdField === "string" &&
+    cloudinaryPublicIdField.trim().length > 0
+  ) {
+    metadataPayload.cloudinaryPublicId = cloudinaryPublicIdField.trim();
+  }
+
+  const metadata = galleryItemSchema.safeParse(metadataPayload);
 
   if (!metadata.success) {
     return NextResponse.json(
@@ -90,68 +106,87 @@ export async function POST(request: Request) {
     );
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const mimeType = (file as File).type || "image/jpeg";
+  if (!hasFile && !metadata.data.imageUrl) {
+    return NextResponse.json(
+      { error: "Provide an image URL or upload an image file." },
+      { status: 400 },
+    );
+  }
 
-  let uploadResult = await new Promise<{
-    secure_url: string;
-    public_id: string;
-    width: number;
-    height: number;
-  }>((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: "coh-music/gallery",
-        resource_type: "image",
-        transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
-      },
-      (error, result) => {
-        if (error || !result) {
-          reject(error ?? new Error("Unknown Cloudinary error"));
-          return;
-        }
+  let finalImageUrl = metadata.data.imageUrl ?? "";
+  let finalCloudinaryPublicId = metadata.data.cloudinaryPublicId ?? "";
+  let width: number | null = null;
+  let height: number | null = null;
 
-        resolve({
+  if (hasFile && file instanceof File) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const mimeType = file.type || "image/jpeg";
+
+    let uploadResult = await new Promise<{
+      secure_url: string;
+      public_id: string;
+      width: number;
+      height: number;
+    }>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "coh-music/gallery",
+          resource_type: "image",
+          transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
+        },
+        (error, result) => {
+          if (error || !result) {
+            reject(error ?? new Error("Unknown Cloudinary error"));
+            return;
+          }
+
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+            width: result.width ?? 0,
+            height: result.height ?? 0,
+          });
+        },
+      );
+
+      Readable.from(buffer).pipe(uploadStream);
+    }).catch((error: unknown) => {
+      console.error("Cloudinary upload failed (stream)", error);
+      return null;
+    });
+
+    // Fallback: try base64 data URI upload if stream failed (some envs have stream issues)
+    if (!uploadResult) {
+      try {
+        const base64 = buffer.toString("base64");
+        const dataUri = `data:${mimeType};base64,${base64}`;
+        const result = await cloudinary.uploader.upload(dataUri, {
+          folder: "coh-music/gallery",
+          resource_type: "image",
+          transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
+        });
+        uploadResult = {
           secure_url: result.secure_url,
           public_id: result.public_id,
           width: result.width ?? 0,
           height: result.height ?? 0,
-        });
-      },
-    );
-
-    Readable.from(buffer).pipe(uploadStream);
-  }).catch((error: unknown) => {
-    console.error("Cloudinary upload failed (stream)", error);
-    return null;
-  });
-
-  // Fallback: try base64 data URI upload if stream failed (some envs have stream issues)
-  if (!uploadResult) {
-    try {
-      const base64 = buffer.toString("base64");
-      const dataUri = `data:${mimeType};base64,${base64}`;
-      const result = await cloudinary.uploader.upload(dataUri, {
-        folder: "coh-music/gallery",
-        resource_type: "image",
-        transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
-      });
-      uploadResult = {
-        secure_url: result.secure_url,
-        public_id: result.public_id,
-        width: result.width ?? 0,
-        height: result.height ?? 0,
-      };
-    } catch (err) {
-      console.error("Cloudinary upload failed (data-uri)", err);
+        };
+      } catch (err) {
+        console.error("Cloudinary upload failed (data-uri)", err);
+      }
     }
-  }
 
-  if (!uploadResult) {
-    return NextResponse.json(
-      { error: "Failed to upload image to Cloudinary. Check server logs for details." },
-      { status: 500 },
-    );
+    if (!uploadResult) {
+      return NextResponse.json(
+        { error: "Failed to upload image to Cloudinary. Check server logs for details." },
+        { status: 500 },
+      );
+    }
+
+    finalImageUrl = uploadResult.secure_url;
+    finalCloudinaryPublicId = uploadResult.public_id;
+    width = uploadResult.width;
+    height = uploadResult.height;
   }
 
   const item = await prisma.galleryItem.create({
@@ -162,10 +197,10 @@ export async function POST(request: Request) {
       category: metadata.data.category,
       tags: metadata.data.tags,
       sortOrder: metadata.data.sortOrder ?? 0,
-      imageUrl: uploadResult.secure_url,
-      cloudinaryPublicId: uploadResult.public_id,
-      width: uploadResult.width,
-      height: uploadResult.height,
+      imageUrl: finalImageUrl,
+      cloudinaryPublicId: finalCloudinaryPublicId || "",
+      width: typeof width === "number" ? width : null,
+      height: typeof height === "number" ? height : null,
     },
   });
 
@@ -203,6 +238,12 @@ export async function PUT(request: Request) {
       category: parsed.data.category,
       tags: parsed.data.tags,
       sortOrder: parsed.data.sortOrder ?? 0,
+      ...(typeof parsed.data.imageUrl === "string"
+        ? { imageUrl: parsed.data.imageUrl }
+        : {}),
+      ...(typeof parsed.data.cloudinaryPublicId === "string"
+        ? { cloudinaryPublicId: parsed.data.cloudinaryPublicId }
+        : {}),
     },
   }).catch(() => null);
 

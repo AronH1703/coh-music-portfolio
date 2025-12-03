@@ -44,6 +44,8 @@ export const galleryItemSchema = z.object({
   category: z.string().trim().max(80).optional(),
   tags: z.array(z.string().trim().min(1).max(40)).optional(),
   sortOrder: z.number().int().min(0).optional(),
+  imageUrl: optionalUrl,
+  cloudinaryPublicId: z.string().trim().max(200).optional(),
 });
 
 export const musicReleaseSchema = z

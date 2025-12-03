@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import styles from "../admin-dashboard.module.scss";
@@ -15,6 +15,7 @@ type GalleryItemRecord = {
   title: string;
   caption: string | null;
   imageUrl: string;
+  cloudinaryPublicId: string | null;
   altText: string | null;
   category: string | null;
   tags: string[] | null;
@@ -31,6 +32,8 @@ type UploadFormValues = {
   category: string;
   tags: string;
   sortOrder: number;
+  imageUrl: string;
+  cloudinaryPublicId: string;
 };
 
 type MessageState =
@@ -52,6 +55,7 @@ export function GallerySection() {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<MessageState>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [manualImageUrl, setManualImageUrl] = useState("");
   const {
     register,
     handleSubmit,
@@ -65,6 +69,13 @@ export function GallerySection() {
       category: "",
       tags: "",
       sortOrder: 0,
+      imageUrl: "",
+      cloudinaryPublicId: "",
+    },
+  });
+  const imageUrlRegister = register("imageUrl", {
+    onChange: (event: ChangeEvent<HTMLInputElement>) => {
+      setManualImageUrl(event.target.value);
     },
   });
 
@@ -83,8 +94,15 @@ export function GallerySection() {
               let tags: string[] | null = null;
               if (Array.isArray(rawTags)) {
                 tags = rawTags.filter((tag): tag is string => typeof tag === "string");
-              } else if (rawTags && typeof rawTags === "object" && Array.isArray((rawTags as any).set)) {
-                tags = ((rawTags as any).set as unknown[]).filter((tag): tag is string => typeof tag === "string");
+              } else if (
+                rawTags &&
+                typeof rawTags === "object" &&
+                Array.isArray((rawTags as { set?: unknown[] }).set)
+              ) {
+                tags =
+                  ((rawTags as { set?: unknown[] }).set ?? []).filter(
+                    (tag): tag is string => typeof tag === "string",
+                  );
               }
 
               return {
@@ -106,12 +124,18 @@ export function GallerySection() {
   const onSubmit = handleSubmit(async (values) => {
     setMessage(null);
 
-    if (!file) {
-      setMessage({ type: "error", text: "Please select an image before uploading." });
+    const trimmedImageUrl = values.imageUrl?.trim() ?? "";
+    const trimmedCloudinaryPublicId = values.cloudinaryPublicId?.trim() ?? "";
+
+    if (!file && !trimmedImageUrl) {
+      setMessage({
+        type: "error",
+        text: "Upload an image or paste a Cloudinary image URL.",
+      });
       return;
     }
 
-    if (file.size > FIVE_MB) {
+    if (file && file.size > FIVE_MB) {
       setMessage({ type: "error", text: "Image must be 5 MB or smaller." });
       return;
     }
@@ -143,6 +167,8 @@ export function GallerySection() {
       category: parsedBase.data.category || undefined,
       tags,
       sortOrder: parsedBase.data.sortOrder,
+      imageUrl: trimmedImageUrl || undefined,
+      cloudinaryPublicId: trimmedCloudinaryPublicId || undefined,
     });
 
     if (!validated.success) {
@@ -154,13 +180,19 @@ export function GallerySection() {
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    if (file) {
+      formData.append("file", file);
+    }
     formData.append("title", validated.data.title);
     if (validated.data.caption) formData.append("caption", validated.data.caption);
     if (validated.data.altText) formData.append("altText", validated.data.altText);
     if (validated.data.category) formData.append("category", validated.data.category);
     if (validated.data.tags) formData.append("tags", JSON.stringify(validated.data.tags));
     formData.append("sortOrder", String(validated.data.sortOrder ?? 0));
+    if (trimmedImageUrl) formData.append("imageUrl", trimmedImageUrl);
+    if (trimmedCloudinaryPublicId) {
+      formData.append("cloudinaryPublicId", trimmedCloudinaryPublicId);
+    }
 
     const response = await fetch("/api/gallery", {
       method: "POST",
@@ -180,6 +212,7 @@ export function GallerySection() {
     setItems((previous) => [data as GalleryItemRecord, ...previous]);
     reset();
     setFile(null);
+    setManualImageUrl("");
     setMessage({ type: "success", text: "Image uploaded successfully." });
   });
 
@@ -192,6 +225,8 @@ export function GallerySection() {
         category: updatedFields.category ?? undefined,
         tags: updatedFields.tags ?? undefined,
         sortOrder: updatedFields.sortOrder ?? 0,
+        imageUrl: updatedFields.imageUrl ?? undefined,
+        cloudinaryPublicId: updatedFields.cloudinaryPublicId ?? undefined,
       });
 
       if (!parsed.success) {
@@ -243,8 +278,8 @@ export function GallerySection() {
   }, []);
 
   const uploadDisabled = useMemo(
-    () => isSubmitting || !file,
-    [file, isSubmitting],
+    () => isSubmitting || (!file && !manualImageUrl.trim()),
+    [file, isSubmitting, manualImageUrl],
   );
 
   return (
@@ -288,6 +323,23 @@ export function GallerySection() {
               </label>
             </div>
           </div>
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <TextField
+            label="Image URL"
+            placeholder="https://res.cloudinary.com/..."
+            helperText="Paste a Cloudinary URL instead of uploading."
+            {...imageUrlRegister}
+            error={errors.imageUrl}
+          />
+          <TextField
+            label="Cloudinary public ID"
+            placeholder="coh-music/gallery/..."
+            helperText="Optional, used to delete assets from Cloudinary."
+            {...register("cloudinaryPublicId")}
+            error={errors.cloudinaryPublicId}
+          />
         </div>
 
         <div className={styles.fieldGroup}>
@@ -360,6 +412,7 @@ export function GallerySection() {
               reset();
               setFile(null);
               setMessage(null);
+              setManualImageUrl("");
             }}
           >
             Reset form
@@ -412,6 +465,8 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
     category: item.category ?? "",
     tags: Array.isArray(item.tags) ? item.tags.join(", ") : "",
     sortOrder: item.sortOrder ?? 0,
+    imageUrl: item.imageUrl ?? "",
+    cloudinaryPublicId: item.cloudinaryPublicId ?? "",
   });
   const [message, setMessage] = useState<MessageState>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -426,6 +481,8 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
     const tagsArray = state.tags
       ? state.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
       : undefined;
+    const trimmedImageUrl = state.imageUrl.trim();
+    const trimmedCloudinaryPublicId = state.cloudinaryPublicId.trim();
 
     const result = await onUpdate(item.id, {
       title: state.title,
@@ -434,6 +491,8 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
       category: state.category,
       tags: tagsArray ?? [],
       sortOrder: Number(state.sortOrder) || 0,
+      imageUrl: trimmedImageUrl,
+      cloudinaryPublicId: trimmedCloudinaryPublicId,
     });
 
     if (!result.ok) {
@@ -507,11 +566,31 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
       <input
         className={controls.input}
         value={state.altText}
-        onChange={(event) =>
-          setState((prev) => ({ ...prev, altText: event.target.value }))
-        }
-        placeholder="Alt text"
-      />
+      onChange={(event) =>
+        setState((prev) => ({ ...prev, altText: event.target.value }))
+      }
+      placeholder="Alt text"
+    />
+
+      <div className={styles.fieldGroup}>
+        <input
+          className={controls.input}
+          type="url"
+          value={state.imageUrl}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, imageUrl: event.target.value }))
+          }
+          placeholder="Image URL"
+        />
+        <input
+          className={controls.input}
+          value={state.cloudinaryPublicId}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, cloudinaryPublicId: event.target.value }))
+          }
+          placeholder="Cloudinary public ID"
+        />
+      </div>
 
       <div className={styles.fieldGroup}>
         <input
