@@ -13,6 +13,12 @@ const labeledLinkSchema = z.object({
   url: urlSchema,
 });
 
+const labeledEmailSchema = z.object({
+  id: z.string().trim().min(1).max(64).optional(),
+  label: z.string().trim().min(2).max(60),
+  email: z.string().trim().email(),
+});
+
 export const heroSchema = z
   .object({
     title: z.string().trim().min(10).max(140),
@@ -104,11 +110,8 @@ export const aboutSchema = z.object({
 });
 
 export const contactSchema = z.object({
-  emailContact: z.string().email(),
-  bookingEmail: z.string().email().optional(),
+  emailContacts: z.array(labeledEmailSchema).max(20).optional(),
   socialLinks: z.array(labeledLinkSchema).max(20).optional(),
-  managementContact: z.string().trim().max(200).optional(),
-  pressContact: z.string().trim().max(200).optional(),
 });
 
 export const newsletterSubscriptionSchema = z.object({

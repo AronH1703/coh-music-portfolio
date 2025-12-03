@@ -272,12 +272,21 @@ export async function getAboutContent(): Promise<AboutContentEntry | null> {
   };
 }
 
+export type ContactEmailEntry = {
+  id: string;
+  label: string;
+  email: string;
+};
+
+export type ContactSocialLinkEntry = {
+  id: string;
+  label: string;
+  url: string;
+};
+
 export type ContactContentEntry = {
-  emailContact: string;
-  bookingEmail?: string | null;
-  socialLinks: Array<{ id: string; label: string; url: string }>;
-  managementContact?: string | null;
-  pressContact?: string | null;
+  emailContacts: ContactEmailEntry[];
+  socialLinks: ContactSocialLinkEntry[];
 };
 
 export async function getContactContent(): Promise<ContactContentEntry | null> {
@@ -286,6 +295,26 @@ export async function getContactContent(): Promise<ContactContentEntry | null> {
   });
 
   if (!contact) return null;
+
+  const rawEmails = (contact.emailContacts ?? []) as unknown;
+  const emailContacts = Array.isArray(rawEmails)
+    ? rawEmails
+        .map((entry, index) => {
+          if (!entry || typeof entry !== "object") return null;
+          const { id, label, email } = entry as {
+            id?: unknown;
+            label?: unknown;
+            email?: unknown;
+          };
+          if (typeof label !== "string" || typeof email !== "string") return null;
+          return {
+            id: typeof id === "string" ? id : `${contact.id}-email-${index}`,
+            label,
+            email,
+          };
+        })
+        .filter((entry): entry is ContactEmailEntry => Boolean(entry))
+    : [];
 
   const rawLinks = (contact.socialLinks ?? []) as unknown;
   const socialLinks = Array.isArray(rawLinks)
@@ -304,15 +333,12 @@ export async function getContactContent(): Promise<ContactContentEntry | null> {
             url,
           };
         })
-        .filter((entry): entry is { id: string; label: string; url: string } => Boolean(entry))
+        .filter((entry): entry is ContactSocialLinkEntry => Boolean(entry))
     : [];
 
   return {
-    emailContact: contact.emailContact,
-    bookingEmail: contact.bookingEmail,
+    emailContacts,
     socialLinks,
-    managementContact: contact.managementContact,
-    pressContact: contact.pressContact,
   };
 }
 

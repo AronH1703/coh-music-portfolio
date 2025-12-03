@@ -59,9 +59,21 @@ export async function POST(request: Request) {
 
   const metadata = galleryItemSchema.safeParse({
     title: formData.get("title"),
-    caption: formData.get("caption"),
-    altText: formData.get("altText"),
-    category: formData.get("category"),
+    caption:
+      typeof formData.get("caption") === "string" &&
+      (formData.get("caption") as string).trim().length > 0
+        ? (formData.get("caption") as string)
+        : undefined,
+    altText:
+      typeof formData.get("altText") === "string" &&
+      (formData.get("altText") as string).trim().length > 0
+        ? (formData.get("altText") as string)
+        : undefined,
+    category:
+      typeof formData.get("category") === "string" &&
+      (formData.get("category") as string).trim().length > 0
+        ? (formData.get("category") as string)
+        : undefined,
     tags,
     sortOrder: formData.get("sortOrder")
       ? Number(formData.get("sortOrder"))

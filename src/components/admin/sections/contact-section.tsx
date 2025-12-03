@@ -27,8 +27,7 @@ export function ContactSection() {
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      emailContact: "",
-      bookingEmail: "",
+      emailContacts: [],
       socialLinks: [],
       managementContact: "",
       pressContact: "",
@@ -42,9 +41,24 @@ export function ContactSection() {
       if (!response.ok) return;
       const { data } = await response.json();
       if (mounted && data) {
+        const emailContacts = Array.isArray(data.emailContacts)
+          ? (data.emailContacts as unknown[]).map((entry) => {
+              if (!entry || typeof entry !== "object") {
+                return { label: "", email: "" };
+              }
+              const { label, email } = entry as {
+                label?: unknown;
+                email?: unknown;
+              };
+              return {
+                label: typeof label === "string" ? label : "",
+                email: typeof email === "string" ? email : "",
+              };
+            })
+          : [];
+
         reset({
-          emailContact: data.emailContact ?? "",
-          bookingEmail: data.bookingEmail ?? "",
+          emailContacts,
           socialLinks: Array.isArray(data.socialLinks)
             ? (data.socialLinks as unknown[]).map((link) => {
                 if (!link || typeof link !== "object") {
@@ -73,6 +87,15 @@ export function ContactSection() {
   }, [reset]);
 
   const {
+    fields: emailFields,
+    append: appendEmailContact,
+    remove: removeEmailContact,
+  } = useFieldArray({
+    control,
+    name: "emailContacts",
+  });
+
+  const {
     fields: socialFields,
     append: appendSocialLink,
     remove: removeSocialLink,
@@ -84,6 +107,10 @@ export function ContactSection() {
   const addSocialLink = useCallback(() => {
     appendSocialLink({ label: "", url: "" });
   }, [appendSocialLink]);
+
+  const addEmailContact = useCallback(() => {
+    appendEmailContact({ label: "", email: "" });
+  }, [appendEmailContact]);
 
   const submit = handleSubmit(async (values) => {
     setMessage(null);
@@ -108,19 +135,48 @@ export function ContactSection() {
   return (
     <section className={styles.card}>
       <form onSubmit={submit} className={styles.fieldset}>
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Primary contact email"
-            placeholder="hello@cohmusic.com"
-            {...register("emailContact")}
-            error={errors.emailContact}
-          />
-          <TextField
-            label="Booking email"
-            placeholder="booking@agency.com"
-            {...register("bookingEmail")}
-            error={errors.bookingEmail}
-          />
+        <div className={styles.fieldGroupStacked}>
+          <div
+            className={styles.fieldGroup}
+            style={{ justifyContent: "space-between", alignItems: "center" }}
+          >
+            <span className={controls.label}>Contact emails</span>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={addEmailContact}
+            >
+              Add email
+            </button>
+          </div>
+          {emailFields.length === 0 && (
+            <p className={controls.helper}>
+              Add one or more labeled contact emails (for example, General, Booking, or Management).
+            </p>
+          )}
+          {emailFields.map((field, index) => (
+            <div key={field.id} className={styles.fieldGroup}>
+              <TextField
+                label="Label"
+                placeholder="General"
+                {...register(`emailContacts.${index}.label` as const)}
+                error={errors.emailContacts?.[index]?.label}
+              />
+              <TextField
+                label="Email"
+                placeholder="hello@cohmusic.com"
+                {...register(`emailContacts.${index}.email` as const)}
+                error={errors.emailContacts?.[index]?.email}
+              />
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => removeEmailContact(index)}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
         </div>
 
         <div className={styles.fieldGroupStacked}>
@@ -165,21 +221,6 @@ export function ContactSection() {
               </button>
             </div>
           ))}
-        </div>
-
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Management contact"
-            placeholder="Name – management@agency.com"
-            {...register("managementContact")}
-            error={errors.managementContact}
-          />
-          <TextField
-            label="Press contact"
-            placeholder="Press contact details"
-            {...register("pressContact")}
-            error={errors.pressContact}
-          />
         </div>
 
         {message && (

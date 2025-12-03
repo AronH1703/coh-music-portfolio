@@ -244,22 +244,19 @@ function buildContactLinks(data: ContactContentEntry | null): ContactLink[] {
 
   const links: ContactLink[] = [];
 
-  const emailHandle = data.emailContact?.trim();
-  if (emailHandle) {
-    links.push({
-      label: "Email",
-      handle: emailHandle,
-      href: `mailto:${emailHandle}`,
-    });
-  }
-
-  const bookingEmail = data.bookingEmail?.trim();
-  if (bookingEmail) {
-    links.push({
-      label: "Booking",
-      handle: bookingEmail,
-      href: `mailto:${bookingEmail}`,
-    });
+  if (Array.isArray(data.emailContacts)) {
+    for (const entry of data.emailContacts) {
+      if (!entry || typeof entry !== "object") continue;
+      const { label, email } = entry;
+      if (!label || !email) continue;
+      const trimmedEmail = email.trim();
+      if (!trimmedEmail) continue;
+      links.push({
+        label,
+        handle: trimmedEmail,
+        href: `mailto:${trimmedEmail}`,
+      });
+    }
   }
 
   if (Array.isArray(data.socialLinks)) {
@@ -288,9 +285,6 @@ function formatHandle(url: string) {
 function ContactContent({ data }: { data: ContactContentEntry | null }) {
   const links = buildContactLinks(data);
 
-  const management = data?.managementContact;
-  const press = data?.pressContact;
-
   return (
     <div className="contact-content">
       <div className="contact-info">
@@ -313,20 +307,14 @@ function ContactContent({ data }: { data: ContactContentEntry | null }) {
             Set contact emails and social links via the admin to display them here.
           </p>
         )}
-        {management && (
-          <p className="contact-form-helper">
-            <span className="contact-social-label">Management</span>
-            <span className="contact-social-handle">{management}</span>
-          </p>
-        )}
-        {press && (
-          <p className="contact-form-helper">
-            <span className="contact-social-label">Press</span>
-            <span className="contact-social-handle">{press}</span>
-          </p>
-        )}
       </div>
-      <NewsletterCta email={data?.emailContact ?? ""} />
+      <NewsletterCta
+        email={
+          data?.emailContacts && data.emailContacts[0]
+            ? data.emailContacts[0].email
+            : ""
+        }
+      />
     </div>
   );
 }
