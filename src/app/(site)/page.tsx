@@ -74,6 +74,7 @@ export default async function Home() {
     height: item.height,
     title: item.title,
     location: item.category ?? undefined,
+    caption: item.altText ?? item.caption ?? undefined,
   }));
 
   const musicSlides: MusicCarouselRelease[] = music.map((release) => ({

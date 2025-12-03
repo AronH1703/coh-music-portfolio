@@ -80,6 +80,18 @@
   text-align: left;
 }
 
+.details {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.caption {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--foreground) 82%, transparent);
+}
+
 .lightbox {
   position: fixed;
   inset: 0;
@@ -154,23 +166,30 @@
 
 .lightboxCaption {
   color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   display: grid;
   gap: 0.25rem;
   text-align: center;
   margin-top: 0;
   grid-area: caption;
+  text-transform: uppercase;
+}
+
+.lightboxCaption strong {
+  font-size: 1.05rem;
+}
+
+.lightboxCaption p {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 .lightboxCaption span {
   font-size: 0.7rem;
   opacity: 0.7;
-}
-
-.lightboxCaption strong {
-  font-size: 1rem;
-  letter-spacing: 0.12em;
 }
 
 .lightboxControls {

@@ -23,6 +23,7 @@ export type GalleryPhoto = {
   height?: number | null;
   title?: string | null;
   location?: string | null;
+  caption?: string | null;
 };
 
 type PhotoCarouselProps = {
@@ -293,37 +294,53 @@ export default function PhotoCarousel({ photos }: PhotoCarouselProps) {
       <div className={frameStyles.embla}>
         <div className={frameStyles.viewport} ref={emblaRef}>
           <div className={clsx(frameStyles.container, s.container)}>
-            {slides.map((photo, index) => (
-              <div className={s.slide} key={photo.id ?? `${photo.src}-${index}`}>
-                <article className={s.card}>
-                  <button
-                    type="button"
-                    className={s.previewButton}
-                    onClick={() => openLightbox(index)}
-                    aria-label={`View ${photo.title ?? `photo ${index + 1}`}`}
-                  >
-                    <div className={s.cover}>
-                      <Image
-                        src={photo.src}
-                        alt={photo.alt}
-                        fill
-                        sizes="(max-width: 768px) 90vw, 640px"
-                        className={s.image}
-                        priority={index === 0}
-                      />
-                    </div>
-                  </button>
-                  {(photo.title || photo.location) && (
-                    <div className={clsx(frameStyles.info, s.info)}>
-                      {photo.title && <h3 className={frameStyles.title}>{photo.title}</h3>}
-                      {photo.location && (
-                        <span className={frameStyles.meta}>{photo.location}</span>
-                      )}
-                    </div>
-                  )}
-                </article>
-              </div>
-            ))}
+            {slides.map((photo, index) => {
+              const titleText = photo.title?.trim() || undefined;
+              const captionText = photo.caption?.trim() || undefined;
+              const locationText = photo.location?.trim() || undefined;
+              const labelText = titleText ?? captionText ?? `photo ${index + 1}`;
+
+              return (
+                <div className={s.slide} key={photo.id ?? `${photo.src}-${index}`}>
+                  <article className={s.card}>
+                    <button
+                      type="button"
+                      className={s.previewButton}
+                      onClick={() => openLightbox(index)}
+                      aria-label={`View ${labelText}`}
+                    >
+                      <div className={s.cover}>
+                        <Image
+                          src={photo.src}
+                          alt={photo.alt}
+                          fill
+                          sizes="(max-width: 768px) 90vw, 640px"
+                          className={s.image}
+                          priority={index === 0}
+                        />
+                      </div>
+                    </button>
+                    {(titleText || captionText || locationText) && (
+                      <div className={clsx(frameStyles.info, s.info)}>
+                        {titleText && (
+                          <h3 className={frameStyles.title}>{titleText}</h3>
+                        )}
+                        {(captionText || locationText) && (
+                          <div className={s.details}>
+                            {captionText && (
+                              <p className={s.caption}>{captionText}</p>
+                            )}
+                            {locationText && (
+                              <span className={frameStyles.meta}>{locationText}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -406,16 +423,22 @@ export default function PhotoCarousel({ photos }: PhotoCarouselProps) {
                 </div>
               </div>
             </div>
-            {(slides[lightboxIndex].title || slides[lightboxIndex].location) && (
-              <div className={s.lightboxCaption}>
-                {slides[lightboxIndex].location && (
-                  <span>{slides[lightboxIndex].location}</span>
-                )}
-                {slides[lightboxIndex].title && (
-                  <strong>{slides[lightboxIndex].title}</strong>
-                )}
-              </div>
-            )}
+            {(() => {
+              const activePhoto = slides[lightboxIndex];
+              const titleText = activePhoto.title?.trim() || undefined;
+              const captionText = activePhoto.caption?.trim() || undefined;
+              const locationText = activePhoto.location?.trim() || undefined;
+
+              if (!titleText && !captionText && !locationText) return null;
+
+              return (
+                <div className={s.lightboxCaption}>
+                  {titleText && <strong>{titleText}</strong>}
+                  {captionText && <p>{captionText}</p>}
+                  {locationText && <span>{locationText}</span>}
+                </div>
+              );
+            })()}
             <div className={s.lightboxControls}>
               <div className={frameStyles.buttons}>
                 <PrevButton
