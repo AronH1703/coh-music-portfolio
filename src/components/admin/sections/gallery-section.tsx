@@ -284,20 +284,20 @@ export function GallerySection() {
 
   return (
     <div className={styles.card}>
-      <h2 className={styles.sectionTitle}>Upload new imagery</h2>
+      <h2 className={styles.sectionTitle}>Hlaða upp nýjum myndum</h2>
       <form onSubmit={onSubmit} className={styles.fieldset}>
         <div className={styles.fieldGroup}>
           <div className={controls.formField}>
-            <label className={controls.label}>Select image</label>
+            <label className={controls.label}>Veldu mynd</label>
             <div className={controls.fileInput}>
               <label className={controls.fileField}>
                 <span className={controls.fileFieldLabel}>
-                  {file ? "Change selected image" : "Click to choose image"}
+                  {file ? "Skipta um valda mynd" : "Smelltu til að velja mynd"}
                 </span>
                 <span className={controls.fileFieldHint}>
                   {file
                     ? `${file.name} (${Math.round(file.size / 1024)} KB)`
-                    : "Max 5 MB • JPG, PNG, or WebP"}
+                    : "Hámark 5 MB • JPG, PNG eða WebP"}
                 </span>
                 <input
                   type="file"
@@ -312,7 +312,7 @@ export function GallerySection() {
                     if (selected.size > FIVE_MB) {
                       setMessage({
                         type: "error",
-                        text: "Image must be 5 MB or smaller.",
+                        text: "Mynd verður að vera 5 MB eða minni.",
                       });
                       event.target.value = "";
                       return;
@@ -327,58 +327,62 @@ export function GallerySection() {
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Image URL"
+            label="Slóð á mynd"
             placeholder="https://res.cloudinary.com/..."
-            helperText="Paste a Cloudinary URL instead of uploading."
+            helperText="Límdu inn Cloudinary-slóð í stað þess að hlaða upp."
             {...imageUrlRegister}
             error={errors.imageUrl}
           />
+          {/*
           <TextField
             label="Cloudinary public ID"
             placeholder="coh-music/gallery/..."
-            helperText="Optional, used to delete assets from Cloudinary."
+            helperText="Valfrjálst, notað til að eyða gögnum úr Cloudinary."
             {...register("cloudinaryPublicId")}
             error={errors.cloudinaryPublicId}
           />
+          */}
         </div>
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Title"
-            placeholder="In-studio shot"
+            label="Titill"
+            placeholder="Titll myndarinnar"
             {...register("title", { required: true })}
             error={errors.title}
           />
           <TextField
-            label="Category"
-            placeholder="Behind the scenes"
+            label="Flokkur"
+            placeholder="Bakvið tjöldin"
             {...register("category")}
           />
         </div>
 
         <div className={styles.fieldGroup}>
+          {/*
           <TextareaField
-            label="Caption"
-            placeholder="Describe the image context."
+            label="Texti/myndalýsing"
+            placeholder="Lýstu samhengi myndarinnar."
             rows={3}
             {...register("caption")}
           />
+          */}
           <TextField
-            label="Alt text"
-            placeholder="Composer adjusting modular synth patch."
+            label="Myndatexti / lýsandi texti (alt)"
+            placeholder="Photo: Eva Rut."
             {...register("altText")}
           />
         </div>
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Tags"
-            placeholder="studio, live, artwork"
-            helperText="Comma-separated tags for filtering."
+            label="Merki"
+            placeholder="stúdíó, live, umslag"
+            helperText="Kommu-aðskilin merki til síunar."
             {...register("tags")}
           />
           <TextField
-            label="Sort order"
+            label="Röðunarnúmer"
             type="number"
             min={0}
             {...register("sortOrder", { valueAsNumber: true })}
@@ -393,7 +397,21 @@ export function GallerySection() {
                 : styles.errorMessage
             }
           >
-            {message.text}
+            {message.type === "success"
+              ? message.text === "Image uploaded successfully."
+                ? "Mynd hefur verið hlaðið upp."
+                : message.text === "Validation failed. Check the form fields."
+                ? "Staðfesting mistókst. Athugaðu reiti í eyðublaðinu."
+                : message.text === "Validation failed. Please review your inputs."
+                ? "Staðfesting mistókst. Farðu yfir innslegin gögn."
+                : message.text
+              : message.text === "Upload an image or paste a Cloudinary image URL."
+              ? "Hladdu upp mynd eða límdu inn Cloudinary-myndaslóð."
+              : message.text === "Image must be 5 MB or smaller."
+              ? "Mynd verður að vera 5 MB eða minni."
+              : message.text === "Failed to upload image."
+              ? "Ekki tókst að hlaða upp mynd."
+              : message.text}
           </div>
         )}
 
@@ -403,7 +421,7 @@ export function GallerySection() {
             className={styles.primaryButton}
             disabled={uploadDisabled}
           >
-            {isSubmitting ? "Uploading…" : "Upload image"}
+            {isSubmitting ? "Hleð upp…" : "Hlaða upp mynd"}
           </button>
           <button
             type="button"
@@ -415,20 +433,20 @@ export function GallerySection() {
               setManualImageUrl("");
             }}
           >
-            Reset form
+            Hreinsa eyðublað
           </button>
         </div>
       </form>
 
       <div className={styles.divider} />
 
-      <h3 className={styles.sectionTitle}>Existing gallery items</h3>
+      <h3 className={styles.sectionTitle}>Myndir í safni</h3>
 
       {isLoading ? (
-        <div className={styles.emptyState}>Loading gallery items…</div>
+        <div className={styles.emptyState}>Sæki myndir í safn…</div>
       ) : items.length === 0 ? (
         <div className={styles.emptyState}>
-          No gallery images yet. Upload your first asset to populate the carousel.
+          Engar myndir í safninu enn. Hladdu upp fyrstu myndinni til að fylla rennuna.
         </div>
       ) : (
         <div className={styles.list}>
@@ -527,10 +545,10 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
       <header className={styles.listItemHeader}>
         <div>
           <div className={styles.listItemTitle}>{item.title}</div>
-          <div className={styles.timestamp}>Uploaded {formattedDate}</div>
+          <div className={styles.timestamp}>Hlaðið upp {formattedDate}</div>
         </div>
         <a href={item.imageUrl} target="_blank" rel="noopener noreferrer">
-          Preview image
+          Skoða mynd
         </a>
       </header>
 
@@ -541,7 +559,7 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, title: event.target.value }))
           }
-          placeholder="Title"
+          placeholder="Titill"
         />
         <input
           className={controls.input}
@@ -549,28 +567,30 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, category: event.target.value }))
           }
-          placeholder="Category"
+          placeholder="Flokkur"
         />
       </div>
 
+      {/*
       <textarea
         className={controls.textarea}
         value={state.caption}
         onChange={(event) =>
           setState((prev) => ({ ...prev, caption: event.target.value }))
         }
-        placeholder="Caption"
+        placeholder="Myndatexti"
         rows={3}
       />
+      */}
 
       <input
         className={controls.input}
         value={state.altText}
-      onChange={(event) =>
-        setState((prev) => ({ ...prev, altText: event.target.value }))
-      }
-      placeholder="Alt text"
-    />
+        onChange={(event) =>
+          setState((prev) => ({ ...prev, altText: event.target.value }))
+        }
+        placeholder="Myndatexti / lýsandi texti (alt)"
+      />
 
       <div className={styles.fieldGroup}>
         <input
@@ -580,8 +600,9 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, imageUrl: event.target.value }))
           }
-          placeholder="Image URL"
+          placeholder="Slóð á mynd"
         />
+        {/*
         <input
           className={controls.input}
           value={state.cloudinaryPublicId}
@@ -590,6 +611,7 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
           }
           placeholder="Cloudinary public ID"
         />
+        */}
       </div>
 
       <div className={styles.fieldGroup}>
@@ -599,7 +621,7 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, tags: event.target.value }))
           }
-          placeholder="Tags (comma separated)"
+          placeholder="Merki (aðskilin með kommum)"
         />
         <input
           className={controls.input}
@@ -612,7 +634,7 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
               sortOrder: Number(event.target.value),
             }))
           }
-          placeholder="Sort order"
+          placeholder="Röðunarnúmer"
         />
       </div>
 
@@ -624,7 +646,21 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
               : styles.errorMessage
           }
         >
-          {message.text}
+          {message.type === "success"
+            ? message.text === "Gallery item updated."
+              ? "Mynd í safni uppfærð."
+              : message.text
+            : message.text === "Failed to save changes."
+            ? "Ekki tókst að vista breytingar."
+            : message.text === "Failed to delete image."
+            ? "Ekki tókst að eyða mynd."
+            : message.text === "Invalid data. Please review your inputs."
+            ? "Ógild gögn. Farðu yfir innslegin gögn."
+            : message.text === "Failed to update gallery item."
+            ? "Ekki tókst að uppfæra mynd í safni."
+            : message.text === "Failed to delete gallery item."
+            ? "Ekki tókst að eyða mynd úr safni."
+            : message.text}
         </div>
       )}
 
@@ -635,7 +671,7 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
           onClick={saveChanges}
           disabled={isSaving}
         >
-          {isSaving ? "Saving…" : "Save changes"}
+          {isSaving ? "Vista…" : "Vista breytingar"}
         </button>
         <button
           type="button"
@@ -643,7 +679,7 @@ function GalleryListItem({ item, onUpdate, onDelete }: GalleryListItemProps) {
           onClick={deleteItem}
           disabled={isDeleting}
         >
-          {isDeleting ? "Removing…" : "Delete"}
+          {isDeleting ? "Fjarlægi…" : "Eyða"}
         </button>
       </div>
     </article>

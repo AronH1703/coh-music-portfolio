@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -103,6 +103,88 @@ const LINK_SUGGESTIONS = [
   "Deezer",
 ];
 
+const SECTION_COPY = {
+  basics: {
+    title: "Release basics",
+    description: "Title, slug, and the story behind the drop.",
+  },
+  streaming: {
+    title: "Streaming links",
+    description: "Surface platforms like Spotify, Apple Music, and YouTube.",
+  },
+  artwork: {
+    title: "Artwork & uploads",
+    description: "Cover art URLs plus optional uploads from your device.",
+  },
+  release: {
+    title: "Release timing",
+    description: "Scheduling, time zones, and coming soon toggles.",
+  },
+  metadata: {
+    title: "Metadata & SEO",
+    description: "Genre, credits, meta tags, and manual ordering.",
+  },
+} as const;
+
+type SectionId = keyof typeof SECTION_COPY;
+
+const SECTION_IDS = Object.keys(SECTION_COPY) as SectionId[];
+
+function getAccordionDefaults(initiallyOpen: SectionId[] = []) {
+  return SECTION_IDS.reduce(
+    (acc, id) => {
+      acc[id] = initiallyOpen.includes(id);
+      return acc;
+    },
+    {} as Record<SectionId, boolean>,
+  );
+}
+
+type AccordionSectionProps = {
+  id: SectionId;
+  title: string;
+  description?: string;
+  isOpen: boolean;
+  onToggle: (sectionId: SectionId) => void;
+  children: ReactNode;
+};
+
+function AccordionSection({
+  id,
+  title,
+  description,
+  isOpen,
+  onToggle,
+  children,
+}: AccordionSectionProps) {
+  return (
+    <section className={styles.accordionSection}>
+      <button
+        type="button"
+        className={styles.accordionHeader}
+        aria-expanded={isOpen}
+        onClick={() => onToggle(id)}
+      >
+        <div>
+          <p className={styles.accordionTitle}>{title}</p>
+          {description ? (
+            <p className={styles.accordionDescription}>{description}</p>
+          ) : null}
+        </div>
+        <span
+          className={`${styles.accordionCaret} ${isOpen ? styles.accordionCaretOpen : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+      <div
+        className={`${styles.accordionContent} ${isOpen ? "" : styles.accordionContentCollapsed}`}
+      >
+        {children}
+      </div>
+    </section>
+  );
+}
+
 function toInputDate(value: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -137,12 +219,27 @@ export function MusicSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCoverUploading, setIsCoverUploading] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
+  const [coverUploadSuccess, setCoverUploadSuccess] = useState<string | null>(null);
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
+  const [formSections, setFormSections] = useState<Record<SectionId, boolean>>(() =>
+    getAccordionDefaults(),
+  );
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
   );
+  const toggleFormSection = useCallback((sectionId: SectionId) => {
+    setFormSections((previous) => ({
+      ...previous,
+      [sectionId]: !previous[sectionId],
+    }));
+  }, []);
+  const previewCoverImage = useCallback((url?: string | null) => {
+    if (!url) return;
+    if (typeof window === "undefined") return;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
 
   const persistOrder = useCallback(
     async (ordered: MusicReleaseRecord[]) => {
@@ -221,6 +318,8 @@ export function MusicSection() {
 
   const streamingLinks = watch("streamingLinks") ?? [];
 
+  const coverImageUrlValue = watch("coverImageUrl");
+
   const addStreamingLink = () => {
     const taken = new Set(
       streamingLinks
@@ -240,6 +339,7 @@ export function MusicSection() {
   const handleCoverUpload = useCallback(
     async (file: File) => {
       setCoverUploadError(null);
+      setCoverUploadSuccess(null);
       setIsCoverUploading(true);
       try {
         const result = await uploadAsset(file, {
@@ -248,8 +348,10 @@ export function MusicSection() {
         });
         setValue("coverImageUrl", result.secureUrl, { shouldDirty: true });
         setValue("coverCloudinaryPublicId", result.publicId, { shouldDirty: true });
+        setCoverUploadSuccess("Artwork uploaded.");
       } catch (error) {
         setCoverUploadError((error as Error).message);
+        setCoverUploadSuccess(null);
       } finally {
         setIsCoverUploading(false);
       }
@@ -280,6 +382,8 @@ export function MusicSection() {
   const clearCoverUpload = useCallback(() => {
     setValue("coverImageUrl", "", { shouldDirty: true });
     setValue("coverCloudinaryPublicId", "", { shouldDirty: true });
+    setCoverUploadError(null);
+    setCoverUploadSuccess(null);
   }, [setValue]);
 
   const clearAudioUpload = useCallback(() => {
@@ -341,6 +445,7 @@ export function MusicSection() {
     );
     reset(DEFAULT_VALUES);
     setCoverUploadError(null);
+    setCoverUploadSuccess(null);
     setAudioUploadError(null);
     setMessage({ type: "success", text: "Release created." });
   });
@@ -399,110 +504,136 @@ export function MusicSection() {
       <form onSubmit={submitRelease} className={styles.fieldset}>
         <h2 className={styles.sectionTitle}>Add a new release</h2>
 
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Title"
-            placeholder="RUNNING (BOLD YELLOW)"
-            {...register("title")}
-            error={errors.title}
-          />
-          <TextField
-            label="Slug"
-            placeholder="running-bold-yellow"
-            helperText="Lowercase letters, digits, and hyphens."
-            {...register("slug")}
-            error={errors.slug}
-          />
-        </div>
-
-        <TextareaField
-          label="Description"
-          placeholder="Collaborators, textures, and story behind the release."
-          rows={4}
-          {...register("description")}
-          error={errors.description}
-        />
-
-        <div className={styles.fieldGroupStacked}>
-          <div
-            className={styles.fieldGroup}
-            style={{ justifyContent: "space-between", alignItems: "center" }}
-          >
-            <span className={controls.label}>Streaming links</span>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={addStreamingLink}
-            >
-              Add link
-            </button>
+        <AccordionSection
+          id="basics"
+          title={SECTION_COPY.basics.title}
+          description={SECTION_COPY.basics.description}
+          isOpen={formSections.basics}
+          onToggle={toggleFormSection}
+        >
+          <div className={styles.fieldGroup}>
+            <TextField
+              label="Title"
+              placeholder="RUNNING (BOLD YELLOW)"
+              {...register("title")}
+              error={errors.title}
+            />
+            <TextField
+              label="Slug"
+              placeholder="running-bold-yellow"
+              helperText="Lowercase letters, digits, and hyphens."
+              {...register("slug")}
+              error={errors.slug}
+            />
           </div>
-          {streamingFields.length === 0 && (
-            <p className={controls.helper}>
-              Add streaming destinations to surface Spotify, Apple Music, YouTube, and more.
-            </p>
-          )}
-          {streamingFields.map((field, index) => (
-            <div key={field.id} className={styles.fieldGroup}>
-              <TextField
-                label="Platform"
-                placeholder="Spotify"
-                {...register(`streamingLinks.${index}.label` as const)}
-                error={errors.streamingLinks?.[index]?.label}
-              />
-              <TextField
-                label="Platform URL"
-                placeholder="https://open.spotify.com/..."
-                {...register(`streamingLinks.${index}.url` as const)}
-                error={errors.streamingLinks?.[index]?.url}
-              />
+
+          <TextareaField
+            label="Description"
+            placeholder="Collaborators, textures, and story behind the release."
+            rows={4}
+            {...register("description")}
+            error={errors.description}
+          />
+        </AccordionSection>
+
+        <AccordionSection
+          id="streaming"
+          title={SECTION_COPY.streaming.title}
+          description={SECTION_COPY.streaming.description}
+          isOpen={formSections.streaming}
+          onToggle={toggleFormSection}
+        >
+          <div className={styles.fieldGroupStacked}>
+            <div
+              className={styles.fieldGroup}
+              style={{ justifyContent: "space-between", alignItems: "center" }}
+            >
+              <span className={controls.label}>Streaming links</span>
               <button
                 type="button"
                 className={styles.secondaryButton}
-                onClick={() => removeStreamingLink(index)}
+                onClick={addStreamingLink}
               >
-                Remove
+                Add link
               </button>
             </div>
-          ))}
-        </div>
+            {streamingFields.length === 0 && (
+              <p className={controls.helper}>
+                Add streaming destinations to surface Spotify, Apple Music, YouTube, and more.
+              </p>
+            )}
+            {streamingFields.map((field, index) => (
+              <div key={field.id} className={styles.fieldGroup}>
+                <TextField
+                  label="Platform"
+                  placeholder="Spotify"
+                  {...register(`streamingLinks.${index}.label` as const)}
+                  error={errors.streamingLinks?.[index]?.label}
+                />
+                <TextField
+                  label="Platform URL"
+                  placeholder="https://open.spotify.com/..."
+                  {...register(`streamingLinks.${index}.url` as const)}
+                  error={errors.streamingLinks?.[index]?.url}
+                />
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={() => removeStreamingLink(index)}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        </AccordionSection>
 
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) {
-              void handleCoverUpload(file);
-              event.target.value = "";
-            }
-          }}
-        />
+        <AccordionSection
+          id="artwork"
+          title={SECTION_COPY.artwork.title}
+          description={SECTION_COPY.artwork.description}
+          isOpen={formSections.artwork}
+          onToggle={toggleFormSection}
+        >
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) {
+                void handleCoverUpload(file);
+                event.target.value = "";
+              }
+            }}
+          />
 
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Cover image URL"
-            placeholder="https://res.cloudinary.com/..."
-            helperText="Upload artwork or paste a hosted URL."
-            {...register("coverImageUrl")}
-            error={errors.coverImageUrl}
-          />
-          <TextField
-            label="Cover image alt"
-            placeholder="Bold yellow album artwork."
-            {...register("coverImageAlt")}
-            error={errors.coverImageAlt}
-          />
-          <TextField
-            label="Cover public ID"
-            placeholder="coh-music/music/covers/..."
-            helperText="Saved automatically when uploading."
-            {...register("coverCloudinaryPublicId")}
-            error={errors.coverCloudinaryPublicId}
-          />
-        </div>
+          <div className={styles.fieldGroup}>
+            <TextField
+              label="Cover image URL"
+              placeholder="https://res.cloudinary.com/..."
+              helperText="Upload artwork or paste a hosted URL."
+              {...register("coverImageUrl")}
+              error={errors.coverImageUrl}
+            />
+            <TextField
+              label="Cover image alt"
+              placeholder="Bold yellow album artwork."
+              {...register("coverImageAlt")}
+              error={errors.coverImageAlt}
+            />
+            {/* HIDE: Cover public ID */}
+            {/*
+            <TextField
+              label="Cover public ID"
+              placeholder="coh-music/music/covers/..."
+              helperText="Saved automatically when uploading."
+              {...register("coverCloudinaryPublicId")}
+              error={errors.coverCloudinaryPublicId}
+            />
+            */}
+          </div>
 
         <div className={styles.fieldGroup}>
           <div className={controls.formField}>
@@ -524,9 +655,20 @@ export function MusicSection() {
               >
                 Clear cover
               </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => previewCoverImage(coverImageUrlValue)}
+                disabled={!coverImageUrlValue}
+              >
+                Preview
+              </button>
             </div>
-            {coverUploadError && <span className={controls.error}>{coverUploadError}</span>}
-            {!coverUploadError && (
+            {coverUploadError ? (
+              <span className={controls.error}>{coverUploadError}</span>
+            ) : coverUploadSuccess ? (
+              <span className={controls.helper}>{coverUploadSuccess}</span>
+            ) : (
               <span className={controls.helper}>
                 JPG, PNG, WEBP up to 5 MB. Uploading will store the public ID automatically.
               </span>
@@ -534,138 +676,165 @@ export function MusicSection() {
           </div>
         </div>
 
-        <input
-          ref={audioInputRef}
-          type="file"
-          accept="audio/*"
-          style={{ display: "none" }}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) {
-              void handleAudioUpload(file);
-              event.target.value = "";
-            }
-          }}
-        />
+          {/* keep the hidden file input so uploads still work */}
+          <input
+            ref={audioInputRef}
+            type="file"
+            accept="audio/*"
+            style={{ display: "none" }}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) {
+                void handleAudioUpload(file);
+                event.target.value = "";
+              }
+            }}
+          />
 
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Audio file URL"
-            placeholder="https://res.cloudinary.com/.../track.mp3"
-            helperText="Optional direct audio upload for previews."
-            {...register("audioUrl")}
-            error={errors.audioUrl}
-          />
-          <TextField
-            label="Audio public ID"
-            placeholder="coh-music/music/audio/..."
-            helperText="Saved automatically when uploading from your computer."
-            {...register("audioCloudinaryPublicId")}
-            error={errors.audioCloudinaryPublicId}
-          />
-          <div className={controls.formField}>
-            <span className={controls.label}>Upload audio</span>
-            <div className={styles.fieldGroup}>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => audioInputRef.current?.click()}
-                disabled={isAudioUploading}
-              >
-                {isAudioUploading ? "Uploading…" : "Upload from computer"}
-              </button>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={clearAudioUpload}
-                disabled={isAudioUploading}
-              >
-                Clear audio
-              </button>
+          <div className={styles.fieldGroup}>
+            {/* HIDE: Audio file URL */}
+            {/*
+            <TextField
+              label="Audio file URL"
+              placeholder="https://res.cloudinary.com/.../track.mp3"
+              helperText="Optional direct audio upload for previews."
+              {...register("audioUrl")}
+              error={errors.audioUrl}
+            />
+            */}
+            {/* HIDE: Audio public ID */}
+            {/*
+            <TextField
+              label="Audio public ID"
+              placeholder="coh-music/music/audio/..."
+              helperText="Saved automatically when uploading from your computer."
+              {...register("audioCloudinaryPublicId")}
+              error={errors.audioCloudinaryPublicId}
+            />
+            */}
+            {/* HIDE: Upload audio controls + helper */}
+            {/*
+            <div className={controls.formField}>
+              <span className={controls.label}>Upload audio</span>
+              <div className={styles.fieldGroup}>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={() => audioInputRef.current?.click()}
+                  disabled={isAudioUploading}
+                >
+                  {isAudioUploading ? "Uploading…" : "Upload from computer"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={clearAudioUpload}
+                  disabled={isAudioUploading}
+                >
+                  Clear audio
+                </button>
+              </div>
+              {audioUploadError && <span className={controls.error}>{audioUploadError}</span>}
+              {!audioUploadError && (
+                <span className={controls.helper}>
+                  MP3, WAV, AAC supported. Stored on Cloudinary as video assets.
+                </span>
+              )}
             </div>
-            {audioUploadError && <span className={controls.error}>{audioUploadError}</span>}
-            {!audioUploadError && (
-              <span className={controls.helper}>
-                MP3, WAV, AAC supported. Stored on Cloudinary as video assets.
-              </span>
-            )}
+            */}
           </div>
-        </div>
+        </AccordionSection>
 
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Release date"
-            type="date"
-            {...register("releaseDate")}
-            error={errors.releaseDate}
-          />
-          <TextField
-            label="Release time"
-            type="time"
-            {...register("releaseTime")}
-            error={errors.releaseTime}
-          />
-          <TextField
-            label="Time zone"
-            placeholder="Europe/Stockholm"
-            helperText="Use a valid IANA zone to keep countdowns accurate."
-            {...register("timeZone")}
-            error={errors.timeZone}
-          />
-        </div>
+        <AccordionSection
+          id="release"
+          title={SECTION_COPY.release.title}
+          description={SECTION_COPY.release.description}
+          isOpen={formSections.release}
+          onToggle={toggleFormSection}
+        >
+          <div className={styles.fieldGroup}>
+            <TextField
+              label="Release date"
+              type="date"
+              {...register("releaseDate")}
+              error={errors.releaseDate}
+            />
+            <TextField
+              label="Release time"
+              type="time"
+              {...register("releaseTime")}
+              error={errors.releaseTime}
+            />
+            <TextField
+              label="Time zone"
+              placeholder="Europe/Stockholm"
+              helperText="Use a valid IANA zone to keep countdowns accurate."
+              {...register("timeZone")}
+              error={errors.timeZone}
+            />
+          </div>
 
-        <ToggleField
-          label="Coming soon"
-          helperText="Disable automatically once the release time passes."
-          checked={!!comingSoon}
-          onChange={(value) => setValue("comingSoon", value, { shouldDirty: true })}
-        />
+          <ToggleField
+            label="Coming soon"
+            helperText="Disable automatically once the release time passes."
+            checked={!!comingSoon}
+            onChange={(value) => setValue("comingSoon", value, { shouldDirty: true })}
+          />
+        </AccordionSection>
 
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Genre"
-            placeholder="Alternative electronic"
-            {...register("genre")}
-            error={errors.genre}
-          />
-          <TextField
-            label="Duration"
-            placeholder="03:42"
-            {...register("duration")}
-            error={errors.duration}
-          />
-          <TextField
-            label="Sort order"
-            type="number"
-            min={0}
-            {...register("sortOrder", { valueAsNumber: true })}
-            error={errors.sortOrder}
-          />
-        </div>
+        <AccordionSection
+          id="metadata"
+          title={SECTION_COPY.metadata.title}
+          description={SECTION_COPY.metadata.description}
+          isOpen={formSections.metadata}
+          onToggle={toggleFormSection}
+        >
+          <div className={styles.fieldGroup}>
+            <TextField
+              label="Genre"
+              placeholder="Alternative electronic"
+              {...register("genre")}
+              error={errors.genre}
+            />
+            <TextField
+              label="Duration"
+              placeholder="03:42"
+              {...register("duration")}
+              error={errors.duration}
+            />
+            <TextField
+              label="Sort order"
+              type="number"
+              min={0}
+              {...register("sortOrder", { valueAsNumber: true })}
+              error={errors.sortOrder}
+            />
+          </div>
 
-        <TextareaField
-          label="Credits"
-          placeholder="Producer, mixer, featured artists…"
-          rows={3}
-          {...register("credits")}
-          error={errors.credits}
-        />
-
-        <div className={styles.fieldGroup}>
-          <TextField
-            label="Meta title"
-            placeholder="Exclusive premiere: RUNNING (BOLD YELLOW)"
-            {...register("metaTitle")}
-            error={errors.metaTitle}
-          />
           <TextareaField
-            label="Meta description"
-            placeholder="SEO summary for socials and search."
+            label="Credits"
+            placeholder="Producer, mixer, featured artists…"
             rows={3}
-            {...register("metaDescription")}
-            error={errors.metaDescription}
+            {...register("credits")}
+            error={errors.credits}
           />
-        </div>
+
+          <div className={styles.fieldGroup}>
+            <TextField
+              label="Meta title"
+              placeholder="Exclusive premiere: RUNNING (BOLD YELLOW)"
+              {...register("metaTitle")}
+              error={errors.metaTitle}
+            />
+            <TextareaField
+              label="Meta description"
+              placeholder="SEO summary for socials and search."
+              rows={3}
+              {...register("metaDescription")}
+              error={errors.metaDescription}
+            />
+          </div>
+        </AccordionSection>
 
         {message && (
           <div
@@ -768,8 +937,12 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCoverUploading, setIsCoverUploading] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
+  const [coverUploadSuccess, setCoverUploadSuccess] = useState<string | null>(null);
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
+  const [sectionVisibility, setSectionVisibility] = useState<Record<SectionId, boolean>>(() =>
+    getAccordionDefaults(),
+  );
 
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
@@ -809,6 +982,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
 
   const handleCoverUpload = async (file: File) => {
     setCoverUploadError(null);
+    setCoverUploadSuccess(null);
     setIsCoverUploading(true);
     try {
       const result = await uploadAsset(file, {
@@ -820,8 +994,10 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         coverImageUrl: result.secureUrl,
         coverCloudinaryPublicId: result.publicId,
       }));
+      setCoverUploadSuccess("Artwork uploaded.");
     } catch (error) {
       setCoverUploadError((error as Error).message);
+      setCoverUploadSuccess(null);
     } finally {
       setIsCoverUploading(false);
     }
@@ -853,6 +1029,8 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
       coverImageUrl: "",
       coverCloudinaryPublicId: "",
     }));
+    setCoverUploadError(null);
+    setCoverUploadSuccess(null);
   };
 
   const clearAudio = () => {
@@ -877,6 +1055,18 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
     transition,
     zIndex: isDragging ? 2 : undefined,
   };
+
+  const toggleSection = useCallback((sectionId: SectionId) => {
+    setSectionVisibility((previous) => ({
+      ...previous,
+      [sectionId]: !previous[sectionId],
+    }));
+  }, []);
+  const previewCoverImage = useCallback((url?: string | null) => {
+    if (!url) return;
+    if (typeof window === "undefined") return;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
 
   const save = async () => {
     setIsSaving(true);
@@ -943,124 +1133,150 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         </div>
       </header>
 
-      <div className={styles.fieldGroup}>
-        <input
-          className={controls.input}
-          value={state.title}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, title: event.target.value }))
-          }
-          placeholder="Title"
-        />
-        <input
-          className={controls.input}
-          value={state.slug}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, slug: event.target.value }))
-          }
-          placeholder="Slug"
-        />
-      </div>
-
-      <textarea
-        className={controls.textarea}
-        value={state.description ?? ""}
-        onChange={(event) =>
-          setState((prev) => ({ ...prev, description: event.target.value }))
-        }
-        rows={3}
-        placeholder="Description"
-      />
-
-      <div className={styles.fieldGroupStacked}>
-        <div
-          className={styles.fieldGroup}
-          style={{ justifyContent: "space-between", alignItems: "center" }}
-        >
-          <span className={controls.label}>Streaming links</span>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={addStreamingLink}
-          >
-            Add link
-          </button>
+      <AccordionSection
+        id="basics"
+        title={SECTION_COPY.basics.title}
+        description={SECTION_COPY.basics.description}
+        isOpen={sectionVisibility.basics}
+        onToggle={toggleSection}
+      >
+        <div className={styles.fieldGroup}>
+          <input
+            className={controls.input}
+            value={state.title}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, title: event.target.value }))
+            }
+            placeholder="Title"
+          />
+          <input
+            className={controls.input}
+            value={state.slug}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, slug: event.target.value }))
+            }
+            placeholder="Slug"
+          />
         </div>
-        {state.streamingLinks.length === 0 && (
-          <p className={controls.helper}>No streaming links yet.</p>
-        )}
-        {state.streamingLinks.map((link, index) => (
-          <div key={link.id} className={styles.fieldGroup}>
-            <input
-              className={controls.input}
-              value={link.label}
-              onChange={(event) =>
-                updateStreamingLink(index, "label", event.target.value)
-              }
-              placeholder="Platform"
-            />
-            <input
-              className={controls.input}
-              value={link.url}
-              onChange={(event) =>
-                updateStreamingLink(index, "url", event.target.value)
-              }
-              placeholder="https://open.spotify.com/..."
-            />
+
+        <textarea
+          className={controls.textarea}
+          value={state.description ?? ""}
+          onChange={(event) =>
+            setState((prev) => ({ ...prev, description: event.target.value }))
+          }
+          rows={3}
+          placeholder="Description"
+        />
+      </AccordionSection>
+
+      <AccordionSection
+        id="streaming"
+        title={SECTION_COPY.streaming.title}
+        description={SECTION_COPY.streaming.description}
+        isOpen={sectionVisibility.streaming}
+        onToggle={toggleSection}
+      >
+        <div className={styles.fieldGroupStacked}>
+          <div
+            className={styles.fieldGroup}
+            style={{ justifyContent: "space-between", alignItems: "center" }}
+          >
+            <span className={controls.label}>Streaming links</span>
             <button
               type="button"
               className={styles.secondaryButton}
-              onClick={() => removeStreamingLink(index)}
+              onClick={addStreamingLink}
             >
-              Remove
+              Add link
             </button>
           </div>
-        ))}
-      </div>
+          {state.streamingLinks.length === 0 && (
+            <p className={controls.helper}>No streaming links yet.</p>
+          )}
+          {state.streamingLinks.map((link, index) => (
+            <div key={link.id} className={styles.fieldGroup}>
+              <input
+                className={controls.input}
+                value={link.label}
+                onChange={(event) =>
+                  updateStreamingLink(index, "label", event.target.value)
+                }
+                placeholder="Platform"
+              />
+              <input
+                className={controls.input}
+                value={link.url}
+                onChange={(event) =>
+                  updateStreamingLink(index, "url", event.target.value)
+                }
+                placeholder="https://open.spotify.com/..."
+              />
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => removeStreamingLink(index)}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      </AccordionSection>
 
-      <input
-        ref={coverInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) {
-            void handleCoverUpload(file);
-            event.target.value = "";
-          }
-        }}
-      />
+      <AccordionSection
+        id="artwork"
+        title={SECTION_COPY.artwork.title}
+        description={SECTION_COPY.artwork.description}
+        isOpen={sectionVisibility.artwork}
+        onToggle={toggleSection}
+      >
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+              void handleCoverUpload(file);
+              event.target.value = "";
+            }
+          }}
+        />
 
-      <div className={styles.fieldGroup}>
-        <input
-          className={controls.input}
-          value={state.coverImageUrl}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, coverImageUrl: event.target.value }))
-          }
-          placeholder="Cover image URL"
-        />
-        <input
-          className={controls.input}
-          value={state.coverImageAlt}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, coverImageAlt: event.target.value }))
-          }
-          placeholder="Cover image alt"
-        />
-        <input
-          className={controls.input}
-          value={state.coverCloudinaryPublicId ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({
-              ...prev,
-              coverCloudinaryPublicId: event.target.value,
-            }))
-          }
-          placeholder="Cover public ID"
-        />
-      </div>
+        <div className={styles.fieldGroup}>
+          <input
+            className={controls.input}
+            value={state.coverImageUrl}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, coverImageUrl: event.target.value }))
+            }
+            placeholder="Cover image URL"
+          />
+          <input
+            className={controls.input}
+            value={state.coverImageAlt}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, coverImageAlt: event.target.value }))
+            }
+            placeholder="Cover image alt"
+          />
+          {/* HIDE: Cover public ID */}
+          {/*
+          <input
+            className={controls.input}
+            value={state.coverCloudinaryPublicId ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({
+                ...prev,
+                coverCloudinaryPublicId: event.target.value,
+              }))
+            }
+            placeholder="Cover public ID"
+          />
+          */}
+        </div>
 
       <div className={styles.fieldGroup}>
         <button
@@ -1079,100 +1295,124 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         >
           Clear cover
         </button>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={() => previewCoverImage(state.coverImageUrl)}
+          disabled={!state.coverImageUrl}
+        >
+          Preview
+        </button>
         {coverUploadError ? (
           <span className={controls.error}>{coverUploadError}</span>
+        ) : coverUploadSuccess ? (
+          <span className={controls.helper}>{coverUploadSuccess}</span>
         ) : (
           <span className={controls.helper}>Paste a URL or upload artwork.</span>
         )}
       </div>
 
-      <input
-        ref={audioInputRef}
-        type="file"
-        accept="audio/*"
-        style={{ display: "none" }}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) {
-            void handleAudioUpload(file);
-            event.target.value = "";
-          }
-        }}
-      />
+        {/* keep hidden audio input for logic, but hide the fields/buttons */}
+        <input
+          ref={audioInputRef}
+          type="file"
+          accept="audio/*"
+          style={{ display: "none" }}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+              void handleAudioUpload(file);
+              event.target.value = "";
+            }
+          }}
+        />
 
-      <div className={styles.fieldGroup}>
-        <input
-          className={controls.input}
-          value={state.audioUrl ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, audioUrl: event.target.value }))
-          }
-          placeholder="Audio URL"
-        />
-        <input
-          className={controls.input}
-          value={state.audioCloudinaryPublicId ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({
-              ...prev,
-              audioCloudinaryPublicId: event.target.value,
-            }))
-          }
-          placeholder="Audio public ID"
-        />
         <div className={styles.fieldGroup}>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => audioInputRef.current?.click()}
-            disabled={isAudioUploading}
-          >
-            {isAudioUploading ? "Uploading…" : "Upload audio"}
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={clearAudio}
-            disabled={isAudioUploading}
-          >
-            Clear audio
-          </button>
+          {/* HIDE: Audio URL */}
+          {/*
+          <input
+            className={controls.input}
+            value={state.audioUrl ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, audioUrl: event.target.value }))
+            }
+            placeholder="Audio URL"
+          />
+          */}
+          {/* HIDE: Audio public ID */}
+          {/*
+          <input
+            className={controls.input}
+            value={state.audioCloudinaryPublicId ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({
+                ...prev,
+                audioCloudinaryPublicId: event.target.value,
+              }))
+            }
+            placeholder="Audio public ID"
+          />
+          */}
+          {/* HIDE: Upload audio buttons */}
+          {/*
+          <div className={styles.fieldGroup}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => audioInputRef.current?.click()}
+              disabled={isAudioUploading}
+            >
+              {isAudioUploading ? "Uploading…" : "Upload audio"}
+            </button>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={clearAudio}
+              disabled={isAudioUploading}
+            >
+              Clear audio
+            </button>
+          </div>
+          */}
         </div>
-      </div>
-      {audioUploadError ? (
-        <span className={controls.error}>{audioUploadError}</span>
-      ) : (
-        <span className={controls.helper}>Upload or link an optional audio preview.</span>
-      )}
+        {audioUploadError ? (
+          <span className={controls.error}>{audioUploadError}</span>
+        ) : null}
+      </AccordionSection>
 
-      <div className={styles.fieldGroup}>
-        <input
-          className={controls.input}
-          type="date"
-          value={state.releaseDate ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, releaseDate: event.target.value }))
-          }
-        />
-        <input
-          className={controls.input}
-          type="time"
-          value={state.releaseTime ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, releaseTime: event.target.value }))
-          }
-        />
-        <input
-          className={controls.input}
-          value={state.timeZone ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, timeZone: event.target.value }))
-          }
-          placeholder="Time zone"
-        />
-      </div>
-
-      <div className={styles.fieldGroup}>
+      <AccordionSection
+        id="release"
+        title={SECTION_COPY.release.title}
+        description={SECTION_COPY.release.description}
+        isOpen={sectionVisibility.release}
+        onToggle={toggleSection}
+      >
+        <div className={styles.fieldGroup}>
+          <input
+            className={controls.input}
+            type="date"
+            value={state.releaseDate ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, releaseDate: event.target.value }))
+            }
+          />
+          <input
+            className={controls.input}
+            type="time"
+            value={state.releaseTime ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, releaseTime: event.target.value }))
+            }
+          />
+          <input
+            className={controls.input}
+            value={state.timeZone ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, timeZone: event.target.value }))
+            }
+            placeholder="Time zone"
+          />
+        </div>
         <ToggleField
           label="Coming soon"
           checked={!!state.comingSoon}
@@ -1180,66 +1420,77 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
             setState((prev) => ({ ...prev, comingSoon: value }))
           }
         />
-        <input
-          className={controls.input}
-          value={state.genre ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, genre: event.target.value }))
-          }
-          placeholder="Genre"
-        />
-        <input
-          className={controls.input}
-          value={state.duration ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, duration: event.target.value }))
-          }
-          placeholder="Duration"
-        />
-      </div>
+      </AccordionSection>
 
-      <textarea
-        className={controls.textarea}
-        value={state.credits ?? ""}
-        onChange={(event) =>
-          setState((prev) => ({ ...prev, credits: event.target.value }))
-        }
-        rows={3}
-        placeholder="Credits"
-      />
+      <AccordionSection
+        id="metadata"
+        title={SECTION_COPY.metadata.title}
+        description={SECTION_COPY.metadata.description}
+        isOpen={sectionVisibility.metadata}
+        onToggle={toggleSection}
+      >
+        <div className={styles.fieldGroup}>
+          <input
+            className={controls.input}
+            value={state.genre ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, genre: event.target.value }))
+            }
+            placeholder="Genre"
+          />
+          <input
+            className={controls.input}
+            value={state.duration ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, duration: event.target.value }))
+            }
+            placeholder="Duration"
+          />
+        </div>
 
-      <div className={styles.fieldGroup}>
-        <input
-          className={controls.input}
-          value={state.metaTitle ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, metaTitle: event.target.value }))
-          }
-          placeholder="Meta title"
-        />
         <textarea
           className={controls.textarea}
-          value={state.metaDescription ?? ""}
+          value={state.credits ?? ""}
           onChange={(event) =>
-            setState((prev) => ({ ...prev, metaDescription: event.target.value }))
+            setState((prev) => ({ ...prev, credits: event.target.value }))
           }
-          rows={2}
-          placeholder="Meta description"
+          rows={3}
+          placeholder="Credits"
         />
-        <input
-          className={controls.input}
-          type="number"
-          min={0}
-          value={state.sortOrder}
-          onChange={(event) =>
-            setState((prev) => ({
-              ...prev,
-              sortOrder: Number(event.target.value),
-            }))
-          }
-          placeholder="Sort order"
-        />
-      </div>
+
+        <div className={styles.fieldGroup}>
+          <input
+            className={controls.input}
+            value={state.metaTitle ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, metaTitle: event.target.value }))
+            }
+            placeholder="Meta title"
+          />
+          <textarea
+            className={controls.textarea}
+            value={state.metaDescription ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, metaDescription: event.target.value }))
+            }
+            rows={2}
+            placeholder="Meta description"
+          />
+          <input
+            className={controls.input}
+            type="number"
+            min={0}
+            value={state.sortOrder}
+            onChange={(event) =>
+              setState((prev) => ({
+                ...prev,
+                sortOrder: Number(event.target.value),
+              }))
+            }
+            placeholder="Sort order"
+          />
+        </div>
+      </AccordionSection>
 
       {status && (
         <div

@@ -139,7 +139,7 @@ export default function MusicCarousel({ releases }: MusicCarouselProps) {
                         <span
                           className={clsx(frameStyles.meta, showComingSoon && s.metaMuted)}
                         >
-                          {showComingSoon ? "In production" : formattedDate}
+                          {formattedDate}
                         </span>
                       </div>
                     </article>
