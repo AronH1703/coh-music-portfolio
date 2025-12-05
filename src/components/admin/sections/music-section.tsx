@@ -185,6 +185,20 @@ function AccordionSection({
   );
 }
 
+type InlineFieldProps = {
+  label: string;
+  children: ReactNode;
+};
+
+function InlineField({ label, children }: InlineFieldProps) {
+  return (
+    <div className={controls.formField}>
+      <span className={controls.label}>{label}</span>
+      {children}
+    </div>
+  );
+}
+
 function toInputDate(value: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -943,6 +957,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
   const [sectionVisibility, setSectionVisibility] = useState<Record<SectionId, boolean>>(() =>
     getAccordionDefaults(),
   );
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
@@ -1131,8 +1146,17 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         >
           {state.comingSoon ? "Coming soon" : "Active"}
         </div>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={() => setIsCollapsed((previous) => !previous)}
+        >
+          {isCollapsed ? "Expand" : "Collapse"}
+        </button>
       </header>
 
+      {!isCollapsed && (
+        <>
       <AccordionSection
         id="basics"
         title={SECTION_COPY.basics.title}
@@ -1141,33 +1165,42 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         onToggle={toggleSection}
       >
         <div className={styles.fieldGroup}>
-          <input
-            className={controls.input}
-            value={state.title}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, title: event.target.value }))
-            }
-            placeholder="Title"
-          />
-          <input
-            className={controls.input}
-            value={state.slug}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, slug: event.target.value }))
-            }
-            placeholder="Slug"
-          />
+          <div className={controls.formField}>
+            <span className={controls.label}>Title</span>
+            <input
+              className={controls.input}
+              value={state.title}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, title: event.target.value }))
+              }
+              placeholder="Title"
+            />
+          </div>
+          <div className={controls.formField}>
+            <span className={controls.label}>Slug</span>
+            <input
+              className={controls.input}
+              value={state.slug}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, slug: event.target.value }))
+              }
+              placeholder="Slug"
+            />
+          </div>
         </div>
 
-        <textarea
-          className={controls.textarea}
-          value={state.description ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, description: event.target.value }))
-          }
-          rows={3}
-          placeholder="Description"
-        />
+        <div className={controls.formField}>
+          <span className={controls.label}>Description</span>
+          <textarea
+            className={controls.textarea}
+            value={state.description ?? ""}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, description: event.target.value }))
+            }
+            rows={3}
+            placeholder="Description"
+          />
+        </div>
       </AccordionSection>
 
       <AccordionSection
@@ -1196,22 +1229,26 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           )}
           {state.streamingLinks.map((link, index) => (
             <div key={link.id} className={styles.fieldGroup}>
-              <input
-                className={controls.input}
-                value={link.label}
-                onChange={(event) =>
-                  updateStreamingLink(index, "label", event.target.value)
-                }
-                placeholder="Platform"
-              />
-              <input
-                className={controls.input}
-                value={link.url}
-                onChange={(event) =>
-                  updateStreamingLink(index, "url", event.target.value)
-                }
-                placeholder="https://open.spotify.com/..."
-              />
+              <InlineField label="Platform">
+                <input
+                  className={controls.input}
+                  value={link.label}
+                  onChange={(event) =>
+                    updateStreamingLink(index, "label", event.target.value)
+                  }
+                  placeholder="Platform"
+                />
+              </InlineField>
+              <InlineField label="Platform URL">
+                <input
+                  className={controls.input}
+                  value={link.url}
+                  onChange={(event) =>
+                    updateStreamingLink(index, "url", event.target.value)
+                  }
+                  placeholder="https://open.spotify.com/..."
+                />
+              </InlineField>
               <button
                 type="button"
                 className={styles.secondaryButton}
@@ -1246,22 +1283,26 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         />
 
         <div className={styles.fieldGroup}>
-          <input
-            className={controls.input}
-            value={state.coverImageUrl}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, coverImageUrl: event.target.value }))
-            }
-            placeholder="Cover image URL"
-          />
-          <input
-            className={controls.input}
-            value={state.coverImageAlt}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, coverImageAlt: event.target.value }))
-            }
-            placeholder="Cover image alt"
-          />
+          <InlineField label="Cover image URL">
+            <input
+              className={controls.input}
+              value={state.coverImageUrl}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, coverImageUrl: event.target.value }))
+              }
+              placeholder="https://res.cloudinary.com/..."
+            />
+          </InlineField>
+          <InlineField label="Cover image alt">
+            <input
+              className={controls.input}
+              value={state.coverImageAlt}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, coverImageAlt: event.target.value }))
+              }
+              placeholder="Album artwork description"
+            />
+          </InlineField>
           {/* HIDE: Cover public ID */}
           {/*
           <input
@@ -1388,30 +1429,36 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         onToggle={toggleSection}
       >
         <div className={styles.fieldGroup}>
-          <input
-            className={controls.input}
-            type="date"
-            value={state.releaseDate ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, releaseDate: event.target.value }))
-            }
-          />
-          <input
-            className={controls.input}
-            type="time"
-            value={state.releaseTime ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, releaseTime: event.target.value }))
-            }
-          />
-          <input
-            className={controls.input}
-            value={state.timeZone ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, timeZone: event.target.value }))
-            }
-            placeholder="Time zone"
-          />
+          <InlineField label="Release date">
+            <input
+              className={controls.input}
+              type="date"
+              value={state.releaseDate ?? ""}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, releaseDate: event.target.value }))
+              }
+            />
+          </InlineField>
+          <InlineField label="Release time">
+            <input
+              className={controls.input}
+              type="time"
+              value={state.releaseTime ?? ""}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, releaseTime: event.target.value }))
+              }
+            />
+          </InlineField>
+          <InlineField label="Time zone">
+            <input
+              className={controls.input}
+              value={state.timeZone ?? ""}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, timeZone: event.target.value }))
+              }
+              placeholder="Europe/Stockholm"
+            />
+          </InlineField>
         </div>
         <ToggleField
           label="Coming soon"
@@ -1430,65 +1477,77 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         onToggle={toggleSection}
       >
         <div className={styles.fieldGroup}>
-          <input
-            className={controls.input}
-            value={state.genre ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, genre: event.target.value }))
-            }
-            placeholder="Genre"
-          />
-          <input
-            className={controls.input}
-            value={state.duration ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, duration: event.target.value }))
-            }
-            placeholder="Duration"
-          />
+          <InlineField label="Genre">
+            <input
+              className={controls.input}
+              value={state.genre ?? ""}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, genre: event.target.value }))
+              }
+              placeholder="Genre"
+            />
+          </InlineField>
+          <InlineField label="Duration">
+            <input
+              className={controls.input}
+              value={state.duration ?? ""}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, duration: event.target.value }))
+              }
+              placeholder="Duration"
+            />
+          </InlineField>
         </div>
 
-        <textarea
-          className={controls.textarea}
-          value={state.credits ?? ""}
-          onChange={(event) =>
-            setState((prev) => ({ ...prev, credits: event.target.value }))
-          }
-          rows={3}
-          placeholder="Credits"
-        />
-
-        <div className={styles.fieldGroup}>
-          <input
-            className={controls.input}
-            value={state.metaTitle ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, metaTitle: event.target.value }))
-            }
-            placeholder="Meta title"
-          />
+        <InlineField label="Credits">
           <textarea
             className={controls.textarea}
-            value={state.metaDescription ?? ""}
+            value={state.credits ?? ""}
             onChange={(event) =>
-              setState((prev) => ({ ...prev, metaDescription: event.target.value }))
+              setState((prev) => ({ ...prev, credits: event.target.value }))
             }
-            rows={2}
-            placeholder="Meta description"
+            rows={3}
+            placeholder="Credits"
           />
-          <input
-            className={controls.input}
-            type="number"
-            min={0}
-            value={state.sortOrder}
-            onChange={(event) =>
-              setState((prev) => ({
-                ...prev,
-                sortOrder: Number(event.target.value),
-              }))
-            }
-            placeholder="Sort order"
-          />
+        </InlineField>
+
+        <div className={styles.fieldGroup}>
+          <InlineField label="Meta title">
+            <input
+              className={controls.input}
+              value={state.metaTitle ?? ""}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, metaTitle: event.target.value }))
+              }
+              placeholder="Meta title"
+            />
+          </InlineField>
+          <InlineField label="Meta description">
+            <textarea
+              className={controls.textarea}
+              value={state.metaDescription ?? ""}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, metaDescription: event.target.value }))
+              }
+              rows={2}
+              placeholder="Meta description"
+            />
+          </InlineField>
+          <InlineField label="Sort order">
+            <input
+              className={controls.input}
+              type="number"
+              min={0}
+              value={state.sortOrder}
+              onChange={(event) =>
+                setState((prev) => ({
+                  ...prev,
+                  sortOrder: Number(event.target.value),
+                }))
+              }
+              placeholder="Sort order"
+            />
+          </InlineField>
         </div>
       </AccordionSection>
 
@@ -1522,6 +1581,8 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           {isDeleting ? "Deleting…" : "Delete"}
         </button>
       </div>
+        </>
+      )}
     </article>
   );
 }
