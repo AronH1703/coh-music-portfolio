@@ -112,24 +112,24 @@ const LINK_SUGGESTIONS = [
 
 const SECTION_COPY = {
   basics: {
-    title: "Release basics",
-    description: "Title, slug, and the story behind the drop.",
+    title: "Grunnupplýsingar útgáfu",
+    description: "Titill, slug og sagan á bakvið útgáfuna.",
   },
   streaming: {
-    title: "Streaming links",
-    description: "Surface platforms like Spotify, Apple Music, and YouTube.",
+    title: "Streymistenglar",
+    description: "Birtu Spotify, Apple Music, YouTube og aðrar streymisveitur.",
   },
   artwork: {
-    title: "Artwork & uploads",
-    description: "Cover art URLs plus optional uploads from your device.",
+    title: "Myndefni og upphleðsla",
+    description: "Umslagsmyndir (URL) og valkvæð upphleðsla frá tækinu þínu.",
   },
   release: {
-    title: "Release timing",
-    description: "Scheduling, time zones, and coming soon toggles.",
+    title: "Útgáfutímasetning",
+    description: "Tímasetning, tímabelti og „coming soon“ stillingar.",
   },
   metadata: {
-    title: "Metadata & SEO",
-    description: "Genre, credits, meta tags, and manual ordering.",
+    title: "Credits, Metadata & SEO",
+    description: "Tónlistarstefna, Credits, Meta tags og handvirk röðun.",
   },
 } as const;
 
@@ -274,14 +274,14 @@ export function MusicSection() {
           const payload = await response.json().catch(() => null);
           setMessage({
             type: "error",
-            text: payload?.error ?? "Failed to save release order.",
+            text: payload?.error ?? "Tókst ekki að vista röð útgáfa.",
           });
           return false;
         }
-        setMessage({ type: "success", text: "Release order saved." });
+        setMessage({ type: "success", text: "Röð útgáfa vistuð." });
         return true;
       } catch (error) {
-        setMessage({ type: "error", text: "Failed to save release order." });
+        setMessage({ type: "error", text: "Tókst ekki að vista röð útgáfa." });
         return false;
       }
     },
@@ -369,7 +369,7 @@ export function MusicSection() {
         });
         setValue("coverImageUrl", result.secureUrl, { shouldDirty: true });
         setValue("coverCloudinaryPublicId", result.publicId, { shouldDirty: true });
-        setCoverUploadSuccess("Artwork uploaded.");
+        setCoverUploadSuccess("Umslagsmynd hlaðin upp.");
       } catch (error) {
         setCoverUploadError((error as Error).message);
         setCoverUploadSuccess(null);
@@ -448,7 +448,7 @@ export function MusicSection() {
       const payload = await response.json().catch(() => null);
       setMessage({
         type: "error",
-        text: payload?.error ?? "Failed to create release.",
+        text: payload?.error ?? "Tókst ekki að búa til útgáfu.",
       });
       return;
     }
@@ -468,14 +468,14 @@ export function MusicSection() {
     setCoverUploadError(null);
     setCoverUploadSuccess(null);
     setAudioUploadError(null);
-    setMessage({ type: "success", text: "Release created." });
+    setMessage({ type: "success", text: "Útgáfa búin til." });
   });
 
   const handleUpdate = useCallback(
     async (id: string, payload: MusicReleaseFormValues) => {
       const parsed = musicReleaseSchema.safeParse(payload);
       if (!parsed.success) {
-        return { ok: false, message: "Validation failed. Check required fields." };
+        return { ok: false, message: "Staðfesting mistókst. Athugaðu nauðsynlega reiti." };
       }
 
       const response = await fetch("/api/music", {
@@ -488,7 +488,7 @@ export function MusicSection() {
         const payloadError = await response.json().catch(() => null);
         return {
           ok: false,
-          message: payloadError?.error ?? "Failed to update release.",
+          message: payloadError?.error ?? "Tókst ekki að uppfæra útgáfu.",
         };
       }
 
@@ -511,7 +511,7 @@ export function MusicSection() {
     const response = await fetch(`/api/music?id=${id}`, { method: "DELETE" });
     if (!response.ok) {
       const payload = await response.json().catch(() => null);
-      return { ok: false, message: payload?.error ?? "Failed to delete release." };
+      return { ok: false, message: payload?.error ?? "Tókst ekki að eyða útgáfu." };
     }
     setReleases((previous) => previous.filter((item) => item.id !== id));
     return { ok: true };
@@ -523,7 +523,7 @@ export function MusicSection() {
   return (
     <div className={styles.card}>
       <form onSubmit={submitRelease} className={styles.fieldset}>
-        <h2 className={styles.sectionTitle}>Add a new release</h2>
+        <h2 className={styles.sectionTitle}>Bæta við nýrri útgáfu</h2>
 
         <AccordionSection
           id="basics"
@@ -534,7 +534,7 @@ export function MusicSection() {
         >
           <div className={styles.fieldGroup}>
             <TextField
-              label="Title"
+              label="Titill"
               placeholder="RUNNING (BOLD YELLOW)"
               {...register("title")}
               error={errors.title}
@@ -542,15 +542,15 @@ export function MusicSection() {
             <TextField
               label="Slug"
               placeholder="running-bold-yellow"
-              helperText="Lowercase letters, digits, and hyphens."
+              helperText="Lágstafir, tölustafir og bandstrik."
               {...register("slug")}
               error={errors.slug}
             />
           </div>
 
           <TextareaField
-            label="Description"
-            placeholder="Collaborators, textures, and story behind the release."
+            label="Lýsing"
+            placeholder="Samstarfsaðilar, stemming og sagan á bakvið útgáfuna."
             rows={4}
             {...register("description")}
             error={errors.description}
@@ -569,30 +569,30 @@ export function MusicSection() {
               className={styles.fieldGroup}
               style={{ justifyContent: "space-between", alignItems: "center" }}
             >
-              <span className={controls.label}>Streaming links</span>
+              <span className={controls.label}>Streymistenglar</span>
               <button
                 type="button"
                 className={styles.secondaryButton}
                 onClick={addStreamingLink}
               >
-                Add link
+                Bæta við tengli
               </button>
             </div>
             {streamingFields.length === 0 && (
               <p className={controls.helper}>
-                Add streaming destinations to surface Spotify, Apple Music, YouTube, and more.
+                Bættu við streymisveitum til að birta Spotify, Apple Music, YouTube og fleira.
               </p>
             )}
             {streamingFields.map((field, index) => (
               <div key={field.id} className={styles.fieldGroup}>
                 <TextField
-                  label="Platform"
+                  label="Vettvangur"
                   placeholder="Spotify"
                   {...register(`streamingLinks.${index}.label` as const)}
                   error={errors.streamingLinks?.[index]?.label}
                 />
                 <TextField
-                  label="Platform URL"
+                  label="Vettvangs-URL"
                   placeholder="https://open.spotify.com/..."
                   {...register(`streamingLinks.${index}.url` as const)}
                   error={errors.streamingLinks?.[index]?.url}
@@ -602,7 +602,7 @@ export function MusicSection() {
                   className={styles.secondaryButton}
                   onClick={() => removeStreamingLink(index)}
                 >
-                  Remove
+                  Fjarlægja
                 </button>
               </div>
             ))}
@@ -632,15 +632,15 @@ export function MusicSection() {
 
           <div className={styles.fieldGroup}>
             <TextField
-              label="Cover image URL"
+              label="Umslagsmynd (URL)"
               placeholder="https://res.cloudinary.com/..."
-              helperText="Upload artwork or paste a hosted URL."
+              helperText="Hlaðið upp umslagsmynd eða límdu inn hýsta slóð."
               {...register("coverImageUrl")}
               error={errors.coverImageUrl}
             />
             <TextField
-              label="Cover image alt"
-              placeholder="Bold yellow album artwork."
+              label="Alt texti fyrir umslagsmynd"
+              placeholder="Sterk gul umslagsmynd."
               {...register("coverImageAlt")}
               error={errors.coverImageAlt}
             />
@@ -658,7 +658,7 @@ export function MusicSection() {
 
         <div className={styles.fieldGroup}>
           <div className={controls.formField}>
-            <span className={controls.label}>Upload cover artwork</span>
+            <span className={controls.label}>Hlaða upp umslagsmynd</span>
             <div className={styles.fieldGroup}>
               <button
                 type="button"
@@ -666,7 +666,7 @@ export function MusicSection() {
                 onClick={() => coverInputRef.current?.click()}
                 disabled={isCoverUploading}
               >
-                {isCoverUploading ? "Uploading…" : "Upload from computer"}
+                {isCoverUploading ? "Hleð upp…" : "Hlaða upp frá tölvu"}
               </button>
               <button
                 type="button"
@@ -674,7 +674,7 @@ export function MusicSection() {
                 onClick={clearCoverUpload}
                 disabled={isCoverUploading}
               >
-                Clear cover
+                Hreinsa umslag
               </button>
               <button
                 type="button"
@@ -682,7 +682,7 @@ export function MusicSection() {
                 onClick={() => previewCoverImage(coverImageUrlValue)}
                 disabled={!coverImageUrlValue}
               >
-                Preview
+                Forskoða
               </button>
             </div>
             {coverUploadError ? (
@@ -691,7 +691,7 @@ export function MusicSection() {
               <span className={controls.helper}>{coverUploadSuccess}</span>
             ) : (
               <span className={controls.helper}>
-                JPG, PNG, WEBP up to 5 MB. Uploading will store the public ID automatically.
+                JPG, PNG, WEBP allt að 5 MB. Við upphleðslu er public ID vistað sjálfkrafa.
               </span>
             )}
           </div>
@@ -775,21 +775,21 @@ export function MusicSection() {
         >
           <div className={styles.fieldGroup}>
             <TextField
-              label="Release date"
+              label="Útgáfudagsetning"
               type="date"
               {...register("releaseDate")}
               error={errors.releaseDate}
             />
             <TextField
-              label="Release time"
+              label="Útgáfutími"
               type="time"
               {...register("releaseTime")}
               error={errors.releaseTime}
             />
             <TextField
-              label="Time zone"
+              label="Tímabelti"
               placeholder="Europe/Stockholm"
-              helperText="Use a valid IANA zone to keep countdowns accurate."
+              helperText="Notaðu gilt IANA tímabelti til að teljarar séu réttir."
               {...register("timeZone")}
               error={errors.timeZone}
             />
@@ -797,7 +797,7 @@ export function MusicSection() {
 
           <ToggleField
             label="Coming soon"
-            helperText="Disable automatically once the release time passes."
+            helperText="Slekkur sjálfkrafa þegar útgáfutími er liðinn."
             checked={!!comingSoon}
             onChange={(value) => setValue("comingSoon", value, { shouldDirty: true })}
           />
@@ -812,13 +812,13 @@ export function MusicSection() {
         >
           <div className={styles.fieldGroup}>
             <TextField
-              label="Genre"
+              label="Tónlistarstefna"
               placeholder="Alternative electronic"
               {...register("genre")}
               error={errors.genre}
             />
             <TextField
-              label="Duration"
+              label="Lengd"
               placeholder="03:42"
               {...register("duration")}
               error={errors.duration}
@@ -837,7 +837,7 @@ export function MusicSection() {
 
           <TextareaField
             label="Credits"
-            placeholder="Producer, mixer, featured artists…"
+            placeholder="Framleiðandi, mix, gestir…"
             rows={3}
             {...register("credits")}
             error={errors.credits}
@@ -852,7 +852,7 @@ export function MusicSection() {
             />
             <TextareaField
               label="Meta description"
-              placeholder="SEO summary for socials and search."
+              placeholder="SEO lýsing fyrir samfélagsmiðla og leit."
               rows={3}
               {...register("metaDescription")}
               error={errors.metaDescription}
@@ -878,27 +878,27 @@ export function MusicSection() {
             className={styles.primaryButton}
             disabled={isSubmitting || !isDirty}
           >
-            {isSubmitting ? "Saving…" : "Create release"}
+            {isSubmitting ? "Vista…" : "Búa til útgáfu"}
           </button>
           <button
             type="button"
             className={styles.secondaryButton}
             onClick={() => reset(DEFAULT_VALUES)}
           >
-            Reset form
+            Hreinsa form
           </button>
         </div>
       </form>
 
       <div className={styles.divider} />
 
-      <h3 className={styles.sectionTitle}>Existing releases</h3>
+      <h3 className={styles.sectionTitle}>Fyrri útgáfur</h3>
 
       {isLoading ? (
-        <div className={styles.emptyState}>Loading releases…</div>
+        <div className={styles.emptyState}>Sæki útgáfur…</div>
       ) : orderedReleases.length === 0 ? (
         <div className={styles.emptyState}>
-          Add your first release to populate the music carousel.
+          Bættu við fyrstu útgáfunni til að fylla tónlistar-róluna.
         </div>
       ) : (
         <DndContext
@@ -985,8 +985,8 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
   const statusLabel = state.comingSoon
     ? "Coming soon"
     : record.releaseAt
-      ? `Released ${new Date(record.releaseAt).toLocaleDateString()}`
-      : "Release date TBA";
+      ? `Útgefið ${new Date(record.releaseAt).toLocaleDateString()}`
+      : "Útgáfudagsetning TBA";
 
   const addStreamingLink = useCallback(() => {
     const existing = new Set(state.streamingLinks.map((link) => link.label.toLowerCase()));
@@ -1029,7 +1029,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         coverImageUrl: result.secureUrl,
         coverCloudinaryPublicId: result.publicId,
       }));
-      setCoverUploadSuccess("Artwork uploaded.");
+      setCoverUploadSuccess("Umslagsmynd hlaðin upp.");
     } catch (error) {
       setCoverUploadError((error as Error).message);
       setCoverUploadSuccess(null);
@@ -1115,23 +1115,23 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
     if (!result.ok) {
       setStatus({
         type: "error",
-        text: result.message ?? "Failed to update release.",
+        text: result.message ?? "Tókst ekki að uppfæra útgáfu.",
       });
     } else {
-      setStatus({ type: "success", text: "Release updated." });
+      setStatus({ type: "success", text: "Útgáfa uppfærð." });
     }
 
     setIsSaving(false);
   };
 
   const remove = async () => {
-    if (!window.confirm("Permanently delete this release?")) return;
+    if (!window.confirm("Eyða þessari útgáfu alveg og endanlega?")) return;
     setIsDeleting(true);
     const result = await onDelete(record.id);
     if (!result.ok) {
       setStatus({
         type: "error",
-        text: result.message ?? "Failed to delete release.",
+        text: result.message ?? "Tókst ekki að eyða útgáfu.",
       });
     }
     setIsDeleting(false);
@@ -1150,7 +1150,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
             className={styles.dragHandle}
             {...attributes}
             {...listeners}
-            aria-label="Drag release to reorder"
+            aria-label="Dragðu útgáfu til að breyta röðun"
           >
             <span className={styles.dragGrip} />
           </button>
@@ -1164,14 +1164,14 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
             state.comingSoon ? styles.comingSoon : ""
           }`}
         >
-          {state.comingSoon ? "Coming soon" : "Active"}
+          {state.comingSoon ? "Coming soon" : "Virk"}
         </div>
         <button
           type="button"
           className={styles.secondaryButton}
           onClick={() => setIsCollapsed((previous) => !previous)}
         >
-          {isCollapsed ? "Expand" : "Collapse"}
+          {isCollapsed ? "Opna" : "Loka"}
         </button>
       </header>
 
@@ -1186,14 +1186,14 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
       >
         <div className={styles.fieldGroup}>
           <div className={controls.formField}>
-            <span className={controls.label}>Title</span>
+            <span className={controls.label}>Titill</span>
             <input
               className={controls.input}
               value={state.title}
               onChange={(event) =>
                 setState((prev) => ({ ...prev, title: event.target.value }))
               }
-              placeholder="Title"
+              placeholder="Titill"
             />
           </div>
           <div className={controls.formField}>
@@ -1210,7 +1210,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         </div>
 
         <div className={controls.formField}>
-          <span className={controls.label}>Description</span>
+          <span className={controls.label}>Lýsing</span>
           <textarea
             className={controls.textarea}
             value={state.description ?? ""}
@@ -1218,7 +1218,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
               setState((prev) => ({ ...prev, description: event.target.value }))
             }
             rows={3}
-            placeholder="Description"
+            placeholder="Lýsing"
           />
         </div>
       </AccordionSection>
@@ -1235,31 +1235,31 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
             className={styles.fieldGroup}
             style={{ justifyContent: "space-between", alignItems: "center" }}
           >
-            <span className={controls.label}>Streaming links</span>
+            <span className={controls.label}>Streymistenglar</span>
             <button
               type="button"
               className={styles.secondaryButton}
               onClick={addStreamingLink}
             >
-              Add link
+              Bæta við tengli
             </button>
           </div>
           {state.streamingLinks.length === 0 && (
-            <p className={controls.helper}>No streaming links yet.</p>
+            <p className={controls.helper}>Engir streymistenglar ennþá.</p>
           )}
           {state.streamingLinks.map((link, index) => (
             <div key={link.id} className={styles.fieldGroup}>
-              <InlineField label="Platform">
+              <InlineField label="Vettvangur">
                 <input
                   className={controls.input}
                   value={link.label}
                   onChange={(event) =>
                     updateStreamingLink(index, "label", event.target.value)
                   }
-                  placeholder="Platform"
+                  placeholder="Vettvangur"
                 />
               </InlineField>
-              <InlineField label="Platform URL">
+              <InlineField label="Vettvangs-URL">
                 <input
                   className={controls.input}
                   value={link.url}
@@ -1274,7 +1274,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
                 className={styles.secondaryButton}
                 onClick={() => removeStreamingLink(index)}
               >
-                Remove
+                Fjarlægja
               </button>
             </div>
           ))}
@@ -1303,7 +1303,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         />
 
         <div className={styles.fieldGroup}>
-          <InlineField label="Cover image URL">
+          <InlineField label="Umslagsmynd (URL)">
             <input
               className={controls.input}
               value={state.coverImageUrl}
@@ -1313,14 +1313,14 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
               placeholder="https://res.cloudinary.com/..."
             />
           </InlineField>
-          <InlineField label="Cover image alt">
+          <InlineField label="Alt texti fyrir umslagsmynd">
             <input
               className={controls.input}
               value={state.coverImageAlt}
               onChange={(event) =>
                 setState((prev) => ({ ...prev, coverImageAlt: event.target.value }))
               }
-              placeholder="Album artwork description"
+              placeholder="Lýsing á umslagsmynd"
             />
           </InlineField>
           {/* HIDE: Cover public ID */}
@@ -1346,7 +1346,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           onClick={() => coverInputRef.current?.click()}
           disabled={isCoverUploading}
         >
-          {isCoverUploading ? "Uploading…" : "Upload cover"}
+          {isCoverUploading ? "Hleð upp…" : "Hlaða upp umslagi"}
         </button>
         <button
           type="button"
@@ -1354,7 +1354,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           onClick={clearCover}
           disabled={isCoverUploading}
         >
-          Clear cover
+          Hreinsa umslag
         </button>
         <button
           type="button"
@@ -1362,14 +1362,14 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           onClick={() => previewCoverImage(state.coverImageUrl)}
           disabled={!state.coverImageUrl}
         >
-          Preview
+          Forskoða
         </button>
         {coverUploadError ? (
           <span className={controls.error}>{coverUploadError}</span>
         ) : coverUploadSuccess ? (
           <span className={controls.helper}>{coverUploadSuccess}</span>
         ) : (
-          <span className={controls.helper}>Paste a URL or upload artwork.</span>
+          <span className={controls.helper}>Límdu inn slóð eða hlaððu upp umslagsmynd.</span>
         )}
       </div>
 
@@ -1449,7 +1449,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         onToggle={toggleSection}
       >
         <div className={styles.fieldGroup}>
-          <InlineField label="Release date">
+          <InlineField label="Útgáfudagsetning">
             <input
               className={controls.input}
               type="date"
@@ -1459,7 +1459,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
               }
             />
           </InlineField>
-          <InlineField label="Release time">
+          <InlineField label="Útgáfutími">
             <input
               className={controls.input}
               type="time"
@@ -1469,7 +1469,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
               }
             />
           </InlineField>
-          <InlineField label="Time zone">
+          <InlineField label="Tímabelti">
             <input
               className={controls.input}
               value={state.timeZone ?? ""}
@@ -1497,24 +1497,24 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         onToggle={toggleSection}
       >
         <div className={styles.fieldGroup}>
-          <InlineField label="Genre">
+          <InlineField label="Tónlistarstefna">
             <input
               className={controls.input}
               value={state.genre ?? ""}
               onChange={(event) =>
                 setState((prev) => ({ ...prev, genre: event.target.value }))
               }
-              placeholder="Genre"
+              placeholder="Tónlistarstefna"
             />
           </InlineField>
-          <InlineField label="Duration">
+          <InlineField label="Lengd">
             <input
               className={controls.input}
               value={state.duration ?? ""}
               onChange={(event) =>
                 setState((prev) => ({ ...prev, duration: event.target.value }))
               }
-              placeholder="Duration"
+              placeholder="Lengd"
             />
           </InlineField>
         </div>
@@ -1594,7 +1594,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           onClick={save}
           disabled={isSaving}
         >
-          {isSaving ? "Saving…" : "Save changes"}
+          {isSaving ? "Vista…" : "Vista breytingar"}
         </button>
         <button
           type="button"
@@ -1602,7 +1602,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           onClick={remove}
           disabled={isDeleting}
         >
-          {isDeleting ? "Deleting…" : "Delete"}
+          {isDeleting ? "Eyði…" : "Eyða"}
         </button>
       </div>
         </>
