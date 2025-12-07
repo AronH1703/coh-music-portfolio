@@ -82,6 +82,7 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
     coverImageAlt,
     audioUrl,
     releaseDate,
+    releaseAt,
     comingSoon,
     genre,
     duration,
@@ -95,6 +96,18 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
         .map((line) => line.trim())
         .filter(Boolean)
     : [];
+  const parsedReleaseDate = releaseDate ? Date.parse(releaseDate) : Number.NaN;
+  const releaseDateIsValid = !Number.isNaN(parsedReleaseDate);
+  const parsedReleaseAt = releaseAt ? Date.parse(releaseAt) : Number.NaN;
+  const releaseAtIsValid = !Number.isNaN(parsedReleaseAt);
+  const releaseMoment = releaseAtIsValid
+    ? parsedReleaseAt
+    : releaseDateIsValid
+      ? parsedReleaseDate
+      : Number.NaN;
+  const releaseMomentIsValid = !Number.isNaN(releaseMoment);
+  const showComingSoon =
+    comingSoon && (!releaseMomentIsValid || releaseMoment > Date.now());
 
   return (
     <main className={`section ${s.page}`}>
@@ -102,7 +115,7 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
         <Link href="/" className={s.backLink}>
           {"<"} Back to main site
         </Link>
-        {comingSoon && (
+        {showComingSoon && (
           <span className={s.badge} aria-label="Coming soon">
             Coming soon
           </span>

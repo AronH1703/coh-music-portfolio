@@ -164,6 +164,7 @@ export type MusicReleaseDetail = {
   audioUrl?: string | null;
   audioCloudinaryPublicId?: string | null;
   releaseDate?: string | null;
+  releaseAt?: string | null;
   releaseTime?: string | null;
   timeZone?: string | null;
   comingSoon: boolean;
@@ -211,6 +212,7 @@ export async function getMusicReleaseBySlug(slug: string): Promise<MusicReleaseD
     audioUrl: release.audioUrl,
     audioCloudinaryPublicId: release.audioCloudinaryPublicId,
     releaseDate: release.releaseDate ? release.releaseDate.toISOString() : null,
+    releaseAt: release.releaseAt ? release.releaseAt.toISOString() : null,
     releaseTime: release.releaseTime,
     timeZone: release.timeZone,
     comingSoon: release.comingSoon,
