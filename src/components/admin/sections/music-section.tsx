@@ -1,6 +1,13 @@
 "use client";
 
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -816,6 +823,8 @@ export function MusicSection() {
               {...register("duration")}
               error={errors.duration}
             />
+            {/* HIDE: Sort order field in create form */}
+            {/*
             <TextField
               label="Sort order"
               type="number"
@@ -823,6 +832,7 @@ export function MusicSection() {
               {...register("sortOrder", { valueAsNumber: true })}
               error={errors.sortOrder}
             />
+            */}
           </div>
 
           <TextareaField
@@ -961,6 +971,16 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
 
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (!isCollapsed && headerRef.current) {
+      headerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [isCollapsed]);
 
   const statusLabel = state.comingSoon
     ? "Coming soon"
@@ -1123,7 +1143,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
       className={`${styles.listItem} ${isDragging ? styles.listItemDragging : ""}`}
       style={dragStyle}
     >
-      <header className={styles.listItemHeader}>
+      <header ref={headerRef} className={styles.listItemHeader}>
         <div className={styles.listItemHeaderMain}>
           <button
             type="button"
@@ -1533,6 +1553,9 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
               placeholder="Meta description"
             />
           </InlineField>
+
+          {/* HIDE: Sort order field in existing releases */}
+          {/*
           <InlineField label="Sort order">
             <input
               className={controls.input}
@@ -1548,6 +1571,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
               placeholder="Sort order"
             />
           </InlineField>
+          */}
         </div>
       </AccordionSection>
 
