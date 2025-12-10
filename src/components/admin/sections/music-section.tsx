@@ -79,6 +79,11 @@ type MessageState =
   | { type: "error"; text: string }
   | null;
 
+type PendingUpload = {
+  name: string;
+  size: number;
+};
+
 const DEFAULT_VALUES: MusicReleaseFormValues = {
   title: "",
   slug: "",
@@ -242,6 +247,7 @@ export function MusicSection() {
   const [isCoverUploading, setIsCoverUploading] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [coverUploadSuccess, setCoverUploadSuccess] = useState<string | null>(null);
+  const [coverFileSelection, setCoverFileSelection] = useState<PendingUpload | null>(null);
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
   const [formSections, setFormSections] = useState<Record<SectionId, boolean>>(() =>
@@ -313,7 +319,6 @@ export function MusicSection() {
     [persistOrder, releases],
   );
 
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
@@ -406,7 +411,8 @@ export function MusicSection() {
     setValue("coverCloudinaryPublicId", "", { shouldDirty: true });
     setCoverUploadError(null);
     setCoverUploadSuccess(null);
-  }, [setValue]);
+    setCoverFileSelection(null);
+  }, [setValue, setCoverFileSelection]);
 
   const clearAudioUpload = useCallback(() => {
     setValue("audioUrl", "", { shouldDirty: true });
@@ -617,19 +623,6 @@ export function MusicSection() {
           isOpen={formSections.artwork}
           onToggle={toggleFormSection}
         >
-          <input
-            ref={coverInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) {
-                void handleCoverUpload(file);
-                event.target.value = "";
-              }
-            }}
-          />
 
           <div className={styles.fieldGroup}>
             <TextField
@@ -659,16 +652,54 @@ export function MusicSection() {
 
         <div className={styles.fieldGroup}>
           <div className={controls.formField}>
-            <span className={controls.label}>Hlaða upp umslagsmynd</span>
-            <div className={styles.fieldGroup}>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => coverInputRef.current?.click()}
-                disabled={isCoverUploading}
-              >
-                {isCoverUploading ? "Hleð upp…" : "Hlaða upp frá tölvu"}
-              </button>
+            <label className={controls.label}>Hlaða upp umslagsmynd</label>
+            <div className={controls.fileInput}>
+              <label className={controls.fileField}>
+                <span className={controls.fileFieldLabel}>
+                  {isCoverUploading
+                    ? "Hleð upp umslagi…"
+                    : coverFileSelection
+                      ? "Skipta um valda mynd"
+                      : "Smelltu til að velja umslag"}
+                </span>
+                <span className={controls.fileFieldHint}>
+                  {coverFileSelection
+                    ? `${coverFileSelection.name} (${Math.round(coverFileSelection.size / 1024)} KB)`
+                    : "Hámark 5 MB • JPG, PNG eða WebP"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={controls.fileNativeInput}
+                  disabled={isCoverUploading}
+                  onChange={(event) => {
+                    const selected = event.target.files?.[0];
+                    if (!selected) {
+                      setCoverFileSelection(null);
+                      return;
+                    }
+                    setCoverFileSelection({ name: selected.name, size: selected.size });
+                    void handleCoverUpload(selected).finally(() => {
+                      setCoverFileSelection(null);
+                    });
+                    event.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            {coverUploadError ? (
+              <span className={controls.error}>{coverUploadError}</span>
+            ) : coverUploadSuccess ? (
+              <span className={controls.helper}>{coverUploadSuccess}</span>
+            ) : (
+              <span className={controls.helper}>
+                JPG, PNG, WEBP allt að 5 MB. Við upphleðslu er public ID vistað sjálfkrafa.
+              </span>
+            )}
+          </div>
+          <div className={controls.formField}>
+            <span className={controls.label}>Aðgerðir</span>
+            <div className={styles.actions}>
               <button
                 type="button"
                 className={styles.secondaryButton}
@@ -686,15 +717,6 @@ export function MusicSection() {
                 Forskoða
               </button>
             </div>
-            {coverUploadError ? (
-              <span className={controls.error}>{coverUploadError}</span>
-            ) : coverUploadSuccess ? (
-              <span className={controls.helper}>{coverUploadSuccess}</span>
-            ) : (
-              <span className={controls.helper}>
-                JPG, PNG, WEBP allt að 5 MB. Við upphleðslu er public ID vistað sjálfkrafa.
-              </span>
-            )}
           </div>
         </div>
 
@@ -964,6 +986,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
   const [isCoverUploading, setIsCoverUploading] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [coverUploadSuccess, setCoverUploadSuccess] = useState<string | null>(null);
+  const [coverFileSelection, setCoverFileSelection] = useState<PendingUpload | null>(null);
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
   const [sectionVisibility, setSectionVisibility] = useState<Record<SectionId, boolean>>(() =>
@@ -971,7 +994,6 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
   );
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
 
@@ -1068,6 +1090,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
     }));
     setCoverUploadError(null);
     setCoverUploadSuccess(null);
+    setCoverFileSelection(null);
   };
 
   const clearAudio = () => {
@@ -1290,20 +1313,6 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
         isOpen={sectionVisibility.artwork}
         onToggle={toggleSection}
       >
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) {
-              void handleCoverUpload(file);
-              event.target.value = "";
-            }
-          }}
-        />
-
         <div className={styles.fieldGroup}>
           <InlineField label="Umslagsmynd (URL)">
             <input
@@ -1341,39 +1350,73 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           */}
         </div>
 
-      <div className={styles.fieldGroup}>
-        <button
-          type="button"
-          className={styles.secondaryButton}
-          onClick={() => coverInputRef.current?.click()}
-          disabled={isCoverUploading}
-        >
-          {isCoverUploading ? "Hleð upp…" : "Hlaða upp umslagi"}
-        </button>
-        <button
-          type="button"
-          className={styles.secondaryButton}
-          onClick={clearCover}
-          disabled={isCoverUploading}
-        >
-          Hreinsa umslag
-        </button>
-        <button
-          type="button"
-          className={styles.secondaryButton}
-          onClick={() => previewCoverImage(state.coverImageUrl)}
-          disabled={!state.coverImageUrl}
-        >
-          Forskoða
-        </button>
-        {coverUploadError ? (
-          <span className={controls.error}>{coverUploadError}</span>
-        ) : coverUploadSuccess ? (
-          <span className={controls.helper}>{coverUploadSuccess}</span>
-        ) : (
-          <span className={controls.helper}>Límdu inn slóð eða hlaððu upp umslagsmynd.</span>
-        )}
-      </div>
+        <div className={styles.fieldGroup}>
+          <div className={controls.formField}>
+            <span className={controls.label}>Hlaða upp umslagsmynd</span>
+            <div className={controls.fileInput}>
+              <label className={controls.fileField}>
+                <span className={controls.fileFieldLabel}>
+                  {isCoverUploading
+                    ? "Hleð upp umslagi…"
+                    : coverFileSelection
+                      ? "Skipta um valda mynd"
+                      : "Smelltu til að velja umslag"}
+                </span>
+                <span className={controls.fileFieldHint}>
+                  {coverFileSelection
+                    ? `${coverFileSelection.name} (${Math.round(coverFileSelection.size / 1024)} KB)`
+                    : "Hámark 5 MB • JPG, PNG eða WebP"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={controls.fileNativeInput}
+                  disabled={isCoverUploading}
+                  onChange={(event) => {
+                    const selected = event.target.files?.[0];
+                    if (!selected) {
+                      setCoverFileSelection(null);
+                      return;
+                    }
+                    setCoverFileSelection({ name: selected.name, size: selected.size });
+                    void handleCoverUpload(selected).finally(() => {
+                      setCoverFileSelection(null);
+                    });
+                    event.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            {coverUploadError ? (
+              <span className={controls.error}>{coverUploadError}</span>
+            ) : coverUploadSuccess ? (
+              <span className={controls.helper}>{coverUploadSuccess}</span>
+            ) : (
+              <span className={controls.helper}>Límdu inn slóð eða hlaððu upp umslagsmynd.</span>
+            )}
+          </div>
+          <div className={controls.formField}>
+            <span className={controls.label}>Aðgerðir</span>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={clearCover}
+                disabled={isCoverUploading}
+              >
+                Hreinsa umslag
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => previewCoverImage(state.coverImageUrl)}
+                disabled={!state.coverImageUrl}
+              >
+                Forskoða
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* keep hidden audio input for logic, but hide the fields/buttons */}
         <input
