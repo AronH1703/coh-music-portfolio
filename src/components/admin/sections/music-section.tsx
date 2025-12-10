@@ -31,6 +31,7 @@ import { CSS } from "@dnd-kit/utilities";
 import styles from "../admin-dashboard.module.scss";
 import controls from "../form-controls.module.scss";
 import { TextField, TextareaField, ToggleField } from "../form-controls";
+import { RichTextEditor } from "../rich-text-editor";
 import { musicReleaseSchema } from "@/lib/validation";
 import { uploadAsset } from "@/lib/admin/uploads";
 
@@ -550,7 +551,7 @@ export function MusicSection() {
 
           <TextareaField
             label="Lýsing"
-            placeholder="Samstarfsaðilar, stemming og sagan á bakvið útgáfuna."
+            placeholder="Stutt lýsing á laginu eða útgáfunni."
             rows={4}
             {...register("description")}
             error={errors.description}
@@ -789,7 +790,7 @@ export function MusicSection() {
             <TextField
               label="Tímabelti"
               placeholder="Europe/Stockholm"
-              helperText="Notaðu gilt IANA tímabelti til að teljarar séu réttir."
+              helperText="Notaðu gilt IANA tímabelti til að teljarar séu réttir Atlantic/Reykjavik t.d fyrir Ísland."
               {...register("timeZone")}
               error={errors.timeZone}
             />
@@ -835,12 +836,13 @@ export function MusicSection() {
             */}
           </div>
 
-          <TextareaField
+          <RichTextEditor
             label="Credits"
-            placeholder="Framleiðandi, mix, gestir…"
-            rows={3}
-            {...register("credits")}
+            value={watch("credits") || ""}
+            onChange={(value) => setValue("credits", value, { shouldDirty: true })}
+            helperText="Framleiðandi, mix, gestir…"
             error={errors.credits}
+            placeholder="Framleiðandi, mix, gestir…"
           />
 
           <div className={styles.fieldGroup}>
@@ -1306,7 +1308,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           <InlineField label="Umslagsmynd (URL)">
             <input
               className={controls.input}
-              value={state.coverImageUrl}
+              value={state.coverImageUrl ?? ""}
               onChange={(event) =>
                 setState((prev) => ({ ...prev, coverImageUrl: event.target.value }))
               }
@@ -1316,7 +1318,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           <InlineField label="Alt texti fyrir umslagsmynd">
             <input
               className={controls.input}
-              value={state.coverImageAlt}
+              value={state.coverImageAlt ?? ""}
               onChange={(event) =>
                 setState((prev) => ({ ...prev, coverImageAlt: event.target.value }))
               }
@@ -1519,17 +1521,14 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           </InlineField>
         </div>
 
-        <InlineField label="Credits">
-          <textarea
-            className={controls.textarea}
+          <RichTextEditor
+            label="Credits"
             value={state.credits ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, credits: event.target.value }))
+            onChange={(value) =>
+              setState((prev) => ({ ...prev, credits: value }))
             }
-            rows={3}
             placeholder="Credits"
           />
-        </InlineField>
 
         <div className={styles.fieldGroup}>
           <InlineField label="Meta title">

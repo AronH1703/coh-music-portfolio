@@ -256,35 +256,7 @@
   text-transform: uppercase;
 }
 
-.creditList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.4rem 1.25rem;
-}
-
-.creditItem {
-  position: relative;
-  padding-left: 1.5rem;
+.creditContent {
   color: color-mix(in oklab, var(--foreground) 85%, transparent);
-}
-
-.creditItem::before {
-  content: "";
-  position: absolute;
-  top: 0.9em;
-  left: 0;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--foreground) 75%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 35%, transparent);
-  transform: translateY(-50%);
-}
-
-@media (min-width: 780px) {
-  .creditList {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  line-height: 1.7;
 }

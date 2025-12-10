@@ -90,12 +90,7 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
   } = release;
 
   const formattedDate = releaseDate ? dateFormatter.format(new Date(releaseDate)) : null;
-  const creditLines = credits
-    ? credits
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-    : [];
+  const hasCredits = Boolean(credits && credits.trim().length > 0);
   const parsedReleaseDate = releaseDate ? Date.parse(releaseDate) : Number.NaN;
   const releaseDateIsValid = !Number.isNaN(parsedReleaseDate);
   const parsedReleaseAt = releaseAt ? Date.parse(releaseAt) : Number.NaN;
@@ -179,17 +174,14 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
         </div>
       </section>
 
-      {creditLines.length > 0 && (
+      {hasCredits && (
         <section className={`section ${s.creditsSection}`}>
           <div className={s.creditsCard}>
             <h2 className={s.creditsHeading}>Credits</h2>
-            <ul className={s.creditList}>
-              {creditLines.map((credit) => (
-                <li key={credit} className={s.creditItem}>
-                  {credit}
-                </li>
-              ))}
-            </ul>
+            <div
+              className={s.creditContent}
+              dangerouslySetInnerHTML={{ __html: credits ?? "" }}
+            />
           </div>
         </section>
       )}
