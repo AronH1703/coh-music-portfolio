@@ -714,7 +714,7 @@ export function MusicSection() {
                 onClick={() => previewCoverImage(coverImageUrlValue)}
                 disabled={!coverImageUrlValue}
               >
-                Forskoða
+                Skoða mynd
               </button>
             </div>
           </div>
@@ -1412,7 +1412,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
                 onClick={() => previewCoverImage(state.coverImageUrl)}
                 disabled={!state.coverImageUrl}
               >
-                Forskoða
+                Skoða mynd
               </button>
             </div>
           </div>
