@@ -171,7 +171,7 @@ export function HeroSection() {
         <div className={styles.fieldGroup}>
           <TextField
             label="Texti á aðalhnappi"
-            placeholder="Skoða verk"
+            placeholder="Explore the work"
             {...register("primaryCtaLabel")}
             error={errors.primaryCtaLabel}
           />
@@ -186,7 +186,7 @@ export function HeroSection() {
         <div className={styles.fieldGroup}>
           <TextField
             label="Texti á aukahnappi"
-            placeholder="Bókanir & fyrirspurnir"
+            placeholder="Bookings & inquiries"
             {...register("secondaryCtaLabel")}
             error={errors.secondaryCtaLabel}
           />

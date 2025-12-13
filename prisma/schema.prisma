@@ -150,6 +150,7 @@ model Video {
   videoCloudinaryPublicId     String?
   thumbnailCloudinaryPublicId String?
   tags         Json?
+  sortOrder    Int            @default(0)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }

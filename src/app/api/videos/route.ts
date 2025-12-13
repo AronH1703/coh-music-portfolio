@@ -40,7 +40,7 @@ function resolveVideoProvider(data: {
 
 export async function GET() {
   const videos = await prisma.video.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
 
   return NextResponse.json({ data: videos });
@@ -65,6 +65,10 @@ export async function POST(request: Request) {
   }
 
   const identifiers = resolveVideoProvider(parsed.data);
+  const orderAggregate = await prisma.video.aggregate({
+    _max: { sortOrder: true },
+  });
+  const nextSortOrder = (orderAggregate._max.sortOrder ?? -1) + 1;
 
   const video = await prisma.video.create({
     data: {
@@ -77,6 +81,7 @@ export async function POST(request: Request) {
       videoCloudinaryPublicId: parsed.data.videoCloudinaryPublicId,
       thumbnailCloudinaryPublicId: parsed.data.thumbnailCloudinaryPublicId,
       tags: parsed.data.tags,
+      sortOrder: nextSortOrder,
     },
   });
 

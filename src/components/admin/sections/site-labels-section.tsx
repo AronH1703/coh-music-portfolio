@@ -45,7 +45,9 @@ export function SiteLabelsSection() {
         });
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const save = async () => {
@@ -58,11 +60,14 @@ export function SiteLabelsSection() {
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => null);
-      setMessage({ type: "error", text: payload?.error ?? "Failed to save labels." });
+      setMessage({
+        type: "error",
+        text: payload?.error ?? "Tókst ekki að vista heiti kafla.",
+      });
       setSaving(false);
       return;
     }
-    setMessage({ type: "success", text: "Section labels updated." });
+    setMessage({ type: "success", text: "Heiti kafla uppfærð." });
     setSaving(false);
   };
 
@@ -71,91 +76,130 @@ export function SiteLabelsSection() {
       <div className={styles.fieldset}>
         <div className={styles.fieldGroup}>
           <TextField
-            label="Hero eyebrow"
+            label="Forsíðu-yfirtexti (hero eyebrow)"
             name="heroLabel"
             value={state.heroLabel}
-            onChange={(e) => setState((p) => ({ ...p, heroLabel: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, heroLabel: e.target.value }))
+            }
           />
         </div>
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Music eyebrow"
+            label="Tónlist – yfirtexti"
             name="musicLabel"
             value={state.musicLabel}
-            onChange={(e) => setState((p) => ({ ...p, musicLabel: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, musicLabel: e.target.value }))
+            }
           />
           <TextField
-            label="Music heading"
+            label="Tónlist – fyrirsögn"
             name="musicHeading"
             value={state.musicHeading}
-            onChange={(e) => setState((p) => ({ ...p, musicHeading: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, musicHeading: e.target.value }))
+            }
           />
         </div>
+
         <div className={styles.fieldGroup}>
           <TextField
-            label="Gallery eyebrow"
+            label="Myndasafn – yfirtexti"
             name="galleryLabel"
             value={state.galleryLabel}
-            onChange={(e) => setState((p) => ({ ...p, galleryLabel: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, galleryLabel: e.target.value }))
+            }
           />
           <TextField
-            label="Gallery heading"
+            label="Myndasafn – fyrirsögn"
             name="galleryHeading"
             value={state.galleryHeading}
-            onChange={(e) => setState((p) => ({ ...p, galleryHeading: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, galleryHeading: e.target.value }))
+            }
           />
         </div>
+
         <div className={styles.fieldGroup}>
           <TextField
-            label="Videos eyebrow"
+            label="Myndbönd – yfirtexti"
             name="videosLabel"
             value={state.videosLabel}
-            onChange={(e) => setState((p) => ({ ...p, videosLabel: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, videosLabel: e.target.value }))
+            }
           />
           <TextField
-            label="Videos heading"
+            label="Myndbönd – fyrirsögn"
             name="videosHeading"
             value={state.videosHeading}
-            onChange={(e) => setState((p) => ({ ...p, videosHeading: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, videosHeading: e.target.value }))
+            }
           />
         </div>
+
         <div className={styles.fieldGroup}>
           <TextField
-            label="About eyebrow"
+            label="Um – yfirtexti"
             name="aboutLabel"
             value={state.aboutLabel}
-            onChange={(e) => setState((p) => ({ ...p, aboutLabel: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, aboutLabel: e.target.value }))
+            }
           />
           <TextField
-            label="About heading"
+            label="Um – fyrirsögn"
             name="aboutHeading"
             value={state.aboutHeading}
-            onChange={(e) => setState((p) => ({ ...p, aboutHeading: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, aboutHeading: e.target.value }))
+            }
           />
         </div>
+
         <div className={styles.fieldGroup}>
           <TextField
-            label="Contact eyebrow"
+            label="Hafa samband – yfirtexti"
             name="contactLabel"
             value={state.contactLabel}
-            onChange={(e) => setState((p) => ({ ...p, contactLabel: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, contactLabel: e.target.value }))
+            }
           />
           <TextField
-            label="Contact heading"
+            label="Hafa samband – fyrirsögn"
             name="contactHeading"
             value={state.contactHeading}
-            onChange={(e) => setState((p) => ({ ...p, contactHeading: e.target.value }))}
+            onChange={(e) =>
+              setState((p) => ({ ...p, contactHeading: e.target.value }))
+            }
           />
         </div>
 
         {message && (
-          <div className={message.type === "success" ? styles.successMessage : styles.errorMessage}>{message.text}</div>
+          <div
+            className={
+              message.type === "success"
+                ? styles.successMessage
+                : styles.errorMessage
+            }
+          >
+            {message.text}
+          </div>
         )}
 
         <div className={styles.actions}>
-          <button type="button" className={styles.primaryButton} onClick={save} disabled={saving}>
-            {saving ? "Saving…" : "Save labels"}
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={save}
+            disabled={saving}
+          >
+            {saving ? "Vista…" : "Vista heiti kafla"}
           </button>
         </div>
       </div>

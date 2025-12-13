@@ -124,12 +124,12 @@ export function ContactSection() {
       const payload = await response.json().catch(() => null);
       setMessage({
         type: "error",
-        text: payload?.error ?? "Failed to save contact details.",
+        text: payload?.error ?? "Tókst ekki að vista tengiupplýsingar.",
       });
       return;
     }
 
-    setMessage({ type: "success", text: "Contact & social links updated." });
+    setMessage({ type: "success", text: "Tengiliðir og samfélagshlekkir uppfærðir." });
   });
 
   return (
@@ -140,30 +140,31 @@ export function ContactSection() {
             className={styles.fieldGroup}
             style={{ justifyContent: "space-between", alignItems: "center" }}
           >
-            <span className={controls.label}>Contact emails</span>
+            <span className={controls.label}>Netfangstengiliðir</span>
             <button
               type="button"
               className={styles.secondaryButton}
               onClick={addEmailContact}
             >
-              Add email
+              Bæta við netfangi
             </button>
           </div>
           {emailFields.length === 0 && (
             <p className={controls.helper}>
-              Add one or more labeled contact emails (for example, General, Booking, or Management).
+              Bættu við einu eða fleiri merktum netföngum (t.d. Almenn fyrirspurn, Bókanir eða
+              Umsjón).
             </p>
           )}
           {emailFields.map((field, index) => (
             <div key={field.id} className={styles.fieldGroup}>
               <TextField
-                label="Label"
-                placeholder="General"
+                label="Heiti"
+                placeholder="Almenn fyrirspurn"
                 {...register(`emailContacts.${index}.label` as const)}
                 error={errors.emailContacts?.[index]?.label}
               />
               <TextField
-                label="Email"
+                label="Netfang"
                 placeholder="hello@cohmusic.com"
                 {...register(`emailContacts.${index}.email` as const)}
                 error={errors.emailContacts?.[index]?.email}
@@ -173,7 +174,7 @@ export function ContactSection() {
                 className={styles.secondaryButton}
                 onClick={() => removeEmailContact(index)}
               >
-                Remove
+                Fjarlægja
               </button>
             </div>
           ))}
@@ -184,30 +185,30 @@ export function ContactSection() {
             className={styles.fieldGroup}
             style={{ justifyContent: "space-between", alignItems: "center" }}
           >
-            <span className={controls.label}>Social links</span>
+            <span className={controls.label}>Samfélagsmiðlahlekkir</span>
             <button
               type="button"
               className={styles.secondaryButton}
               onClick={addSocialLink}
             >
-              Add link
+              Bæta við hlekk
             </button>
           </div>
           {socialFields.length === 0 && (
             <p className={controls.helper}>
-              Add Instagram, YouTube, or any custom links your audience expects.
+              Bættu við Instagram, YouTube eða öðrum hlekkjum.
             </p>
           )}
           {socialFields.map((field, index) => (
             <div key={field.id} className={styles.fieldGroup}>
               <TextField
-                label="Label"
+                label="Heiti"
                 placeholder="Instagram"
                 {...register(`socialLinks.${index}.label` as const)}
                 error={errors.socialLinks?.[index]?.label}
               />
               <TextField
-                label="URL"
+                label="Slóð (URL)"
                 placeholder="https://instagram.com/coh.music"
                 {...register(`socialLinks.${index}.url` as const)}
                 error={errors.socialLinks?.[index]?.url}
@@ -217,7 +218,7 @@ export function ContactSection() {
                 className={styles.secondaryButton}
                 onClick={() => removeSocialLink(index)}
               >
-                Remove
+                Fjarlægja
               </button>
             </div>
           ))}
@@ -241,14 +242,14 @@ export function ContactSection() {
             className={styles.primaryButton}
             disabled={isSubmitting || !isDirty}
           >
-            {isSubmitting ? "Saving…" : "Save contact info"}
+            {isSubmitting ? "Vista…" : "Vista tengiupplýsingar"}
           </button>
           <button
             type="button"
             className={styles.secondaryButton}
             onClick={() => reset()}
           >
-            Reset changes
+            Hætta við breytingar
           </button>
         </div>
       </form>

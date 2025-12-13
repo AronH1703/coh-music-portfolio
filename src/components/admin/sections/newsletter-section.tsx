@@ -42,12 +42,12 @@ export function NewsletterSection() {
     const emails = subscribers.map((subscriber) => subscriber.email).join(", ");
     try {
       await navigator.clipboard.writeText(emails);
-      setMessage({ type: "success", text: "Subscriber emails copied." });
+      setMessage({ type: "success", text: "Netföng afskriftaafhenda afrituð." });
     } catch (error) {
       console.error(error);
       setMessage({
         type: "error",
-        text: "Clipboard copy failed. Please try again.",
+        text: "Tókst ekki að afrita í klippiborð. Reyndu aftur.",
       });
     } finally {
       setIsCopying(false);
@@ -62,7 +62,7 @@ export function NewsletterSection() {
       const payload = await response.json().catch(() => null);
       setMessage({
         type: "error",
-        text: payload?.error ?? "Failed to generate CSV export.",
+        text: payload?.error ?? "Tókst ekki að útbúa CSV-skrá.",
       });
       setIsDownloading(false);
       return;
@@ -72,18 +72,18 @@ export function NewsletterSection() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "newsletter-subscribers.csv";
+    anchor.download = "póstlisti-áskrifendur.csv";
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
 
-    setMessage({ type: "success", text: "CSV downloaded." });
+    setMessage({ type: "success", text: "CSV-skrá niðurhalað." });
     setIsDownloading(false);
   };
 
   const removeSubscriber = async (id: string) => {
-    if (!window.confirm("Remove this subscriber?")) return;
+    if (!window.confirm("Fjarlægja þennan áskrifanda?")) return;
     const response = await fetch(`/api/newsletter?id=${id}`, {
       method: "DELETE",
     });
@@ -91,12 +91,12 @@ export function NewsletterSection() {
       const payload = await response.json().catch(() => null);
       setMessage({
         type: "error",
-        text: payload?.error ?? "Failed to remove subscriber.",
+        text: payload?.error ?? "Tókst ekki að fjarlægja áskrifanda.",
       });
       return;
     }
     setSubscribers((previous) => previous.filter((item) => item.id !== id));
-    setMessage({ type: "success", text: "Subscriber removed." });
+    setMessage({ type: "success", text: "Áskrifandi fjarlægður." });
   };
 
   return (
@@ -108,7 +108,7 @@ export function NewsletterSection() {
           onClick={copyAll}
           disabled={subscribers.length === 0 || isCopying}
         >
-          {isCopying ? "Copying…" : "Copy all emails"}
+          {isCopying ? "Afrita…" : "Afrita öll netföng"}
         </button>
         <button
           type="button"
@@ -116,14 +116,14 @@ export function NewsletterSection() {
           onClick={downloadCsv}
           disabled={subscribers.length === 0 || isDownloading}
         >
-          {isDownloading ? "Preparing…" : "Download CSV"}
+          {isDownloading ? "Undirbý…" : "Sækja CSV-skrá"}
         </button>
         <button
           type="button"
           className={styles.secondaryButton}
           onClick={() => loadSubscribers()}
         >
-          Refresh list
+          Endurhlaða lista
         </button>
       </div>
 
@@ -140,10 +140,10 @@ export function NewsletterSection() {
       )}
 
       {loading ? (
-        <div className={styles.emptyState}>Loading subscribers…</div>
+        <div className={styles.emptyState}>Hleð áskrifendum…</div>
       ) : subscribers.length === 0 ? (
         <div className={styles.emptyState}>
-          No newsletter sign-ups yet. Live forms will populate this list.
+          Engar skráningar á póstlista ennþá. Lifandi form á síðunni munu fylla þennan lista.
         </div>
       ) : (
         <div className={styles.list}>
@@ -157,7 +157,7 @@ export function NewsletterSection() {
               </header>
               {subscriber.source && (
                 <div className={styles.newsletterSource}>
-                  Source: {subscriber.source}
+                  Uppruni: {subscriber.source}
                 </div>
               )}
               <div className={styles.actions}>
@@ -166,7 +166,7 @@ export function NewsletterSection() {
                   className={styles.dangerButton}
                   onClick={() => removeSubscriber(subscriber.id)}
                 >
-                  Delete
+                  Eyða
                 </button>
               </div>
             </article>

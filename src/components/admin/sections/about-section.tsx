@@ -95,20 +95,20 @@ export function AboutSection() {
       const payload = await response.json().catch(() => null);
       setMessage({
         type: "error",
-        text: payload?.error ?? "Failed to save about content.",
+        text: payload?.error ?? "Tókst ekki að vista um-hluta.",
       });
       return;
     }
 
-    setMessage({ type: "success", text: "About section updated." });
+    setMessage({ type: "success", text: "Um-hluti uppfærður." });
   });
 
   return (
     <section className={styles.card}>
       <form onSubmit={submit} className={styles.fieldset}>
         <TextareaField
-          label="About text"
-          placeholder="Long-form biography for the public site."
+          label="Um Þig texti"
+          placeholder="Eitthvað sniðugt hér."
           rows={6}
           {...register("aboutText")}
           error={errors.aboutText}
@@ -116,21 +116,21 @@ export function AboutSection() {
 
         <div className={styles.fieldGroup}>
           <TextField
-            label="Artist photo URL"
+            label="Myndslóð (Cloudinary URL)"
             placeholder="https://res.cloudinary.com/..."
             {...register("artistPhotoUrl")}
             error={errors.artistPhotoUrl}
           />
           <TextField
-            label="Artist photo alt text"
-            placeholder="Portrait in the studio."
+            label="Myndlýsing (alt text) þessi texti er notaður af skjálesurum"
+            placeholder="Portrett í hljóðveri."
             {...register("artistPhotoAlt")}
             error={errors.artistPhotoAlt}
           />
           <TextField
-            label="Artist photo public ID"
+            label="Mynd public ID (Cloudinary Public ID) uppfyllist sjálfkrafa!"
             placeholder="coh-music/about/..."
-            helperText="Auto-filled when uploading."
+            helperText="Fyllist sjálfkrafa þegar mynd er hlaðin upp."
             {...register("artistPhotoCloudinaryPublicId")}
             error={errors.artistPhotoCloudinaryPublicId}
           />
@@ -156,7 +156,7 @@ export function AboutSection() {
             onClick={() => photoInputRef.current?.click()}
             disabled={isPhotoUploading}
           >
-            {isPhotoUploading ? "Uploading…" : "Upload artist photo"}
+            {isPhotoUploading ? "Hleð upp…" : "Hlaða upp mynd af listamanni"}
           </button>
           <button
             type="button"
@@ -164,13 +164,14 @@ export function AboutSection() {
             onClick={clearPhotoUpload}
             disabled={isPhotoUploading}
           >
-            Clear upload
+            Fjarlægja
           </button>
           {photoUploadError ? (
             <span className={controls.error}>{photoUploadError}</span>
           ) : (
             <span className={controls.helper}>
-              Use high-resolution images for the bio section. Uploading stores the Cloudinary reference automatically.
+              Notaðu hágæða mynd sem er 5mb max! Við upphleðslu er Cloudinary-vísun geymd
+              sjálfkrafa.
             </span>
           )}
         </div>
@@ -193,14 +194,14 @@ export function AboutSection() {
             className={styles.primaryButton}
             disabled={isSubmitting || !isDirty}
           >
-            {isSubmitting ? "Saving…" : "Save about section"}
+            {isSubmitting ? "Vista…" : "Vista breytingar"}
           </button>
           <button
             type="button"
             className={styles.secondaryButton}
             onClick={() => reset()}
           >
-            Reset changes
+            Hætta við breytingar
           </button>
         </div>
       </form>

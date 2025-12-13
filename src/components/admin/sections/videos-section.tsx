@@ -1,6 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
 import styles from "../admin-dashboard.module.scss";
 import controls from "../form-controls.module.scss";
 import { TextField, TextareaField } from "../form-controls";
@@ -18,6 +35,7 @@ type VideoRecord = {
   videoCloudinaryPublicId: string | null;
   thumbnailCloudinaryPublicId: string | null;
   tags: string[] | null;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -42,7 +60,12 @@ function normalizeVideoRecord(record: VideoRecord): VideoRecord {
     ...record,
     videoCloudinaryPublicId: record.videoCloudinaryPublicId ?? null,
     thumbnailCloudinaryPublicId: record.thumbnailCloudinaryPublicId ?? null,
+    sortOrder: record.sortOrder ?? 0,
   };
+}
+
+function sortVideos(items: VideoRecord[]) {
+  return [...items].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 }
 
 export function VideosSection() {
@@ -63,9 +86,63 @@ export function VideosSection() {
   const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
   const [thumbnailUploadError, setThumbnailUploadError] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  );
 
   const videoInputRef = useRef<HTMLInputElement | null>(null);
   const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
+
+  const persistOrder = useCallback(
+    async (ordered: VideoRecord[]) => {
+      try {
+        const response = await fetch("/api/videos/order", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: ordered.map((video) => video.id) }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null);
+          setMessage({
+            type: "error",
+            text: payload?.error ?? "Tókst ekki að vista röð myndbanda.",
+          });
+          return false;
+        }
+        setMessage({ type: "success", text: "Röð myndbanda vistuð." });
+        return true;
+      } catch (error) {
+        setMessage({ type: "error", text: "Tókst ekki að vista röð myndbanda." });
+        return false;
+      }
+    },
+    [setMessage],
+  );
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const previousVideos = videos;
+      const oldIndex = previousVideos.findIndex((video) => video.id === active.id);
+      const newIndex = previousVideos.findIndex((video) => video.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const nextVideos = arrayMove(previousVideos, oldIndex, newIndex).map((video, index) => ({
+        ...video,
+        sortOrder: index,
+      }));
+      setVideos(nextVideos);
+
+      const saved = await persistOrder(nextVideos);
+      if (!saved) {
+        setVideos(previousVideos);
+      }
+    },
+    [persistOrder, videos],
+  );
 
   const handleVideoUpload = async (file: File) => {
     setVideoUploadError(null);
@@ -129,7 +206,9 @@ export function VideosSection() {
       const response = await fetch("/api/videos", { cache: "no-store" });
       if (response.ok) {
         const { data } = await response.json();
-        if (active) setVideos((data as VideoRecord[]).map(normalizeVideoRecord));
+        if (active) {
+          setVideos(sortVideos((data as VideoRecord[]).map(normalizeVideoRecord)));
+        }
       }
       if (active) setLoading(false);
     })();
@@ -200,7 +279,7 @@ export function VideosSection() {
 
     const { data } = await response.json();
     const record = normalizeVideoRecord(data as VideoRecord);
-    setVideos((previous) => [record, ...previous]);
+    setVideos((previous) => sortVideos([...previous, record]));
     setFormData({
       title: "",
       description: "",
@@ -247,7 +326,7 @@ export function VideosSection() {
       const { data } = await response.json();
       const updatedRecord = normalizeVideoRecord(data as VideoRecord);
       setVideos((previous) =>
-        previous.map((item) => (item.id === id ? updatedRecord : item)),
+        sortVideos(previous.map((item) => (item.id === id ? updatedRecord : item))),
       );
       return { ok: true };
     },
@@ -501,16 +580,28 @@ export function VideosSection() {
           Engin myndbönd ennþá. Bættu við fyrsta embed-inu til að fylla opinbera rennibrautina.
         </div>
       ) : (
-        <div className={styles.list}>
-          {videos.map((video) => (
-            <VideoListItem
-              key={video.id}
-              record={video}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={videos.map((video) => video.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className={styles.list}>
+              {videos.map((video) => (
+                <VideoListItem
+                  key={video.id}
+                  record={video}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
@@ -545,6 +636,15 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
 
   const videoInputRef = useRef<HTMLInputElement | null>(null);
   const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: record.id,
+  });
+  const dragStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 2 : undefined,
+  };
+  const formattedDate = new Date(record.createdAt).toLocaleString();
 
   const saveChanges = async () => {
     setIsSaving(true);
@@ -644,12 +744,25 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
   };
 
   return (
-    <article className={styles.listItem}>
+    <article
+      ref={setNodeRef}
+      className={`${styles.listItem} ${isDragging ? styles.listItemDragging : ""}`}
+      style={dragStyle}
+    >
       <header className={styles.listItemHeader}>
-        <div>
-          <div className={styles.listItemTitle}>{state.title || record.title}</div>
-          <div className={styles.timestamp}>
-            Bætt við {new Date(record.createdAt).toLocaleString()}
+        <div className={styles.listItemHeaderMain}>
+          <button
+            type="button"
+            className={styles.dragHandle}
+            {...attributes}
+            {...listeners}
+            aria-label="Dragðu myndband til að breyta röðun"
+          >
+            <span className={styles.dragGrip} />
+          </button>
+          <div>
+            <div className={styles.listItemTitle}>{state.title || record.title}</div>
+            <div className={styles.timestamp}>Bætt við {formattedDate}</div>
           </div>
         </div>
         <span className={styles.status}>{record.provider}</span>

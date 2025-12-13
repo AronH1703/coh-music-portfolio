@@ -237,7 +237,7 @@ export type VideoContent = {
 
 export async function getVideos(): Promise<VideoContent[]> {
   const videos = await prisma.video.findMany({
-    orderBy: [{ createdAt: "desc" }],
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
 
   return videos.map((video) => ({
