@@ -60,68 +60,68 @@ export function VideosSection() {
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isVideoUploading, setIsVideoUploading] = useState(false);
-const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
-const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
-const [thumbnailUploadError, setThumbnailUploadError] = useState<string | null>(null);
+  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
+  const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [thumbnailUploadError, setThumbnailUploadError] = useState<string | null>(null);
 
-const videoInputRef = useRef<HTMLInputElement | null>(null);
-const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
 
-const handleVideoUpload = async (file: File) => {
-  setVideoUploadError(null);
-  setIsVideoUploading(true);
-  try {
-    const result = await uploadAsset(file, {
-      folder: "coh-music/videos",
-      resourceType: "video",
-    });
+  const handleVideoUpload = async (file: File) => {
+    setVideoUploadError(null);
+    setIsVideoUploading(true);
+    try {
+      const result = await uploadAsset(file, {
+        folder: "coh-music/videos",
+        resourceType: "video",
+      });
+      setFormData((prev) => ({
+        ...prev,
+        videoUrl: result.secureUrl,
+        videoCloudinaryPublicId: result.publicId,
+      }));
+    } catch (error) {
+      setVideoUploadError((error as Error).message);
+    } finally {
+      setIsVideoUploading(false);
+    }
+  };
+
+  const clearVideoUpload = () => {
     setFormData((prev) => ({
       ...prev,
-      videoUrl: result.secureUrl,
-      videoCloudinaryPublicId: result.publicId,
+      videoCloudinaryPublicId: "",
     }));
-  } catch (error) {
-    setVideoUploadError((error as Error).message);
-  } finally {
-    setIsVideoUploading(false);
-  }
-};
+  };
 
-const clearVideoUpload = () => {
-  setFormData((prev) => ({
-    ...prev,
-    videoCloudinaryPublicId: "",
-  }));
-};
+  const handleThumbnailUpload = async (file: File) => {
+    setThumbnailUploadError(null);
+    setIsThumbnailUploading(true);
+    try {
+      const result = await uploadAsset(file, {
+        folder: "coh-music/videos/thumbnails",
+        resourceType: "image",
+      });
+      setFormData((prev) => ({
+        ...prev,
+        thumbnailUrl: result.secureUrl,
+        thumbnailCloudinaryPublicId: result.publicId,
+      }));
+    } catch (error) {
+      setThumbnailUploadError((error as Error).message);
+    } finally {
+      setIsThumbnailUploading(false);
+    }
+  };
 
-const handleThumbnailUpload = async (file: File) => {
-  setThumbnailUploadError(null);
-  setIsThumbnailUploading(true);
-  try {
-    const result = await uploadAsset(file, {
-      folder: "coh-music/videos/thumbnails",
-      resourceType: "image",
-    });
+  const clearThumbnailUpload = () => {
     setFormData((prev) => ({
       ...prev,
-      thumbnailUrl: result.secureUrl,
-      thumbnailCloudinaryPublicId: result.publicId,
+      thumbnailCloudinaryPublicId: "",
     }));
-  } catch (error) {
-    setThumbnailUploadError((error as Error).message);
-  } finally {
-    setIsThumbnailUploading(false);
-  }
-};
+  };
 
-const clearThumbnailUpload = () => {
-  setFormData((prev) => ({
-    ...prev,
-    thumbnailCloudinaryPublicId: "",
-  }));
-};
-
-useEffect(() => {
+  useEffect(() => {
     let active = true;
 
     (async () => {
@@ -129,8 +129,7 @@ useEffect(() => {
       const response = await fetch("/api/videos", { cache: "no-store" });
       if (response.ok) {
         const { data } = await response.json();
-        if (active)
-          setVideos((data as VideoRecord[]).map(normalizeVideoRecord));
+        if (active) setVideos((data as VideoRecord[]).map(normalizeVideoRecord));
       }
       if (active) setLoading(false);
     })();
@@ -139,8 +138,6 @@ useEffect(() => {
       active = false;
     };
   }, []);
-
-  // removed duplicate useCallback upload handlers
 
   const submitVideo = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -163,11 +160,9 @@ useEffect(() => {
       title,
       description,
       videoUrl,
-      videoCloudinaryPublicId:
-        formData.videoCloudinaryPublicId || undefined,
+      videoCloudinaryPublicId: formData.videoCloudinaryPublicId || undefined,
       thumbnailUrl: formData.thumbnailUrl || undefined,
-      thumbnailCloudinaryPublicId:
-        formData.thumbnailCloudinaryPublicId || undefined,
+      thumbnailCloudinaryPublicId: formData.thumbnailCloudinaryPublicId || undefined,
       tags,
     });
 
@@ -178,7 +173,7 @@ useEffect(() => {
         | undefined;
       const firstMessage =
         (firstKey && flat.fieldErrors[firstKey]?.[0]) ||
-        "Validation failed. Double-check required fields.";
+        "Staðfesting mistókst. Athugaðu skylda reiti.";
       setMessage({
         type: "error",
         text: firstMessage,
@@ -197,7 +192,7 @@ useEffect(() => {
       const payload = await response.json().catch(() => null);
       setMessage({
         type: "error",
-        text: payload?.error ?? "Failed to add video.",
+        text: payload?.error ?? "Tókst ekki að bæta við myndbandi.",
       });
       setIsSaving(false);
       return;
@@ -215,7 +210,7 @@ useEffect(() => {
       thumbnailCloudinaryPublicId: "",
       tags: "",
     });
-    setMessage({ type: "success", text: "Video added." });
+    setMessage({ type: "success", text: "Myndband bætt við." });
     setIsSaving(false);
   };
 
@@ -225,16 +220,14 @@ useEffect(() => {
         title: payload.title,
         description: payload.description ?? undefined,
         videoUrl: payload.videoUrl,
-        videoCloudinaryPublicId:
-          payload.videoCloudinaryPublicId ?? undefined,
+        videoCloudinaryPublicId: payload.videoCloudinaryPublicId ?? undefined,
         thumbnailUrl: payload.thumbnailUrl ?? undefined,
-        thumbnailCloudinaryPublicId:
-          payload.thumbnailCloudinaryPublicId ?? undefined,
+        thumbnailCloudinaryPublicId: payload.thumbnailCloudinaryPublicId ?? undefined,
         tags: payload.tags ?? undefined,
       });
 
       if (!parsed.success) {
-        return { ok: false, message: "Validation failed." };
+        return { ok: false, message: "Staðfesting mistókst." };
       }
 
       const response = await fetch("/api/videos", {
@@ -247,16 +240,14 @@ useEffect(() => {
         const payloadError = await response.json().catch(() => null);
         return {
           ok: false,
-          message: payloadError?.error ?? "Failed to update video.",
+          message: payloadError?.error ?? "Tókst ekki að uppfæra myndband.",
         };
       }
 
       const { data } = await response.json();
       const updatedRecord = normalizeVideoRecord(data as VideoRecord);
       setVideos((previous) =>
-        previous.map((item) =>
-          item.id === id ? updatedRecord : item,
-        ),
+        previous.map((item) => (item.id === id ? updatedRecord : item)),
       );
       return { ok: true };
     },
@@ -269,7 +260,7 @@ useEffect(() => {
       const payload = await response.json().catch(() => null);
       return {
         ok: false,
-        message: payload?.error ?? "Failed to delete video.",
+        message: payload?.error ?? "Tókst ekki að eyða myndbandi.",
       };
     }
     setVideos((previous) => previous.filter((item) => item.id !== id));
@@ -279,12 +270,12 @@ useEffect(() => {
   return (
     <div className={styles.card}>
       <form onSubmit={submitVideo} className={styles.fieldset}>
-        <h2 className={styles.sectionTitle}>Add video embed</h2>
+        <h2 className={styles.sectionTitle}>Bæta við myndbandi</h2>
 
         <TextField
-          label="Title"
+          label="Titill"
           name="title"
-          placeholder="Live at Gothenburg Hall"
+          placeholder="Stuð í Kópavogi.."
           value={formData.title}
           onChange={(event) =>
             setFormData((prev) => ({ ...prev, title: event.target.value }))
@@ -292,9 +283,9 @@ useEffect(() => {
         />
 
         <TextareaField
-          label="Description"
+          label="Lýsing"
           name="description"
-          placeholder="Short context about the performance."
+          placeholder="Stutt samhengislýsing um flutninginn."
           rows={3}
           value={formData.description}
           onChange={(event) =>
@@ -306,7 +297,7 @@ useEffect(() => {
         />
 
         <TextField
-          label="Video URL"
+          label="Myndbandsslóð (URL)"
           name="videoUrl"
           placeholder="https://www.youtube.com/watch?v=..."
           value={formData.videoUrl}
@@ -331,7 +322,7 @@ useEffect(() => {
         />
 
         <div className={controls.formField}>
-          <span className={controls.label}>Upload video file</span>
+          <span className={controls.label}>Hlaða upp myndbandskafli</span>
           <div className={styles.fieldGroup}>
             <button
               type="button"
@@ -339,7 +330,7 @@ useEffect(() => {
               onClick={() => videoInputRef.current?.click()}
               disabled={isVideoUploading}
             >
-              {isVideoUploading ? "Uploading…" : "Upload from computer"}
+              {isVideoUploading ? "Hleð upp…" : "Hlaða upp úr tölvu"}
             </button>
             <button
               type="button"
@@ -347,14 +338,14 @@ useEffect(() => {
               onClick={clearVideoUpload}
               disabled={isVideoUploading}
             >
-              Clear upload
+              Hreinsa upphleðslu
             </button>
           </div>
           {videoUploadError ? (
             <span className={controls.error}>{videoUploadError}</span>
           ) : (
             <span className={controls.helper}>
-              MP4, MOV, or audio files. Uploading stores the secure Cloudinary URL automatically.
+              MP4, MOV eða hljóðskrár. Uploaderinn setur sjálfkrafa örugga Cloudinary-slóð.
             </span>
           )}
         </div>
@@ -362,10 +353,10 @@ useEffect(() => {
 
         {/* Cloudinary video ID (optional; re-enable if needed)
         <TextField
-          label="Video public ID"
+          label="Myndbands public ID"
           name="videoCloudinaryPublicId"
           placeholder="coh-music/videos/..."
-          helperText="Optional override for Cloudinary-hosted videos."
+          helperText="Valfrjálst override fyrir Cloudinary-hýst myndband."
           value={formData.videoCloudinaryPublicId}
           onChange={(event) =>
             setFormData((prev) => ({
@@ -378,7 +369,7 @@ useEffect(() => {
         <div className={styles.fieldGroup}>
           {/* Cloudinary thumbnail fields (optional; re-enable if needed)
           <TextField
-            label="Thumbnail URL"
+            label="Smámynd (URL)"
             name="thumbnailUrl"
             placeholder="https://res.cloudinary.com/..."
             value={formData.thumbnailUrl}
@@ -390,10 +381,10 @@ useEffect(() => {
             }
           />
           <TextField
-            label="Thumbnail public ID"
+            label="Smámyndar public ID"
             name="thumbnailCloudinaryPublicId"
             placeholder="coh-music/videos/thumbnails/..."
-            helperText="Auto-set when uploading."
+            helperText="Stillist sjálfkrafa við upphleðslu."
             value={formData.thumbnailCloudinaryPublicId}
             onChange={(event) =>
               setFormData((prev) => ({
@@ -403,10 +394,10 @@ useEffect(() => {
             }
           /> */}
           <TextField
-            label="Tags"
+            label="Merki (tags)"
             name="tags"
             placeholder="live, documentary"
-            helperText="Comma-separated tags."
+            helperText="Merki aðskilin með kommum."
             value={formData.tags}
             onChange={(event) =>
               setFormData((prev) => ({ ...prev, tags: event.target.value }))
@@ -429,7 +420,7 @@ useEffect(() => {
           }}
         />
         <div className={controls.formField}>
-          <span className={controls.label}>Upload thumbnail</span>
+          <span className={controls.label}>Hlaða upp smámynd</span>
           <div className={styles.fieldGroup}>
             <button
               type="button"
@@ -437,7 +428,7 @@ useEffect(() => {
               onClick={() => thumbnailInputRef.current?.click()}
               disabled={isThumbnailUploading}
             >
-              {isThumbnailUploading ? "Uploading…" : "Upload from computer"}
+              {isThumbnailUploading ? "Hleð upp…" : "Hlaða upp úr tölvu"}
             </button>
             <button
               type="button"
@@ -445,14 +436,14 @@ useEffect(() => {
               onClick={clearThumbnailUpload}
               disabled={isThumbnailUploading}
             >
-              Clear upload
+              Hreinsa upphleðslu
             </button>
           </div>
           {thumbnailUploadError ? (
             <span className={controls.error}>{thumbnailUploadError}</span>
           ) : (
             <span className={controls.helper}>
-              Use JPG or PNG up to 5 MB to set a custom cover frame.
+              Notaðu JPG eða PNG allt að 5 MB til að stilla sérsniðna forsíðumynd.
             </span>
           )}
         </div>
@@ -476,7 +467,7 @@ useEffect(() => {
             className={styles.primaryButton}
             disabled={isSaving}
           >
-            {isSaving ? "Saving…" : "Add video"}
+            {isSaving ? "Vista…" : "Bæta við myndbandi"}
           </button>
           <button
             type="button"
@@ -494,20 +485,20 @@ useEffect(() => {
               setMessage(null);
             }}
           >
-            Reset
+            Endurstilla
           </button>
         </div>
       </form>
 
       <div className={styles.divider} />
 
-      <h3 className={styles.sectionTitle}>Existing videos</h3>
+      <h3 className={styles.sectionTitle}>Myndbönd í safni</h3>
 
       {loading ? (
-        <div className={styles.emptyState}>Loading videos…</div>
+        <div className={styles.emptyState}>Hleð myndböndum…</div>
       ) : videos.length === 0 ? (
         <div className={styles.emptyState}>
-          No videos yet. Add your first embed to populate the public carousel.
+          Engin myndbönd ennþá. Bættu við fyrsta embed-inu til að fylla opinbera rennibrautina.
         </div>
       ) : (
         <div className={styles.list}>
@@ -577,22 +568,22 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
     if (!result.ok) {
       setMessage({
         type: "error",
-        text: result.message ?? "Failed to update video.",
+        text: result.message ?? "Tókst ekki að uppfæra myndband.",
       });
     } else {
-      setMessage({ type: "success", text: "Video updated." });
+      setMessage({ type: "success", text: "Myndband uppfært." });
     }
     setIsSaving(false);
   };
 
   const deleteVideo = async () => {
-    if (!window.confirm("Remove this video?")) return;
+    if (!window.confirm("Fjarlægja þetta myndband?")) return;
     setIsDeleting(true);
     const result = await onDelete(record.id);
     if (!result.ok) {
       setMessage({
         type: "error",
-        text: result.message ?? "Failed to delete video.",
+        text: result.message ?? "Tókst ekki að eyða myndbandi.",
       });
     }
     setIsDeleting(false);
@@ -658,7 +649,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
         <div>
           <div className={styles.listItemTitle}>{state.title || record.title}</div>
           <div className={styles.timestamp}>
-            Added {new Date(record.createdAt).toLocaleString()}
+            Bætt við {new Date(record.createdAt).toLocaleString()}
           </div>
         </div>
         <span className={styles.status}>{record.provider}</span>
@@ -671,7 +662,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, title: event.target.value }))
           }
-          placeholder="Title"
+          placeholder="Titill"
         />
         <input
           className={controls.input}
@@ -679,7 +670,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, videoUrl: event.target.value }))
           }
-          placeholder="Video URL"
+          placeholder="Myndbandsslóð (URL)"
         />
         {/* Cloudinary video ID (optional; re-enable if needed)
         <input
@@ -691,7 +682,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
               videoCloudinaryPublicId: event.target.value,
             }))
           }
-          placeholder="Video public ID"
+          placeholder="Myndbands public ID"
         /> */}
       </div>
 
@@ -717,7 +708,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onClick={() => videoInputRef.current?.click()}
           disabled={isVideoUploading}
         >
-          {isVideoUploading ? "Uploading…" : "Upload video"}
+          {isVideoUploading ? "Hleð upp…" : "Hlaða upp myndbandi"}
         </button>
         <button
           type="button"
@@ -725,13 +716,13 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onClick={clearVideoUpload}
           disabled={isVideoUploading}
         >
-          Clear upload
+          Hreinsa upphleðslu
         </button>
         {videoUploadError ? (
           <span className={controls.error}>{videoUploadError}</span>
         ) : (
           <span className={controls.helper}>
-            Replace or attach a locally hosted video using Cloudinary.
+            Skipta út eða bæta við staðbundnu myndbandi í gegnum Cloudinary.
           </span>
         )}
       </div>
@@ -744,7 +735,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           setState((prev) => ({ ...prev, description: event.target.value }))
         }
         rows={3}
-        placeholder="Description"
+        placeholder="Lýsing"
       />
 
       <div className={styles.fieldGroup}>
@@ -755,7 +746,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, thumbnailUrl: event.target.value }))
           }
-          placeholder="Thumbnail URL"
+          placeholder="Smámynd (URL)"
         />
         <input
           className={controls.input}
@@ -766,7 +757,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
               thumbnailCloudinaryPublicId: event.target.value,
             }))
           }
-          placeholder="Thumbnail public ID"
+          placeholder="Smámyndar public ID"
         />
         */}
         <input
@@ -775,7 +766,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onChange={(event) =>
             setState((prev) => ({ ...prev, tags: event.target.value }))
           }
-          placeholder="Tags (comma separated)"
+          placeholder="Merki (aðskilin með kommum)"
         />
       </div>
 
@@ -801,7 +792,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onClick={() => thumbnailInputRef.current?.click()}
           disabled={isThumbnailUploading}
         >
-          {isThumbnailUploading ? "Uploading…" : "Upload thumbnail"}
+          {isThumbnailUploading ? "Hleð upp…" : "Hlaða upp smámynd"}
         </button>
         <button
           type="button"
@@ -809,13 +800,13 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onClick={clearThumbnailUpload}
           disabled={isThumbnailUploading}
         >
-          Clear upload
+          Hreinsa upphleðslu
         </button>
         {thumbnailUploadError ? (
           <span className={controls.error}>{thumbnailUploadError}</span>
         ) : (
           <span className={controls.helper}>
-            Upload a custom image to override the default thumbnail.
+            Hlaðið upp sérsniðinni mynd til að skiptast á sjálfgefnu þumli.
           </span>
         )}
       </div>
@@ -840,7 +831,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onClick={saveChanges}
           disabled={isSaving}
         >
-          {isSaving ? "Saving…" : "Save changes"}
+          {isSaving ? "Vista…" : "Vista breytingar"}
         </button>
         <button
           type="button"
@@ -848,7 +839,7 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
           onClick={deleteVideo}
           disabled={isDeleting}
         >
-          {isDeleting ? "Deleting…" : "Delete"}
+          {isDeleting ? "Eyði…" : "Eyða"}
         </button>
       </div>
     </article>
