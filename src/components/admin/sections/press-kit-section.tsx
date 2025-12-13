@@ -104,7 +104,7 @@ export function PressKitSection() {
     if (!response.ok) {
       setMessage({
         type: "error",
-        text: payload?.error ?? "Could not save press kit links.",
+        text: payload?.error ?? "Tókst ekki að vista pressukit-hlekki.",
       });
       setIsSaving(false);
       return;
@@ -120,7 +120,7 @@ export function PressKitSection() {
       reset(normalizedValues);
     }
 
-    setMessage({ type: "success", text: "Press kit links saved." });
+    setMessage({ type: "success", text: "Pressukit-hlekkir vistaðir." });
     setIsSaving(false);
   });
 
@@ -129,20 +129,24 @@ export function PressKitSection() {
       <form onSubmit={onSubmit} className={styles.fieldset}>
         <div className={styles.fieldGroupStacked}>
           <p className={controls.helper}>
-            Create custom download or folder links with your own labels and helper descriptions. Use this list for folders, PDFs, ZIP files, or anything press partners might need.
+            Búðu til sérsniðna Dropbox niðurhals- eða möppuhlekkja með þínum eigin heitum og stuttum
+            lýsingum. Notaðu þennan lista fyrir möppur, PDF, ZIP-skrár eða annað efni sem
+            bransalið gæti þurft.
           </p>
           <div className={styles.actions}>
             <button type="button" className={styles.secondaryButton} onClick={addLink}>
-              Add link
+              Bæta við hlekk
             </button>
           </div>
         </div>
 
-        {isLoading && <div className={styles.emptyState}>Loading stored press kit links…</div>}
+        {isLoading && (
+          <div className={styles.emptyState}>Hleð vistaðum pressukit-hlekkjum…</div>
+        )}
 
         {!isLoading && fields.length === 0 && (
           <p className={controls.helper}>
-            Add one or more links to surface them on the public Press Kit section.
+            Bættu við einum eða fleiri hlekkjum til að birta þá á opinberu Pressukit-síðunni.
           </p>
         )}
 
@@ -150,13 +154,13 @@ export function PressKitSection() {
           <div key={field.id} className={styles.fieldGroupStacked}>
             <div className={styles.fieldGroup} style={{ alignItems: "flex-start" }}>
               <TextField
-                label="Label"
+                label="Titill"
                 placeholder="Full Press Kit (ZIP)"
                 {...register(`links.${index}.label` as const)}
                 error={errors.links?.[index]?.label}
               />
               <SelectField
-                label="Button type"
+                label="Tegund hnapps"
                 name={`links.${index}.mode`}
                 {...register(`links.${index}.mode` as const)}
                 error={errors.links?.[index]?.mode}
@@ -169,19 +173,19 @@ export function PressKitSection() {
                 className={styles.secondaryButton}
                 onClick={() => remove(index)}
               >
-                Remove
+                Fjarlægja
               </button>
             </div>
             <TextareaField
-              label="Helper"
-              placeholder="Brief description shown under the label."
+              label="Lýsing"
+              placeholder="Stutt lýsing sem birtist undir heitinu."
               rows={2}
               {...register(`links.${index}.helper` as const)}
               error={errors.links?.[index]?.helper}
             />
             <TextField
-              label="URL"
-              placeholder="https://"
+              label="Slóð (URL)"
+              placeholder="https://www.dropbox.com/..."
               {...register(`links.${index}.url` as const)}
               error={errors.links?.[index]?.url}
             />
@@ -205,7 +209,7 @@ export function PressKitSection() {
             className={styles.primaryButton}
             disabled={isSaving || isSubmitting}
           >
-            {isSaving || isSubmitting ? "Saving…" : "Save press kit links"}
+            {isSaving || isSubmitting ? "Vista…" : "Vista pressukit-hlekki"}
           </button>
           <button
             type="button"
@@ -213,7 +217,7 @@ export function PressKitSection() {
             onClick={() => reset(initialValues)}
             disabled={isSubmitting || isSaving || isLoading}
           >
-            Reset changes
+            Hætta við breytingar
           </button>
         </div>
       </form>

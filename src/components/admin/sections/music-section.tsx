@@ -123,7 +123,7 @@ const SECTION_COPY = {
   },
   streaming: {
     title: "Streymistenglar",
-    description: "Birtu Spotify, Apple Music, YouTube og aðrar streymisveitur.",
+    description: "Spotify, Apple Music, YouTube og aðrar streymisveitur.",
   },
   artwork: {
     title: "Myndefni og upphleðsla",
