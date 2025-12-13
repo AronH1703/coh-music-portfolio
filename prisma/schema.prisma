@@ -120,6 +120,7 @@ model MusicRelease {
 
 model PressKitAssets {
   id                   String   @id
+  links                Json?
   fullPressKitZipUrl   String?
   fullPressKitZipType  String   @default("file")
   onePagerPdfUrl       String?

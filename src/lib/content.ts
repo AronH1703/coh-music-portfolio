@@ -347,7 +347,6 @@ export async function getContactContent(): Promise<ContactContentEntry | null> {
 export {
   getPressKitAssets,
   type PressKitAssetsRecord,
-  type PressKitAssetUrlKey,
-  type PressKitAssetTypeKey,
-  type PressKitLinkType,
+  type PressKitLinkEntry,
+  type PressKitLinkMode,
 } from "./press-kit";

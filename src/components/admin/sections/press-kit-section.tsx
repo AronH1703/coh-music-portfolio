@@ -1,206 +1,94 @@
 "use client";
 
 import clsx from "clsx";
-import { useEffect, useState, useRef } from "react";
-import type { FieldError } from "react-hook-form";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { pressKitAssetsSchema } from "@/lib/validation";
 import type { PressKitAssetsRecord } from "@/lib/press-kit";
-import {
-  DEFAULT_PRESS_KIT_LABELS,
-  readPressKitLabels,
-  writePressKitLabels,
-  type PressKitLabelKey,
-} from "@/lib/press-kit-labels";
 import styles from "../admin-dashboard.module.scss";
 import controls from "../form-controls.module.scss";
+import { TextField, TextareaField, SelectField } from "../form-controls";
 
 type PressKitFormValues = z.input<typeof pressKitAssetsSchema>;
-type UrlFieldName = Extract<keyof PressKitFormValues, `${string}Url`>;
-
-const ALL_URL_FIELDS: UrlFieldName[] = [
-  "fullPressKitZipUrl",
-  "onePagerPdfUrl",
-  "pressPhotosFolderUrl",
-  "logosFolderUrl",
-  "artworkFolderUrl",
-  "stagePlotPdfUrl",
-  "inputListPdfUrl",
-];
-
-const MAX_VISIBLE_LINKS = 10;
 
 type MessageState =
   | { type: "success"; text: string }
   | { type: "error"; text: string }
   | null;
 
-const FIELD_CONFIGS: Array<{
-  urlName: UrlFieldName;
-  label: string;
-  helper?: string;
-}> = [
-  {
-    urlName: "fullPressKitZipUrl",
-    label: DEFAULT_PRESS_KIT_LABELS.fullPressKitZipUrl,
-    helper: "Direct link to the zipped asset bundle.",
-  },
-  {
-    urlName: "onePagerPdfUrl",
-    label: DEFAULT_PRESS_KIT_LABELS.onePagerPdfUrl,
-    helper: "Single-sheet bio or press overview.",
-  },
-  {
-    urlName: "pressPhotosFolderUrl",
-    label: DEFAULT_PRESS_KIT_LABELS.pressPhotosFolderUrl,
-    helper: "Dropbox, Google Drive, or Cloudinary folder URL.",
-  },
-  {
-    urlName: "logosFolderUrl",
-    label: DEFAULT_PRESS_KIT_LABELS.logosFolderUrl,
-    helper: "High-resolution logos organized by format.",
-  },
-  {
-    urlName: "artworkFolderUrl",
-    label: DEFAULT_PRESS_KIT_LABELS.artworkFolderUrl,
-    helper: "Campaign, cover, and promo art.",
-  },
-  {
-    urlName: "stagePlotPdfUrl",
-    label: DEFAULT_PRESS_KIT_LABELS.stagePlotPdfUrl,
-    helper: "Stage plot, tech diagram, and rigging notes.",
-  },
-  {
-    urlName: "inputListPdfUrl",
-    label: DEFAULT_PRESS_KIT_LABELS.inputListPdfUrl,
-    helper: "Input list for FOH/monitor engineers.",
-  },
-];
-
-type UrlLabelMap = Record<UrlFieldName, string>;
-
 const DEFAULT_FORM_VALUES: PressKitFormValues = {
-  fullPressKitZipUrl: "",
-  fullPressKitZipType: "file",
-  onePagerPdfUrl: "",
-  onePagerPdfType: "file",
-  pressPhotosFolderUrl: "",
-  pressPhotosFolderType: "folder",
-  logosFolderUrl: "",
-  logosFolderType: "folder",
-  artworkFolderUrl: "",
-  artworkFolderType: "folder",
-  stagePlotPdfUrl: "",
-  stagePlotPdfType: "file",
-  inputListPdfUrl: "",
-  inputListPdfType: "file",
+  links: [],
 };
 
 function mapRecordToFormValues(record: PressKitAssetsRecord): PressKitFormValues {
-  return {
-    fullPressKitZipUrl: record.fullPressKitZipUrl ?? "",
-    fullPressKitZipType: record.fullPressKitZipType ?? "file",
-    onePagerPdfUrl: record.onePagerPdfUrl ?? "",
-    onePagerPdfType: record.onePagerPdfType ?? "file",
-    pressPhotosFolderUrl: record.pressPhotosFolderUrl ?? "",
-    pressPhotosFolderType: record.pressPhotosFolderType ?? "folder",
-    logosFolderUrl: record.logosFolderUrl ?? "",
-    logosFolderType: record.logosFolderType ?? "folder",
-    artworkFolderUrl: record.artworkFolderUrl ?? "",
-    artworkFolderType: record.artworkFolderType ?? "folder",
-    stagePlotPdfUrl: record.stagePlotPdfUrl ?? "",
-    stagePlotPdfType: record.stagePlotPdfType ?? "file",
-    inputListPdfUrl: record.inputListPdfUrl ?? "",
-    inputListPdfType: record.inputListPdfType ?? "file",
-  };
+  const links = Array.isArray(record.links)
+    ? record.links.map((link) => ({
+        id: link.id,
+        label: link.label ?? "",
+        helper: link.helper ?? "",
+        url: link.url ?? "",
+        mode: link.mode ?? "download",
+      }))
+    : [];
+
+  return { links };
 }
 
 export function PressKitSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
-  const [labelsByField, setLabelsByField] = useState<UrlLabelMap>(() => {
-    const base: UrlLabelMap = {} as UrlLabelMap;
-    for (const field of FIELD_CONFIGS) {
-      base[field.urlName] = field.label;
-    }
-    return base;
-  });
-  const [visibleFields, setVisibleFields] = useState<UrlFieldName[]>(() =>
-    determineVisibleFields(DEFAULT_FORM_VALUES),
-  );
+  const [initialValues, setInitialValues] = useState<PressKitFormValues>(DEFAULT_FORM_VALUES);
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PressKitFormValues>({
     resolver: zodResolver(pressKitAssetsSchema),
     defaultValues: DEFAULT_FORM_VALUES,
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "links",
+  });
+
   useEffect(() => {
-    let isActive = true;
+    let active = true;
     (async () => {
       setIsLoading(true);
       const response = await fetch("/api/press-kit", { cache: "no-store" });
-      if (!isActive) return;
+      if (!active) return;
       if (response.ok) {
         const payload = await response.json().catch(() => null);
         const record = payload?.data as PressKitAssetsRecord | undefined;
         if (record) {
-          const values = mapRecordToFormValues(record);
-          reset(values);
-          setVisibleFields(determineVisibleFields(values));
+          const mapped = mapRecordToFormValues(record);
+          setInitialValues(mapped);
+          reset(mapped);
         } else {
-          setVisibleFields(determineVisibleFields(DEFAULT_FORM_VALUES));
+          setInitialValues(DEFAULT_FORM_VALUES);
+          reset(DEFAULT_FORM_VALUES);
         }
       }
       setIsLoading(false);
     })();
 
     return () => {
-      isActive = false;
+      active = false;
     };
   }, [reset]);
 
-  useEffect(() => {
-    hydratePressKitLabelsFromStorage(setLabelsByField);
-  }, []);
+  const addLink = useCallback(() => {
+    append({ label: "", helper: "", url: "", mode: "download" });
+  }, [append]);
 
-  const handleLabelChange = (fieldName: UrlFieldName, nextLabel: string) => {
-    const fallback =
-      DEFAULT_PRESS_KIT_LABELS[fieldName as unknown as PressKitLabelKey];
-    const trimmed = nextLabel.trim();
-    setLabelsByField((current) => {
-      const updated: UrlLabelMap = {
-        ...current,
-        [fieldName]: trimmed || fallback,
-      };
-
-      const payload: Record<PressKitLabelKey, string> = {
-        ...DEFAULT_PRESS_KIT_LABELS,
-      };
-
-      (Object.keys(payload) as PressKitLabelKey[]).forEach((key) => {
-        const keyAsField = key as unknown as UrlFieldName;
-        const label = updated[keyAsField];
-        if (typeof label === "string" && label.trim()) {
-          payload[key] = label;
-        }
-      });
-
-      writePressKitLabels(payload);
-
-      return updated;
-    });
-  };
-
-  const onSubmit = async (formValues: PressKitFormValues) => {
+  const onSubmit = handleSubmit(async (formValues) => {
     setIsSaving(true);
     setMessage(null);
 
@@ -224,91 +112,81 @@ export function PressKitSection() {
 
     const updated = payload?.data as PressKitAssetsRecord | undefined;
     if (updated) {
-      const values = mapRecordToFormValues(updated);
-      reset(values);
-      setVisibleFields(determineVisibleFields(values));
+      const mapped = mapRecordToFormValues(updated);
+      setInitialValues(mapped);
+      reset(mapped);
+    } else {
+      setInitialValues(normalizedValues);
+      reset(normalizedValues);
     }
 
     setMessage({ type: "success", text: "Press kit links saved." });
     setIsSaving(false);
-  };
+  });
 
   return (
     <div className={styles.card}>
-      <form onSubmit={handleSubmit(onSubmit)} className={styles.fieldset}>
-        <div>
+      <form onSubmit={onSubmit} className={styles.fieldset}>
+        <div className={styles.fieldGroupStacked}>
           <p className={controls.helper}>
-            URLs must be externally accessible and can include Dropbox or Cloudinary direct download links.
+            Create custom download or folder links with your own labels and helper descriptions. Use this list for folders, PDFs, ZIP files, or anything press partners might need.
           </p>
-        </div>
-
-        {isLoading && (
-          <div className={styles.emptyState}>Loading stored press kit links…</div>
-        )}
-
-        {FIELD_CONFIGS.filter(({ urlName }) =>
-          visibleFields.includes(urlName),
-        ).map(({ urlName, helper }) => {
-          const urlError = errors[urlName] as FieldError | undefined;
-          const label = labelsByField[urlName];
-          return (
-            <div key={urlName} className={styles.fieldRow}>
-              <div className={controls.formField}>
-                <label className={controls.label} htmlFor={urlName}>
-                  <InlineEditableLabel
-                    value={label}
-                    onChange={(value) => handleLabelChange(urlName, value)}
-                  />
-                </label>
-                <input
-                  id={urlName}
-                  placeholder="https://"
-                  className={controls.input}
-                  {...register(urlName)}
-                />
-                {helper && !urlError && (
-                  <span className={controls.helper}>{helper}</span>
-                )}
-                {urlError && <span className={controls.error}>{urlError.message}</span>}
-              </div>
-              <button
-                type="button"
-                className={styles.dangerButton}
-                onClick={() => {
-                  setVisibleFields((current) =>
-                    current.filter((field) => field !== urlName),
-                  );
-                  setValue(urlName, "");
-                }}
-              >
-                Fjarlægja
-              </button>
-            </div>
-          );
-        })}
-
-        {visibleFields.length <
-          Math.min(MAX_VISIBLE_LINKS, ALL_URL_FIELDS.length) && (
           <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={() => {
-                setVisibleFields((current) => {
-                  const limit = Math.min(MAX_VISIBLE_LINKS, ALL_URL_FIELDS.length);
-                  if (current.length >= limit) return current;
-                  const nextField = ALL_URL_FIELDS.find(
-                    (field) => !current.includes(field),
-                  );
-                  if (!nextField) return current;
-                  return [...current, nextField];
-                });
-              }}
-            >
+            <button type="button" className={styles.secondaryButton} onClick={addLink}>
               Add link
             </button>
           </div>
+        </div>
+
+        {isLoading && <div className={styles.emptyState}>Loading stored press kit links…</div>}
+
+        {!isLoading && fields.length === 0 && (
+          <p className={controls.helper}>
+            Add one or more links to surface them on the public Press Kit section.
+          </p>
         )}
+
+        {fields.map((field, index) => (
+          <div key={field.id} className={styles.fieldGroupStacked}>
+            <div className={styles.fieldGroup} style={{ alignItems: "flex-start" }}>
+              <TextField
+                label="Label"
+                placeholder="Full Press Kit (ZIP)"
+                {...register(`links.${index}.label` as const)}
+                error={errors.links?.[index]?.label}
+              />
+              <SelectField
+                label="Button type"
+                name={`links.${index}.mode`}
+                {...register(`links.${index}.mode` as const)}
+                error={errors.links?.[index]?.mode}
+              >
+                <option value="download">Download</option>
+                <option value="open">Open</option>
+              </SelectField>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => remove(index)}
+              >
+                Remove
+              </button>
+            </div>
+            <TextareaField
+              label="Helper"
+              placeholder="Brief description shown under the label."
+              rows={2}
+              {...register(`links.${index}.helper` as const)}
+              error={errors.links?.[index]?.helper}
+            />
+            <TextField
+              label="URL"
+              placeholder="https://"
+              {...register(`links.${index}.url` as const)}
+              error={errors.links?.[index]?.url}
+            />
+          </div>
+        ))}
 
         {message && (
           <div
@@ -325,9 +203,17 @@ export function PressKitSection() {
           <button
             type="submit"
             className={styles.primaryButton}
-            disabled={isSaving || isSubmitting || isLoading}
+            disabled={isSaving || isSubmitting}
           >
             {isSaving || isSubmitting ? "Saving…" : "Save press kit links"}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => reset(initialValues)}
+            disabled={isSubmitting || isSaving || isLoading}
+          >
+            Reset changes
           </button>
         </div>
       </form>
@@ -335,134 +221,33 @@ export function PressKitSection() {
   );
 }
 
-type InlineEditableLabelProps = {
-  value: string;
-  onChange: (value: string) => void;
-};
-
-function InlineEditableLabel({ value, onChange }: InlineEditableLabelProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing]);
-
-  const startEditing = (event?: React.MouseEvent | React.KeyboardEvent) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    setDraft(value);
-    setIsEditing(true);
-  };
-
-  const commit = () => {
-    const trimmed = draft.trim();
-    onChange(trimmed || value);
-    setIsEditing(false);
-  };
-
-  const cancel = () => {
-    setDraft(value);
-    setIsEditing(false);
-  };
-
-  if (!isEditing) {
-    return (
-      <span
-        className={controls.editableLabel}
-        role="button"
-        tabIndex={0}
-        onClick={(event) => startEditing(event)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            startEditing(event);
-          }
-        }}
-      >
-        <span>{value}</span>
-        <span className={controls.editableLabelHint}>Click to rename</span>
-      </span>
-    );
-  }
-
-  return (
-    <input
-      ref={inputRef}
-      className={controls.editableLabelInput}
-      value={draft}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={commit}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          commit();
-        }
-        if (event.key === "Escape") {
-          event.preventDefault();
-          cancel();
-        }
-      }}
-    />
-  );
-}
-
 function sanitizeFormValues(values: PressKitFormValues): PressKitFormValues {
-  const next: PressKitFormValues = { ...values };
-  for (const field of FIELD_CONFIGS) {
-    const raw = values[field.urlName];
-    if (typeof raw !== "string") {
-      continue;
-    }
+  const sanitizedLinks = (values.links ?? [])
+    .map((link) => {
+      const label = typeof link.label === "string" ? link.label.trim() : "";
+      const helper = typeof link.helper === "string" ? link.helper.trim() : "";
+      const url = typeof link.url === "string" ? link.url.trim() : "";
+      const id = typeof link.id === "string" && link.id.trim().length > 0 ? link.id : undefined;
+      const mode = link.mode === "open" || link.mode === "download" ? link.mode : "download";
 
-    const trimmed = raw.trim();
-    if (!trimmed) {
-      next[field.urlName] = "";
-      continue;
-    }
-
-    next[field.urlName] = trimmed;
-  }
-  return next;
-}
-
-function determineVisibleFields(values: PressKitFormValues): UrlFieldName[] {
-  const withUrls: UrlFieldName[] = [];
-  for (const field of ALL_URL_FIELDS) {
-    const raw = values[field];
-    if (typeof raw === "string" && raw.trim()) {
-      withUrls.push(field);
-    }
-  }
-
-  if (withUrls.length > 0) {
-    return withUrls;
-  }
-
-  return ALL_URL_FIELDS.slice(0, 1);
-}
-
-function hydratePressKitLabelsFromStorage(
-  update: React.Dispatch<React.SetStateAction<UrlLabelMap>>,
-) {
-  const stored = readPressKitLabels();
-
-  update((current) => {
-    const next = { ...current };
-
-    (Object.keys(stored) as PressKitLabelKey[]).forEach((key) => {
-      const label = stored[key];
-      if (typeof label === "string" && label.trim()) {
-        const fieldKey = key as unknown as UrlFieldName;
-        next[fieldKey] = label;
+      if (!label && !url) {
+        return null;
       }
-    });
 
-    return next;
-  });
+      const entry: { id?: string; label: string; helper?: string; url: string; mode: "download" | "open" } = {
+        id,
+        label,
+        url,
+        mode,
+      };
+
+      if (helper) {
+        entry.helper = helper;
+      }
+
+      return entry;
+    })
+    .filter((link): link is NonNullable<typeof link> => Boolean(link));
+
+  return { links: sanitizedLinks };
 }

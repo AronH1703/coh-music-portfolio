@@ -5,7 +5,13 @@ const optionalUrl = urlSchema
   .nullish()
   .or(z.literal(""))
   .transform((val) => (val ? val : undefined));
-const pressKitLinkTypeSchema = z.enum(["file", "folder"]);
+const pressKitLinkSchema = z.object({
+  id: z.string().trim().min(1).max(64).optional(),
+  label: z.string().trim().min(2).max(80),
+  helper: z.string().trim().max(200).optional(),
+  url: urlSchema,
+  mode: z.enum(["download", "open"]).default("download"),
+});
 
 const labeledLinkSchema = z.object({
   id: z.string().trim().min(1).max(64).optional(),
@@ -136,18 +142,5 @@ export const siteLabelsSchema = z.object({
 });
 
 export const pressKitAssetsSchema = z.object({
-  fullPressKitZipUrl: optionalUrl,
-  fullPressKitZipType: pressKitLinkTypeSchema.default("file"),
-  onePagerPdfUrl: optionalUrl,
-  onePagerPdfType: pressKitLinkTypeSchema.default("file"),
-  pressPhotosFolderUrl: optionalUrl,
-  pressPhotosFolderType: pressKitLinkTypeSchema.default("folder"),
-  logosFolderUrl: optionalUrl,
-  logosFolderType: pressKitLinkTypeSchema.default("folder"),
-  artworkFolderUrl: optionalUrl,
-  artworkFolderType: pressKitLinkTypeSchema.default("folder"),
-  stagePlotPdfUrl: optionalUrl,
-  stagePlotPdfType: pressKitLinkTypeSchema.default("file"),
-  inputListPdfUrl: optionalUrl,
-  inputListPdfType: pressKitLinkTypeSchema.default("file"),
+  links: z.array(pressKitLinkSchema).max(20).optional(),
 });

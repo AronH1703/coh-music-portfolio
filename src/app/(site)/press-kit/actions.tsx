@@ -1,101 +1,26 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import type { PressKitAssetsRecord } from "@/lib/content";
-import {
-  DEFAULT_PRESS_KIT_LABELS,
-  readPressKitLabels,
-  type PressKitLabelKey,
-} from "@/lib/press-kit-labels";
 import styles from "@/components/press-kit/press-kit-section.module.css";
-
-type UrlKey = Extract<keyof PressKitAssetsRecord, `${string}Url`>;
-
-type ActionConfig = {
-  key: UrlKey;
-  helper: string;
-  mode: "download" | "open";
-};
-
-const ACTION_CONFIGS: ActionConfig[] = [
-  {
-    key: "fullPressKitZipUrl",
-    helper: "Everything bundled for easy distribution to press and partners.",
-    mode: "download",
-  },
-  {
-    key: "onePagerPdfUrl",
-    helper: "A concise single-sheet summary of Creature of Habit.",
-    mode: "download",
-  },
-  {
-    key: "pressPhotosFolderUrl",
-    helper: "High-resolution stills and performance imagery.",
-    mode: "open",
-  },
-  {
-    key: "logosFolderUrl",
-    helper: "Brand marks, lockups, and horizontal/vertical variants.",
-    mode: "open",
-  },
-  {
-    key: "artworkFolderUrl",
-    helper: "Cover art, campaign visuals, and promotional treatments.",
-    mode: "open",
-  },
-  {
-    key: "stagePlotPdfUrl",
-    helper: "Stage plot, riser layout, and technical overlay.",
-    mode: "download",
-  },
-  {
-    key: "inputListPdfUrl",
-    helper: "FOH/monitor-friendly signal path and channel choices.",
-    mode: "download",
-  },
-];
 
 type Props = {
   assets: PressKitAssetsRecord;
 };
 
+type LinkMode = "download" | "open";
+
 export function PressKitActions({ assets }: Props) {
-  const [labelsByField, setLabelsByField] = useState<Record<UrlKey, string>>(() => {
-    const base: Record<UrlKey, string> = {} as Record<UrlKey, string>;
-    (Object.keys(DEFAULT_PRESS_KIT_LABELS) as PressKitLabelKey[]).forEach((key) => {
-      const fieldKey = key as unknown as UrlKey;
-      base[fieldKey] = DEFAULT_PRESS_KIT_LABELS[key];
-    });
-    return base;
-  });
+  const links = Array.isArray(assets.links)
+    ? assets.links
+        .map((link) => ({
+          id: link.id ?? link.url,
+          label: link.label?.trim() || "Untitled link",
+          helper: link.helper?.trim() ?? "",
+          url: typeof link.url === "string" ? link.url.trim() : "",
+          mode: (link.mode === "open" || link.mode === "download" ? link.mode : "download") as LinkMode,
+        }))
+        .filter((link) => Boolean(link.url))
+    : [];
 
-  useEffect(() => {
-    hydrateClientLabels(setLabelsByField);
-  }, []);
-
-  const configuredActions = ACTION_CONFIGS.map((config) => {
-    const rawUrl = assets[config.key];
-    const url = typeof rawUrl === "string" ? rawUrl.trim() : "";
-    if (!url) {
-      return null;
-    }
-
-    const title =
-      labelsByField[config.key] ??
-      DEFAULT_PRESS_KIT_LABELS[config.key as unknown as PressKitLabelKey];
-    const prefix = config.mode === "download" ? "Download" : "Open";
-
-    return {
-      ...config,
-      title,
-      url,
-      buttonLabel: `${prefix} ${title}`,
-    };
-  }).filter(Boolean) as Array<
-    ActionConfig & { title: string; url: string; buttonLabel: string }
-  >;
-
-  if (!configuredActions.length) {
+  if (!links.length) {
     return (
       <div className={styles.actions}>
         <article className={styles.actionCard}>
@@ -113,42 +38,52 @@ export function PressKitActions({ assets }: Props) {
 
   return (
     <div className={styles.actions}>
-      {configuredActions.map((action) => (
-        <article key={action.key} className={styles.actionCard}>
-          <div>
-            <p className={styles.actionTitle}>{action.title}</p>
-            <p className={styles.actionHelper}>{action.helper}</p>
-          </div>
-          <a
-            className={styles.actionButton}
-            href={action.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {action.buttonLabel}
-          </a>
-        </article>
-      ))}
+      {links.map((link) => {
+        const actionLabel = link.label.trim();
+        const buttonLabel = `${link.mode === "download" ? "Download" : "Open"} ${actionLabel}`;
+        const actionUrl = resolveActionUrl(link);
+
+        return (
+          <article key={link.id} className={styles.actionCard}>
+            <div>
+              <p className={styles.actionTitle}>{actionLabel}</p>
+              {link.helper ? (
+                <p className={styles.actionHelper}>{link.helper}</p>
+              ) : (
+                <p className={styles.actionHelper}>Link managed via the admin panel.</p>
+              )}
+            </div>
+            <a
+              className={styles.actionButton}
+              href={actionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              download={link.mode === "download" ? "" : undefined}
+            >
+              {buttonLabel}
+            </a>
+          </article>
+        );
+      })}
     </div>
   );
 }
 
-function hydrateClientLabels(
-  update: React.Dispatch<React.SetStateAction<Record<UrlKey, string>>>,
-) {
-  const stored = readPressKitLabels();
+function resolveActionUrl(link: { url: string; mode: LinkMode }): string {
+  if (link.mode !== "download") {
+    return link.url;
+  }
 
-  update((current) => {
-    const next = { ...current };
+  try {
+    const parsed = new URL(link.url);
+    const host = parsed.hostname.toLowerCase();
+    if (host.includes("dropbox.com")) {
+      parsed.searchParams.set("dl", "1");
+      return parsed.toString();
+    }
+  } catch {
+    return link.url;
+  }
 
-    (Object.keys(stored) as PressKitLabelKey[]).forEach((key) => {
-      const label = stored[key];
-      if (typeof label === "string" && label.trim()) {
-        const fieldKey = key as unknown as UrlKey;
-        next[fieldKey] = label;
-      }
-    });
-
-    return next;
-  });
+  return link.url;
 }

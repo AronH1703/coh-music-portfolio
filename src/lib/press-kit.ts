@@ -2,90 +2,96 @@ import { prisma } from "@/lib/prisma";
 
 export const PRESS_KIT_ASSETS_ID = "press-kit-assets";
 
-export type PressKitLinkType = "file" | "folder";
+export type PressKitLinkMode = "download" | "open";
 
-export type PressKitAssetUrlKey =
-  | "fullPressKitZipUrl"
-  | "onePagerPdfUrl"
-  | "pressPhotosFolderUrl"
-  | "logosFolderUrl"
-  | "artworkFolderUrl"
-  | "stagePlotPdfUrl"
-  | "inputListPdfUrl";
-
-export type PressKitAssetTypeKey =
-  | "fullPressKitZipType"
-  | "onePagerPdfType"
-  | "pressPhotosFolderType"
-  | "logosFolderType"
-  | "artworkFolderType"
-  | "stagePlotPdfType"
-  | "inputListPdfType";
+export type PressKitLinkEntry = {
+  id: string;
+  label: string;
+  helper?: string | null;
+  url: string;
+  mode: PressKitLinkMode;
+};
 
 export type PressKitAssetsRecord = {
-  fullPressKitZipUrl: string | null;
-  fullPressKitZipType: PressKitLinkType;
-  onePagerPdfUrl: string | null;
-  onePagerPdfType: PressKitLinkType;
-  pressPhotosFolderUrl: string | null;
-  pressPhotosFolderType: PressKitLinkType;
-  logosFolderUrl: string | null;
-  logosFolderType: PressKitLinkType;
-  artworkFolderUrl: string | null;
-  artworkFolderType: PressKitLinkType;
-  stagePlotPdfUrl: string | null;
-  stagePlotPdfType: PressKitLinkType;
-  inputListPdfUrl: string | null;
-  inputListPdfType: PressKitLinkType;
+  links: PressKitLinkEntry[];
 };
 
 export type PressKitAssetsPayload = Partial<PressKitAssetsRecord>;
 
 export const DEFAULT_PRESS_KIT_ASSETS: PressKitAssetsRecord = {
-  fullPressKitZipUrl: null,
-  fullPressKitZipType: "file",
-  onePagerPdfUrl: null,
-  onePagerPdfType: "file",
-  pressPhotosFolderUrl: null,
-  pressPhotosFolderType: "folder",
-  logosFolderUrl: null,
-  logosFolderType: "folder",
-  artworkFolderUrl: null,
-  artworkFolderType: "folder",
-  stagePlotPdfUrl: null,
-  stagePlotPdfType: "file",
-  inputListPdfUrl: null,
-  inputListPdfType: "file",
+  links: [],
 };
 
 const pressKitModel = (prisma as unknown as Record<string, typeof prisma>)?.pressKitAssets;
+
+const LEGACY_LINK_CONFIGS = [
+  {
+    urlKey: "fullPressKitZipUrl",
+    label: "Full Press Kit (ZIP)",
+    helper: "Everything bundled for easy distribution to press and partners.",
+    mode: "download",
+  },
+  {
+    urlKey: "onePagerPdfUrl",
+    label: "One-Pager (PDF)",
+    helper: "A concise single-sheet summary of Creature of Habit.",
+    mode: "download",
+  },
+  {
+    urlKey: "pressPhotosFolderUrl",
+    label: "Press Photos Folder",
+    helper: "High-resolution stills and performance imagery.",
+    mode: "open",
+  },
+  {
+    urlKey: "logosFolderUrl",
+    label: "Logos Folder",
+    helper: "Brand marks, lockups, and horizontal/vertical variants.",
+    mode: "open",
+  },
+  {
+    urlKey: "artworkFolderUrl",
+    label: "Artwork Folder",
+    helper: "Cover art, campaign visuals, and promotional treatments.",
+    mode: "open",
+  },
+  {
+    urlKey: "stagePlotPdfUrl",
+    label: "Stage Plot (PDF)",
+    helper: "Stage plot, riser layout, and technical overlay.",
+    mode: "download",
+  },
+  {
+    urlKey: "inputListPdfUrl",
+    label: "Input List (PDF)",
+    helper: "FOH/monitor-friendly signal path and channel choices.",
+    mode: "download",
+  },
+] as const;
+
+type LegacyLinkConfig = (typeof LEGACY_LINK_CONFIGS)[number];
+type LegacyLinkKey = LegacyLinkConfig["urlKey"];
+type LegacyPressKitRecord = Record<LegacyLinkKey, string | null> & { links: unknown };
 
 export async function getPressKitAssets(): Promise<PressKitAssetsRecord> {
   if (!pressKitModel) {
     return DEFAULT_PRESS_KIT_ASSETS;
   }
 
-  const record = await pressKitModel.findUnique({ where: { id: PRESS_KIT_ASSETS_ID } });
+  const record = (await pressKitModel.findUnique({
+    where: { id: PRESS_KIT_ASSETS_ID },
+  })) as (LegacyPressKitRecord & { id: string }) | null;
+
   if (!record) {
     return DEFAULT_PRESS_KIT_ASSETS;
   }
 
-  return {
-    fullPressKitZipUrl: record.fullPressKitZipUrl,
-    fullPressKitZipType: normalizeLinkType(record.fullPressKitZipType),
-    onePagerPdfUrl: record.onePagerPdfUrl,
-    onePagerPdfType: normalizeLinkType(record.onePagerPdfType),
-    pressPhotosFolderUrl: record.pressPhotosFolderUrl,
-    pressPhotosFolderType: normalizeLinkType(record.pressPhotosFolderType, "folder"),
-    logosFolderUrl: record.logosFolderUrl,
-    logosFolderType: normalizeLinkType(record.logosFolderType, "folder"),
-    artworkFolderUrl: record.artworkFolderUrl,
-    artworkFolderType: normalizeLinkType(record.artworkFolderType, "folder"),
-    stagePlotPdfUrl: record.stagePlotPdfUrl,
-    stagePlotPdfType: normalizeLinkType(record.stagePlotPdfType),
-    inputListPdfUrl: record.inputListPdfUrl,
-    inputListPdfType: normalizeLinkType(record.inputListPdfType),
-  };
+  const normalized = normalizePressKitLinks(record.links);
+  if (normalized.length) {
+    return { links: normalized };
+  }
+
+  return { links: buildLegacyLinks(record) };
 }
 
 export async function upsertPressKitAssets(payload: PressKitAssetsPayload): Promise<PressKitAssetsRecord> {
@@ -93,47 +99,112 @@ export async function upsertPressKitAssets(payload: PressKitAssetsPayload): Prom
     return DEFAULT_PRESS_KIT_ASSETS;
   }
 
+  const normalizedLinks = sanitizePressKitLinks(payload.links ?? []);
+
   await pressKitModel.upsert({
     where: { id: PRESS_KIT_ASSETS_ID },
     create: {
       id: PRESS_KIT_ASSETS_ID,
-      fullPressKitZipUrl: payload.fullPressKitZipUrl ?? null,
-      fullPressKitZipType: payload.fullPressKitZipType ?? "file",
-      onePagerPdfUrl: payload.onePagerPdfUrl ?? null,
-      onePagerPdfType: payload.onePagerPdfType ?? "file",
-      pressPhotosFolderUrl: payload.pressPhotosFolderUrl ?? null,
-      pressPhotosFolderType: payload.pressPhotosFolderType ?? "folder",
-      logosFolderUrl: payload.logosFolderUrl ?? null,
-      logosFolderType: payload.logosFolderType ?? "folder",
-      artworkFolderUrl: payload.artworkFolderUrl ?? null,
-      artworkFolderType: payload.artworkFolderType ?? "folder",
-      stagePlotPdfUrl: payload.stagePlotPdfUrl ?? null,
-      stagePlotPdfType: payload.stagePlotPdfType ?? "file",
-      inputListPdfUrl: payload.inputListPdfUrl ?? null,
-      inputListPdfType: payload.inputListPdfType ?? "file",
+      links: normalizedLinks,
     },
     update: {
-      fullPressKitZipUrl: payload.fullPressKitZipUrl ?? null,
-      fullPressKitZipType: payload.fullPressKitZipType ?? "file",
-      onePagerPdfUrl: payload.onePagerPdfUrl ?? null,
-      onePagerPdfType: payload.onePagerPdfType ?? "file",
-      pressPhotosFolderUrl: payload.pressPhotosFolderUrl ?? null,
-      pressPhotosFolderType: payload.pressPhotosFolderType ?? "folder",
-      logosFolderUrl: payload.logosFolderUrl ?? null,
-      logosFolderType: payload.logosFolderType ?? "folder",
-      artworkFolderUrl: payload.artworkFolderUrl ?? null,
-      artworkFolderType: payload.artworkFolderType ?? "folder",
-      stagePlotPdfUrl: payload.stagePlotPdfUrl ?? null,
-      stagePlotPdfType: payload.stagePlotPdfType ?? "file",
-      inputListPdfUrl: payload.inputListPdfUrl ?? null,
-      inputListPdfType: payload.inputListPdfType ?? "file",
+      links: normalizedLinks,
     },
   });
 
-  return getPressKitAssets();
+  return { links: normalizedLinks };
 }
 
-function normalizeLinkType(value: string | null | undefined, fallback: PressKitLinkType = "file"): PressKitLinkType {
-  return value === "folder" || value === "file" ? value : fallback;
+function normalizePressKitLinks(raw: unknown): PressKitLinkEntry[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  const candidates = raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return null;
+      }
+      const { id, label, helper, url, mode } = entry as {
+        id?: unknown;
+        label?: unknown;
+        helper?: unknown;
+        url?: unknown;
+        mode?: unknown;
+      };
+
+      return {
+        id: typeof id === "string" ? id : undefined,
+        label: typeof label === "string" ? label : "",
+        helper: typeof helper === "string" ? helper : undefined,
+        url: typeof url === "string" ? url : "",
+        mode: mode === "download" || mode === "open" ? mode : undefined,
+      };
+    })
+    .filter((entry): entry is { id?: string; label: string; helper?: string; url: string; mode?: string } => Boolean(entry));
+
+  return sanitizePressKitLinks(candidates);
 }
 
+function sanitizePressKitLinks(rawLinks: Array<{
+  id?: string;
+  label?: string;
+  helper?: string | null;
+  url?: string;
+  mode?: string;
+}>): PressKitLinkEntry[] {
+  const fallbackId = () =>
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `presskit-link-${Math.random().toString(36).slice(2, 10)}`;
+
+  return rawLinks
+    .map((link) => {
+      const label = typeof link.label === "string" ? link.label.trim() : "";
+      const url = typeof link.url === "string" ? link.url.trim() : "";
+      if (!label || !url) {
+        return null;
+      }
+
+      const helper = typeof link.helper === "string" ? link.helper.trim() : undefined;
+      const id =
+        typeof link.id === "string" && link.id.trim().length > 0
+          ? link.id.trim()
+          : fallbackId();
+      const mode: PressKitLinkMode = link.mode === "open" || link.mode === "download" ? link.mode : "download";
+
+      const entry: PressKitLinkEntry = {
+        id,
+        label,
+        url,
+        mode,
+      };
+
+      if (helper && helper.length) {
+        entry.helper = helper;
+      }
+
+      return entry;
+    })
+    .filter((entry): entry is PressKitLinkEntry => Boolean(entry));
+}
+
+function buildLegacyLinks(record: LegacyPressKitRecord): PressKitLinkEntry[] {
+  return LEGACY_LINK_CONFIGS.flatMap((config) => {
+    const rawUrl = record[config.urlKey];
+    const url = typeof rawUrl === "string" ? rawUrl.trim() : "";
+    if (!url) {
+      return [];
+    }
+
+    return [
+      {
+        id: `legacy-${config.urlKey}`,
+        label: config.label,
+        helper: config.helper,
+        url,
+        mode: config.mode,
+      },
+    ];
+  });
+}
