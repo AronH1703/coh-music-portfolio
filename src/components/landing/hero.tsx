@@ -1,11 +1,12 @@
 'use client';
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import clsx from 'clsx';
-import { useEffect } from 'react';
-import type { CSSProperties } from 'react';
-import type { HeroContent } from '@/lib/content';
+import Link from "next/link";
+import { motion } from "framer-motion";
+import clsx from "clsx";
+import { useEffect } from "react";
+import type { CSSProperties } from "react";
+import type { HeroContent } from "@/lib/content";
+import { SectionReveal } from "@/components/ui/section-reveal";
 
 type HeroProps = {
   data: HeroContent | null;
@@ -38,9 +39,9 @@ export function HeroSection({ data, eyebrowLabel }: HeroProps) {
   const secondaryHref = data?.secondaryCtaHref?.trim() || DEFAULTS.secondaryCtaHref;
   const eyebrow = (eyebrowLabel && eyebrowLabel.trim()) || DEFAULTS.eyebrow;
 
-  const backgroundColor = data?.backgroundColor?.trim() || '#0f172a';
-  const titleColor = data?.titleColor?.trim() || '#ffffff';
-  const subtitleColor = data?.subtitleColor?.trim() || 'rgba(255,255,255,0.82)';
+  const backgroundColor = data?.backgroundColor?.trim() || "#0f172a";
+  const titleColor = data?.titleColor?.trim() || "#ffffff";
+  const subtitleColor = data?.subtitleColor?.trim() || "rgba(255,255,255,0.82)";
   // Eyebrow inherits from CSS (.eyebrow) to avoid admin overrides
   const titleFont = data?.titleFont?.trim();
   const subtitleFont = data?.subtitleFont?.trim();
@@ -58,20 +59,21 @@ export function HeroSection({ data, eyebrowLabel }: HeroProps) {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--site-background', backgroundColor);
-    root.style.setProperty('--site-foreground', titleColor);
-    root.style.setProperty('--foreground', titleColor);
-    root.style.setProperty('--muted-foreground', subtitleColor);
+    root.style.setProperty("--site-background", backgroundColor);
+    root.style.setProperty("--site-foreground", titleColor);
+    root.style.setProperty("--foreground", titleColor);
+    root.style.setProperty("--muted-foreground", subtitleColor);
     // Do not set eyebrow/accents here; let .eyebrow CSS control it globally
   }, [backgroundColor, titleColor, subtitleColor]);
 
   return (
-    <section id="hero" className="relative overflow-hidden">
+    <SectionReveal id="hero" className="relative overflow-hidden">
       <div className="section-inner" style={{ textAlign: 'left', marginTop: '2rem' }}>
         <motion.span
           className="eyebrow"
           initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           {eyebrow}
@@ -80,7 +82,8 @@ export function HeroSection({ data, eyebrowLabel }: HeroProps) {
         <div style={{ display: 'grid', gap: '1.5rem' }}>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
             style={titleStyle}
           >
@@ -89,7 +92,8 @@ export function HeroSection({ data, eyebrowLabel }: HeroProps) {
 
           <motion.p
             initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.7, ease: 'easeOut', delay: 0.2 }}
             style={subtitleStyle}
           >
@@ -98,9 +102,10 @@ export function HeroSection({ data, eyebrowLabel }: HeroProps) {
         </div>
 
         <motion.div
-          className={clsx('actions', 'flex flex-wrap items-center gap-3')}
+          className={clsx("actions", "flex flex-wrap items-center gap-3")}
           initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.7, ease: 'easeOut', delay: 0.3 }}
         >
           {primaryLabel && (
@@ -115,6 +120,6 @@ export function HeroSection({ data, eyebrowLabel }: HeroProps) {
           )}
         </motion.div>
       </div>
-    </section>
+    </SectionReveal>
   );
 }

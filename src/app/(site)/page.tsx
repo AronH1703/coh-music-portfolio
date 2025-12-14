@@ -19,6 +19,7 @@ import {
 } from "@/lib/content";
 import { SubscribeForm } from "@/components/newsletter/subscribe-form";
 import pressKitStyles from "@/components/press-kit/press-kit-section.module.css";
+import { SectionReveal } from "@/components/ui/section-reveal";
 import { PressKitActions } from "./press-kit/actions";
 
 type SectionConfig = {
@@ -148,7 +149,7 @@ export default async function Home() {
       {sections.map((section) => (
         <ContentSection key={section.id} {...section} />
       ))}
-      <section id="press-kit">
+      <SectionReveal id="press-kit">
         <div className="section-inner">
           <div className={pressKitStyles.header}>
             <span className="eyebrow">Press</span>
@@ -159,7 +160,7 @@ export default async function Home() {
           </div>
           <PressKitActions assets={pressKitAssets} />
         </div>
-      </section>
+      </SectionReveal>
     </main>
   );
 }
@@ -179,7 +180,7 @@ function ContentSection({
   const comingSoonHeading = baseHeading ? `${baseHeading} coming soon` : "Coming soon";
 
   return (
-    <section id={id}>
+    <SectionReveal id={id}>
       <div className="section-inner">
         <div className="space-y-4">
           <span className="eyebrow">{eyebrow}</span>
@@ -187,10 +188,15 @@ function ContentSection({
           {description && <p className="section-subtitle">{description}</p>}
         </div>
         <div className={`card ${content ? "card-feature" : ""}`}>
-          {content ?? <div>{placeholder ?? "Content managed from the admin dashboard will appear here."}</div>}
+          {content ?? (
+            <div>
+              {placeholder ??
+                "Content managed from the admin dashboard will appear here."}
+            </div>
+          )}
         </div>
       </div>
-    </section>
+    </SectionReveal>
   );
 }
 
