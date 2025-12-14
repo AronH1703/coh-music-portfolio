@@ -62,12 +62,12 @@ export function SiteLabelsSection() {
       const payload = await response.json().catch(() => null);
       setMessage({
         type: "error",
-        text: payload?.error ?? "Tókst ekki að vista heiti kafla.",
+        text: payload?.error ?? "Tókst ekki að vista.",
       });
       setSaving(false);
       return;
     }
-    setMessage({ type: "success", text: "Heiti kafla uppfærð." });
+    setMessage({ type: "success", text: "Uppfært." });
     setSaving(false);
   };
 
@@ -199,7 +199,7 @@ export function SiteLabelsSection() {
             onClick={save}
             disabled={saving}
           >
-            {saving ? "Vista…" : "Vista heiti kafla"}
+            {saving ? "Vista…" : "Vista"}
           </button>
         </div>
       </div>

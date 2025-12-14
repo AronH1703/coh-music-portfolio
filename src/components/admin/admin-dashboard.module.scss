@@ -105,6 +105,12 @@
   max-width: 100%;   /* ensures no shrinking */
 }
 
+@media (max-width: 768px) {
+  .content {
+    gap: 1rem;
+  }
+}
+
 
 .sectionHeader {
   display: flex;
@@ -536,7 +542,7 @@
     display: block;
   }
 
-  .content {
-    padding: 5.25rem 1.5rem 2rem;
-  }
+  // .content {
+  //   padding: 5.25rem 1.5rem 2rem;
+  // }
 }

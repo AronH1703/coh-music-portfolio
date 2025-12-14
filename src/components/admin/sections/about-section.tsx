@@ -156,7 +156,7 @@ export function AboutSection() {
             onClick={() => photoInputRef.current?.click()}
             disabled={isPhotoUploading}
           >
-            {isPhotoUploading ? "Hleð upp…" : "Hlaða upp mynd af listamanni"}
+            {isPhotoUploading ? "Hleð upp…" : "Hlaða upp mynd"}
           </button>
           <button
             type="button"

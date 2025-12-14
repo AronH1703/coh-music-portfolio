@@ -36,62 +36,63 @@ const SECTIONS: Array<{
     id: "hero",
     label: "Hero",
     description:
-      "Stjórnaðu fyrirsögn, texta o.s.frv. sem birtist í aðalhluta forsíðunnar.",
+      "Stjórnaðu fyrirsögn, texta og hönnun í aðalsvæði forsíðu.",
     render: () => <HeroSection />,
   },
   {
     id: "gallery",
     label: "Gallery",
     description:
-      "Settu inn myndir (Cloudinary) og stjórnaðu myndasafni á vefsíðunni.",
+      "Settu inn myndir úr Cloudinary og stjórnaðu myndasafni vefsins.",
     render: () => <GallerySection />,
   },
   {
     id: "music",
     label: "Music",
     description:
-      "Bættu við útgáfum, skráðu streymistengla, stilltu tímasetningar og virkjaðu eða aftengdu coming soon yfirlag.",
+      "Bættu við útgáfum, streymisveitum, útgáfudaga og „coming soon“ overlay.",
     render: () => <MusicSection />,
   },
   {
     id: "pressKit",
     label: "Press Kit",
     description:
-      "Provide curated download links for press and production assets via the new URL-based kit.",
+      "Búðu til sérsniðna hlekki fyrir Press-kit byggða á Dropbox URL-slóðum.",
     render: () => <PressKitSection />,
   },
   {
     id: "videos",
     label: "Videos",
     description:
-      "Embed YouTube clips with descriptions and optional thumbnails (YouTube preferred).",
+      "Settu inn YouTube-myndbönd með lýsingum og valkvæðum smámyndum (YouTube).",
     render: () => <VideosSection />,
   },
   {
     id: "about",
     label: "About",
     description:
-      "Craft the project bio, mission statement, featured quote, and supporting imagery.",
+      "Eitthvað sniðugt um þig.",
     render: () => <AboutSection />,
   },
   {
     id: "contact",
     label: "Contact & Socials",
     description:
-      "Keep booking details, social profiles, and streaming links up-to-date.",
+      "Haltu bókunarupplýsingum, samfélagsmiðlum og tenglum uppfærðum.",
     render: () => <ContactSection />,
   },
   {
     id: "newsletter",
     label: "Newsletter",
     description:
-      "Review sign-ups, export subscriber lists, or copy addresses for campaigns.",
+      "Skoðaðu skráningar, sæktu eða afrituðu póstlistann fyrir herferðir.",
     render: () => <NewsletterSection />,
   },
   {
     id: "labels",
     label: "Site Labels",
-    description: "Customize the eyebrow text shown above each home section.",
+    description:
+      "Yfirtextar og fyrirsagnir sem birtast yfir köflum síðunnar.",
     render: () => <SiteLabelsSection />,
   },
 ];
