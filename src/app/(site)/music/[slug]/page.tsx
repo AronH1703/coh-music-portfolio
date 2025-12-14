@@ -7,6 +7,7 @@ import {
   getMusicReleases,
   type MusicReleaseDetail,
 } from "@/lib/content";
+import { SectionReveal } from "@/components/ui/section-reveal";
 import s from "./page.module.css";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -105,86 +106,88 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
     comingSoon && (!releaseMomentIsValid || releaseMoment > Date.now());
 
   return (
-    <main className={`section ${s.page}`}>
-      <div className={s.backRow}>
-        <Link href="/" className={s.backLink}>
-          {"<"} Back to main site
-        </Link>
-        {showComingSoon && (
-          <span className={s.badge} aria-label="Coming soon">
-            Coming soon
-          </span>
-        )}
-      </div>
-
-      <section className={`section ${s.hero} ${s.releaseHero}`}>
-        <div className={s.cover}>
-          {coverImageUrl ? (
-            <Image
-              src={coverImageUrl}
-              alt={coverImageAlt ?? `${title} cover art`}
-              width={1200}
-              height={1200}
-              className={s.coverImage}
-              priority
-            />
-          ) : (
-            <div className={s.coverPlaceholder}>Artwork coming soon</div>
-          )}
-        </div>
-        <div className={s.summary}>
-          <span className={s.eyebrow}>Music release</span>
-          <h1 className={s.title}>{title}</h1>
-          <div className={s.meta}>
-            <span className={s.metaItem}>
-              {formattedDate ? `Released ${formattedDate}` : "Release date TBA"}
+    <main>
+      <SectionReveal className={`section ${s.page}`} duration={2}>
+        <div className={s.backRow}>
+          <Link href="/" className={s.backLink}>
+            {"<"} Back to main site
+          </Link>
+          {showComingSoon && (
+            <span className={s.badge} aria-label="Coming soon">
+              Coming soon
             </span>
-            {genre && <span className={s.metaItem}>{genre}</span>}
-            {duration && <span className={s.metaItem}>{duration}</span>}
-          </div>
-          {description && <p className={s.description}>{description}</p>}
-
-          {streamingLinks.length ? (
-            <div className={s.linkGrid}>
-              {streamingLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={s.linkButton}
-                >
-                  <span>{link.label}</span>
-                </a>
-              ))}
-            </div>
-          ) : (
-            <div className={s.placeholder}>
-              <p>Streaming link will appear here once published.</p>
-            </div>
-          )}
-
-          {audioUrl && (
-            <div className={s.audioPreview}>
-              <audio controls preload="none" src={audioUrl}>
-                Your browser does not support the audio element.
-              </audio>
-            </div>
           )}
         </div>
-      </section>
 
-      {hasCredits && (
-        <section className={`section ${s.creditsSection}`}>
-          <div className={s.creditsCard}>
-            <h2 className={s.creditsHeading}>Credits</h2>
-            <div
-              className={s.creditContent}
-              dangerouslySetInnerHTML={{ __html: credits ?? "" }}
-            />
+        <div className={`section ${s.hero} ${s.releaseHero}`}>
+          <div className={s.cover}>
+            {coverImageUrl ? (
+              <Image
+                src={coverImageUrl}
+                alt={coverImageAlt ?? `${title} cover art`}
+                width={1200}
+                height={1200}
+                className={s.coverImage}
+                priority
+              />
+            ) : (
+              <div className={s.coverPlaceholder}>Artwork coming soon</div>
+            )}
           </div>
-        </section>
-      )}
+          <div className={s.summary}>
+            <span className={s.eyebrow}>Music release</span>
+            <h1 className={s.title}>{title}</h1>
+            <div className={s.meta}>
+              <span className={s.metaItem}>
+                {formattedDate ? `Released ${formattedDate}` : "Release date TBA"}
+              </span>
+              {genre && <span className={s.metaItem}>{genre}</span>}
+              {duration && <span className={s.metaItem}>{duration}</span>}
+            </div>
+            {description && <p className={s.description}>{description}</p>}
+
+            {streamingLinks.length ? (
+              <div className={s.linkGrid}>
+                {streamingLinks.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={s.linkButton}
+                  >
+                    <span>{link.label}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className={s.placeholder}>
+                <p>Streaming link will appear here once published.</p>
+              </div>
+            )}
+
+            {audioUrl && (
+              <div className={s.audioPreview}>
+                <audio controls preload="none" src={audioUrl}>
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {hasCredits && (
+          <div className={`section ${s.creditsSection}`}>
+            <div className={s.creditsCard}>
+              <h2 className={s.creditsHeading}>Credits</h2>
+              <div
+                className={s.creditContent}
+                dangerouslySetInnerHTML={{ __html: credits ?? "" }}
+              />
+            </div>
+          </div>
+        )}
+      </SectionReveal>
     </main>
   );
 }

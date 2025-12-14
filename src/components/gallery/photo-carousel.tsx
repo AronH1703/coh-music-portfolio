@@ -177,7 +177,6 @@ export default function PhotoCarousel({ photos }: PhotoCarouselProps) {
 
   const { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick } =
     usePrevNextButtons(emblaApi);
-  const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi);
 
   const {
     prevBtnDisabled: lightboxPrevDisabled,
@@ -357,18 +356,6 @@ export default function PhotoCarousel({ photos }: PhotoCarouselProps) {
             disabled={nextBtnDisabled}
             aria-label="Next slide"
           />
-        </div>
-        <div className={frameStyles.dots}>
-          {scrollSnaps.map((_, dotIndex) => (
-            <DotButton
-              key={`dot-${dotIndex}`}
-              onClick={() => onDotButtonClick(dotIndex)}
-              className={
-                dotIndex === selectedIndex ? frameStyles.dotSelected : undefined
-              }
-              aria-label={`Go to slide ${dotIndex + 1}`}
-            />
-          ))}
         </div>
       </div>
 

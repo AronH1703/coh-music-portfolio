@@ -49,8 +49,6 @@ export default function MusicCarousel({ releases }: MusicCarouselProps) {
     onPrevButtonClick,
     onNextButtonClick,
   } = usePrevNextButtons(emblaApi);
-  const { selectedIndex, scrollSnaps, onDotButtonClick } =
-    useDotButton(emblaApi);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
@@ -165,25 +163,6 @@ export default function MusicCarousel({ releases }: MusicCarouselProps) {
           />
         </div>
 
-        {scrollSnaps.length > 1 && (
-          <div
-            className={frameStyles.dots}
-            role="tablist"
-            aria-label="Select release slide"
-          >
-            {scrollSnaps.map((_, index) => (
-              <DotButton
-                key={index}
-                className={
-                  index === selectedIndex ? frameStyles.dotSelected : undefined
-                }
-                onClick={() => onDotButtonClick(index)}
-                aria-label={`Go to release ${index + 1}`}
-                aria-pressed={index === selectedIndex}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -237,19 +216,6 @@ function NextButton(props: ButtonProps) {
   );
 }
 
-function DotButton(props: ButtonProps) {
-  const { children, className, ...rest } = props;
-  return (
-    <button
-      type="button"
-      className={clsx(frameStyles.dot, className)}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
-
 type UsePrevNextButtonsResult = {
   prevBtnDisabled: boolean;
   nextBtnDisabled: boolean;
@@ -298,52 +264,4 @@ function usePrevNextButtons(
     onPrevButtonClick,
     onNextButtonClick,
   };
-}
-
-type UseDotButtonResult = {
-  selectedIndex: number;
-  scrollSnaps: number[];
-  onDotButtonClick: (index: number) => void;
-};
-
-function useDotButton(
-  emblaApi: EmblaCarouselType | undefined,
-  onButtonClick?: (api: EmblaCarouselType) => void,
-): UseDotButtonResult {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
-
-  const onDotButtonClick = useCallback(
-    (index: number) => {
-      if (!emblaApi) return;
-      emblaApi.scrollTo(index);
-      onButtonClick?.(emblaApi);
-    },
-    [emblaApi, onButtonClick],
-  );
-
-  const onInit = useCallback((api: EmblaCarouselType) => {
-    setScrollSnaps(api.scrollSnapList());
-  }, []);
-
-  const onSelect = useCallback((api: EmblaCarouselType) => {
-    setSelectedIndex(api.selectedScrollSnap());
-  }, []);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    const raf = requestAnimationFrame(() => {
-      onInit(emblaApi);
-      onSelect(emblaApi);
-    });
-    emblaApi.on("reInit", onInit).on("reInit", onSelect).on("select", onSelect);
-    return () => {
-      cancelAnimationFrame(raf);
-      emblaApi.off("reInit", onInit);
-      emblaApi.off("reInit", onSelect);
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi, onInit, onSelect]);
-
-  return { selectedIndex, scrollSnaps, onDotButtonClick };
 }

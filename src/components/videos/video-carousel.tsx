@@ -74,53 +74,6 @@ function usePrevNextButtons(
   return { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick };
 }
 
-type UseDotButtonResult = {
-  selectedIndex: number;
-  scrollSnaps: number[];
-  onDotButtonClick: (index: number) => void;
-};
-
-function useDotButton(
-  emblaApi: EmblaCarouselType | undefined,
-  onButtonClick?: (api: EmblaCarouselType) => void,
-): UseDotButtonResult {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
-
-  const onDotButtonClick = useCallback(
-    (index: number) => {
-      if (!emblaApi) return;
-      emblaApi.scrollTo(index);
-      onButtonClick?.(emblaApi);
-    },
-    [emblaApi, onButtonClick],
-  );
-
-  const onInit = useCallback((api: EmblaCarouselType) => {
-    setScrollSnaps(api.scrollSnapList());
-  }, []);
-
-  const onSelect = useCallback((api: EmblaCarouselType) => {
-    setSelectedIndex(api.selectedScrollSnap());
-  }, []);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    const raf = requestAnimationFrame(() => {
-      onInit(emblaApi);
-      onSelect(emblaApi);
-    });
-    emblaApi.on("reInit", onInit).on("reInit", onSelect).on("select", onSelect);
-    return () => {
-      cancelAnimationFrame(raf);
-      emblaApi.off("reInit", onInit);
-      emblaApi.off("reInit", onSelect);
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi, onInit, onSelect]);
-
-  return { selectedIndex, scrollSnaps, onDotButtonClick };
-}
 
 type ButtonProps = ComponentPropsWithoutRef<"button">;
 
@@ -191,7 +144,6 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
 
   const { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick } =
     usePrevNextButtons(emblaApi);
-  const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi);
 
   const slides = useMemo(
     () => videos.filter((video) => video.externalId),
@@ -371,16 +323,6 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
             disabled={nextBtnDisabled}
             aria-label="Next video"
           />
-        </div>
-        <div className={clsx(frameStyles.dots, s.dots)}>
-          {scrollSnaps.map((_, dotIndex) => (
-            <DotButton
-              key={dotIndex}
-              onClick={() => onDotButtonClick(dotIndex)}
-              className={dotIndex === selectedIndex ? frameStyles.dotSelected : undefined}
-              aria-label={`Go to video ${dotIndex + 1}`}
-            />
-          ))}
         </div>
       </div>
 

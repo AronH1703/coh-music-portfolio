@@ -8,6 +8,7 @@ type SectionRevealProps = {
   className?: string;
   id?: string;
   delay?: number;
+  duration?: number;
 } & MotionProps;
 
 export function SectionReveal({
@@ -15,6 +16,7 @@ export function SectionReveal({
   className,
   id,
   delay = 0,
+  duration = 0.7,
   ...rest
 }: SectionRevealProps) {
   return (
@@ -24,11 +26,10 @@ export function SectionReveal({
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.7, ease: 'easeOut', delay }}
+      transition={{ duration, ease: 'easeOut', delay }}
       {...rest}
     >
       {children}
     </motion.section>
   );
 }
-
