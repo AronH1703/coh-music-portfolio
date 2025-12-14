@@ -9,7 +9,13 @@
 
 @media (max-width: 899px) {
   .page {
-    gap: 0.5rem;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .page {
+    gap: 2rem;
   }
 }
 
@@ -143,6 +149,7 @@
 
 .description {
   margin: 0;
+  margin-bottom: 0.5rem; /* Adds extra 0.5rem below description */
   color: color-mix(in oklab, var(--foreground) 88%, transparent);
   line-height: 1.6;
 }
