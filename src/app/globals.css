@@ -92,6 +92,13 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* App shell */
 .app-root { min-height: 100dvh; display: flex; flex-direction: column; }
 .app-content { flex: 1; display: flex; flex-direction: column; }
+
+main.homepage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Layout helpers */
 .container { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1.5rem; }
 /* Navbar */
@@ -112,8 +119,64 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .nav-links { display: none; gap: 1.25rem; font-size: 0.9rem; color: oklch(0.8 0 0); list-style: none; margin: 0; padding: 0; }
 .nav-link { text-decoration: none; color: inherit; padding: 0.5rem 0.75rem; border-radius: 999px; }
 .nav-link:hover { background: oklch(0.25 0 0 / 0.7); color: white; }
-.menu-btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 0.5rem; background: color-mix(in oklab, var(--background) 90%, transparent); border: 1px solid var(--border); color: oklch(0.85 0 0); }
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.5rem;
+  background: color-mix(in oklab, var(--background) 90%, transparent);
+  border: 1px solid var(--border);
+  color: inherit;
+  position: relative;
+  isolation: isolate;
+  transition: background 200ms ease, border-color 200ms ease;
+}
 .menu-btn:hover { background: oklch(0.3 0 0); }
+.menu-btn:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--foreground) 45%, transparent);
+  outline-offset: 2px;
+}
+.menu-btn .burger {
+  position: relative;
+  width: 18px;
+  height: 16px;
+  display: block;
+}
+.menu-btn .burger span {
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 85%, transparent);
+  left: 0;
+  transform-origin: center;
+  transition: transform 220ms ease, top 220ms ease, width 220ms ease, opacity 220ms ease,
+    left 220ms ease;
+}
+.menu-btn .burger span:nth-of-type(1) {
+  top: 0;
+}
+.menu-btn .burger span:nth-of-type(2) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.menu-btn .burger span:nth-of-type(3) {
+  top: 100%;
+  transform: translateY(-100%);
+}
+.menu-btn .burger.open span:nth-of-type(1) {
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}
+.menu-btn .burger.open span:nth-of-type(2) {
+  width: 0;
+  opacity: 0;
+}
+.menu-btn .burger.open span:nth-of-type(3) {
+  top: 50%;
+  transform: translateY(-50%) rotate(-45deg);
+}
 .toggle-btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 0.5rem; background: color-mix(in oklab, var(--background) 90%, transparent); border: 1px solid var(--border); color: oklch(0.85 0 0); }
 .toggle-btn:hover { background: oklch(0.3 0 0); }
 .mobile-nav { display: none; }
@@ -125,7 +188,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* Sections + snap */
 /* Use the root scroller (html) as the snap container to avoid nested snapping */
 section {
-  min-height: fit-content !important;
+  min-height: fit-content;
   /* scroll-snap-align: start;
   scroll-snap-stop: always; */
   /* Keep content close to top, below fixed navbar */
@@ -137,6 +200,12 @@ section {
 @media (max-width: 899px) {
   section {
     padding: calc(var(--nav-h) + 1rem) 1.5rem 2.5rem;
+  }
+}
+
+@media (max-width: 500px) {
+  section {
+    min-height: 100vh !important;
   }
 }
 
@@ -180,6 +249,38 @@ main > section:first-of-type .section-inner {
 @media screen and (min-width: 600px) and (max-width: 1024px)
   and (min-height: 700px) and (max-height: 1400px) {
   #hero .section-inner {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :is(html, body):has(main.homepage) {
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: calc(var(--nav-h) + 0.5rem);
+  }
+
+  body:has(main.homepage) {
+    overscroll-behavior-y: contain;
+  }
+
+  main.homepage {
+    gap: 0;
+  }
+
+  main.homepage > section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100vh;
+    min-height: min(100dvh, 100svh, 100vh);
+  }
+}
+
+@media (max-width: 500px) {
+  main.homepage > section {
+    padding-inline: 1rem;
+  }
+
+  main.homepage .section-inner {
     gap: 2rem;
   }
 }

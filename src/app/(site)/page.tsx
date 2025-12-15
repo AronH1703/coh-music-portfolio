@@ -144,7 +144,7 @@ export default async function Home() {
   ];
 
   return (
-    <main>
+    <main className="homepage">
       <HeroSection data={hero} eyebrowLabel={labels.heroLabel ?? undefined} />
       {sections.map((section) => (
         <ContentSection key={section.id} {...section} />

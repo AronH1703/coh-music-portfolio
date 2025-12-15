@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 
 const applyTheme = (theme: "light" | "dark") => {
   if (typeof document === "undefined") return;
@@ -73,6 +73,8 @@ type NavbarProps = {
   brandHref?: string;
 };
 
+const MOBILE_NAV_ID = "primary-mobile-nav";
+
 export default function Navbar({ items, brandHref = "/#hero" }: NavbarProps) {
   const [open, setOpen] = useState(false);
 
@@ -103,13 +105,19 @@ export default function Navbar({ items, brandHref = "/#hero" }: NavbarProps) {
             type="button"
             className="menu-btn"
             aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={open}
+            aria-controls={MOBILE_NAV_ID}
             onClick={() => setOpen((prev) => !prev)}
           >
-            {open ? <X size={20} /> : <Menu size={20} />}
+            <span className={`burger ${open ? "open" : ""}`}>
+              <span />
+              <span />
+              <span />
+            </span>
           </button>
         </div>
       </nav>
-      <div className={`mobile-nav ${open ? "open" : ""}`}>
+      <div className={`mobile-nav ${open ? "open" : ""}`} id={MOBILE_NAV_ID}>
         <ul className="mobile-list">
           {items.map(({ href, label }) => (
             <li key={href}>
