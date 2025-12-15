@@ -1,6 +1,8 @@
+// src/components/pattern-background.tsx
 "use client";
 
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 
 export default function PatternBackground() {
   useEffect(() => {
@@ -34,18 +36,19 @@ export default function PatternBackground() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-
-    // Set initial position based on starting scroll offset.
     updateRotation();
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <div className="pattern-wrapper">
+    <motion.div
+      className="pattern-wrapper"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
+    >
       <div className="pattern" />
-    </div>
+    </motion.div>
   );
 }
