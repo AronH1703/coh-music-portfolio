@@ -1,0 +1,106 @@
+.container {
+  --slide-width: clamp(14rem, 70vw, 18.5rem);
+}
+
+@media (min-width: 640px) {
+  .container {
+    --slide-width: clamp(17rem, 46%, 30rem);
+  }
+
+  .dots {
+    justify-content: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    --slide-width: clamp(16rem, 24vw, 19rem);
+  }
+}
+
+.slide {
+  flex: 0 0 var(--slide-width);
+  min-width: 0;
+}
+
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.cardLink:focus-visible {
+  outline: none;
+}
+
+.cardLink:focus-visible .card {
+  outline: 2px solid color-mix(in oklab, var(--foreground) 75%, transparent);
+  outline-offset: 4px;
+}
+
+.card {
+  background: color-mix(in oklab, var(--background) 75%, black 25%);
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.85rem;
+  transition: transform 220ms ease, border-color 220ms ease,
+    box-shadow 220ms ease;
+  position: relative;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in oklab, var(--foreground) 28%, transparent);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+}
+
+.cover {
+  position: relative;
+  border-radius: 0.95rem;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.image {
+  object-fit: cover;
+  transition: transform 300ms ease;
+}
+
+.card:hover .image {
+  transform: scale(1.04);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 7, 7, 0.7);
+  pointer-events: none;
+}
+
+.overlayText {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+}
+
+.info {
+  color: inherit;
+}
+
+.metaMuted {
+  color: color-mix(in oklab, var(--foreground) 38%, transparent);
+}
+
+.cardComingSoon .image {
+  filter: grayscale(15%);
+}

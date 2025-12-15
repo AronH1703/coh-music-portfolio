@@ -1,0 +1,274 @@
+.page {
+  min-height: 0; /* let content define height to avoid big empty space */
+  padding: calc(var(--nav-h) + 2rem) 1.5rem 4rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 2.5rem;
+}
+
+@media (max-width: 899px) {
+  .page {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .page {
+    gap: 2rem;
+  }
+}
+
+:global(.section).releaseHero {
+  min-height: fit-content !important;
+}
+
+.backRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.backLink {
+  color: color-mix(in oklab, var(--foreground) 75%, transparent);
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.backLink:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--foreground) 75%, transparent);
+  outline-offset: 4px;
+}
+
+.badge {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero {
+  display: grid;
+  gap: 1.75rem;
+  justify-items: center;
+  min-height: 100dvh !important;
+}
+
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+    justify-items: stretch;
+  }
+}
+
+.cover {
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  width: min(100%, 320px);
+}
+
+.coverImage {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.coverPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 900px) {
+  .cover {
+    width: 100%;
+  }
+}
+
+.summary {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 36rem);
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--foreground) 65%, transparent);
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin: 0;
+  color: var(--foreground);
+  letter-spacing: 0.04em;
+}
+
+.blurb {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: color-mix(in oklab, var(--foreground) 90%, transparent);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: color-mix(in oklab, var(--foreground) 75%, transparent);
+  font-size: 0.95rem;
+}
+
+.metaItem {
+  margin: 0;
+}
+
+.description {
+  margin: 0;
+  margin-bottom: 0.5rem; /* Adds extra 0.5rem below description */
+  color: color-mix(in oklab, var(--foreground) 88%, transparent);
+  line-height: 1.6;
+}
+
+.linkGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (max-width: 899px) {
+  .summary {
+    text-align: center;
+  }
+
+  .meta {
+    justify-content: center;
+  }
+
+  .linkGrid {
+    justify-items: center;
+  }
+
+  .linkButton {
+    width: min(100%, 18rem);
+  }
+}
+
+@media (min-width: 520px) {
+  .linkGrid {
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    justify-items: stretch;
+  }
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.75rem 1.25rem;
+  text-decoration: none;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--background) 60%, black 40%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 180ms ease, border-color 180ms ease,
+    background 180ms ease;
+}
+
+.linkButton:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.35);
+  background: color-mix(in oklab, var(--background) 35%, black 65%);
+}
+
+:global(.dark) .linkButton {
+  background: none;
+      border: 1px solid #fff6;
+}
+
+.linkButton:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.65);
+  outline-offset: 3px;
+}
+
+.audioPreview {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent);
+  background: color-mix(in oklab, var(--background) 85%, var(--foreground) 5%);
+}
+
+.audioPreview audio {
+  width: 100%;
+}
+
+.placeholder {
+  border-radius: 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  padding: 1.25rem;
+  color: color-mix(in oklab, var(--foreground) 70%, transparent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.creditsSection {
+  min-height: fit-content !important;
+}
+
+
+.creditsSection {
+  padding-top: 0.75rem;
+  display: grid;
+}
+
+.creditsCard {
+  width: 100%;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 20%, transparent);
+  background: color-mix(in oklab, var(--background) 76%, black 24%);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  display: grid;
+  gap: 1rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.creditsHeading {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.creditContent {
+  color: color-mix(in oklab, var(--foreground) 85%, transparent);
+  line-height: 1.7;
+}

@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  password  String?
+  image     String?
+  role      Role      @default(ADMIN)
+  accounts  Account[]
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Hero {
+  id                 String   @id @default(cuid())
+  title              String
+  subtitle           String
+  backgroundColor    String?
+  titleColor         String?
+  subtitleColor      String?
+  eyebrowColor       String?
+  titleFont          String?
+  subtitleFont       String?
+  primaryCtaLabel    String?
+  primaryCtaHref     String?
+  secondaryCtaLabel  String?
+  secondaryCtaHref   String?
+  metaTitle          String?
+  metaDescription    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model GalleryItem {
+  id                 String   @id @default(cuid())
+  title              String
+  caption            String?
+  imageUrl           String
+  altText            String?
+  cloudinaryPublicId String
+  width              Int?
+  height             Int?
+  category           String?
+  tags               Json?
+  sortOrder          Int       @default(0)
+  uploadedAt         DateTime  @default(now())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model MusicRelease {
+  id                 String   @id @default(cuid())
+  title              String
+  slug               String   @unique
+  description        String?
+  streamingLinks     Json?
+  coverImageUrl      String?
+  coverImageAlt      String?
+  coverCloudinaryPublicId String?
+  audioUrl           String?
+  audioCloudinaryPublicId String?
+  releaseDate        DateTime?
+  releaseTime        String?
+  timeZone           String?
+  releaseAt          DateTime?
+  comingSoon         Boolean  @default(false)
+  genre              String?
+  duration           String?
+  credits            String?
+  featured           Boolean  @default(false)
+  metaTitle          String?
+  metaDescription    String?
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model PressKitAssets {
+  id                   String   @id
+  links                Json?
+  fullPressKitZipUrl   String?
+  fullPressKitZipType  String   @default("file")
+  onePagerPdfUrl       String?
+  onePagerPdfType      String   @default("file")
+  pressPhotosFolderUrl String?
+  pressPhotosFolderType String  @default("folder")
+  logosFolderUrl       String?
+  logosFolderType      String   @default("folder")
+  artworkFolderUrl     String?
+  artworkFolderType    String   @default("folder")
+  stagePlotPdfUrl      String?
+  stagePlotPdfType     String   @default("file")
+  inputListPdfUrl      String?
+  inputListPdfType     String   @default("file")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Video {
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  videoUrl     String
+  provider     VideoProvider
+  externalId   String
+  thumbnailUrl String?
+  videoCloudinaryPublicId     String?
+  thumbnailCloudinaryPublicId String?
+  tags         Json?
+  sortOrder    Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model AboutContent {
+  id               String   @id @default(cuid())
+  aboutText        String
+  artistPhotoUrl   String?
+  artistPhotoAlt   String?
+  artistPhotoCloudinaryPublicId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ContactProfile {
+  id                String   @id @default(cuid())
+  emailContacts     Json?
+  socialLinks       Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteLabels {
+  id            String   @id @default(cuid())
+  heroLabel     String?
+  musicLabel    String?
+  musicHeading  String?
+  galleryLabel  String?
+  galleryHeading String?
+  videosLabel   String?
+  videosHeading String?
+  aboutLabel    String?
+  aboutHeading  String?
+  contactLabel  String?
+  contactHeading String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum VideoProvider {
+  YOUTUBE
+  VIMEO
+  OTHER
+  CLOUDINARY
+}
