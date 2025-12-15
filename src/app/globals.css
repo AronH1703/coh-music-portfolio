@@ -359,23 +359,13 @@ p { color: oklch(0.9 0 0); max-width: 60ch; }
   height: clamp(2000px, 100vmax, 3200px);
 
   transform-origin: center;
+  transform: translate(-50%, -50%) rotate(0deg);
   background-image: url('/ryanAir-min-4-min.png');
-  background-size: 200px 200px;
-  background-repeat: repeat;
+  /* background-size: 200px 200px; */
+  /* background-repeat: repeat; */
 
   opacity: 0.35;
   will-change: transform;
-
-  animation: spin 240s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
