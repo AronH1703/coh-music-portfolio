@@ -14,7 +14,11 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Expected an array of ids." }, { status: 400 });
   }
 
-  const validIds = payload.ids.filter((id): id is string => typeof id === "string");
+  const ids = payload.ids as unknown[];
+  const validIds = ids.reduce<string[]>((acc, id) => {
+    if (typeof id === "string") acc.push(id);
+    return acc;
+  }, []);
   if (!validIds.length) {
     return NextResponse.json({ error: "No valid release ids provided." }, { status: 400 });
   }
