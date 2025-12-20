@@ -126,6 +126,16 @@ function useDotButton(
   return { selectedIndex, scrollSnaps, onDotButtonClick };
 }
 
+type EmblaWithClickAllowed = EmblaCarouselType & {
+  clickAllowed?: () => boolean;
+};
+
+function canCarouselClick(emblaApi: EmblaCarouselType | undefined) {
+  if (!emblaApi) return true;
+  const candidate = emblaApi as EmblaWithClickAllowed;
+  return typeof candidate.clickAllowed === "function" ? candidate.clickAllowed() : true;
+}
+
 type ButtonProps = ComponentPropsWithoutRef<"button">;
 
 function PrevButton(props: ButtonProps) {
@@ -194,8 +204,7 @@ export default function PhotoCarousel({ photos }: PhotoCarouselProps) {
   const openLightbox = useCallback(
     (index: number) => {
       if (!slides[index]) return;
-      const clickAllowed = (emblaApi as any)?.clickAllowed?.() ?? true;
-      if (!clickAllowed) return;
+      if (!canCarouselClick(emblaApi)) return;
       lightboxActiveRef.current = true;
       setLightboxIndex(index);
     },

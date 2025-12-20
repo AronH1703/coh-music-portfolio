@@ -29,6 +29,7 @@ export async function PATCH(request: NextRequest) {
       ),
     );
   } catch (error) {
+    console.error("Failed to persist video order", error);
     return NextResponse.json(
       { error: "Failed to persist video order." },
       { status: 500 },

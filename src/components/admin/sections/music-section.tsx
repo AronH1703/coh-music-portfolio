@@ -248,8 +248,6 @@ export function MusicSection() {
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [coverUploadSuccess, setCoverUploadSuccess] = useState<string | null>(null);
   const [coverFileSelection, setCoverFileSelection] = useState<PendingUpload | null>(null);
-  const [isAudioUploading, setIsAudioUploading] = useState(false);
-  const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
   const [formSections, setFormSections] = useState<Record<SectionId, boolean>>(() =>
     getAccordionDefaults(),
   );
@@ -288,6 +286,7 @@ export function MusicSection() {
         setMessage({ type: "success", text: "Röð útgáfa vistuð." });
         return true;
       } catch (error) {
+        console.error("Failed to persist admin music order", error);
         setMessage({ type: "error", text: "Tókst ekki að vista röð útgáfa." });
         return false;
       }
@@ -318,8 +317,6 @@ export function MusicSection() {
     },
     [persistOrder, releases],
   );
-
-  const audioInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     control,
@@ -386,26 +383,6 @@ export function MusicSection() {
     [setValue],
   );
 
-  const handleAudioUpload = useCallback(
-    async (file: File) => {
-      setAudioUploadError(null);
-      setIsAudioUploading(true);
-      try {
-        const result = await uploadAsset(file, {
-          folder: "coh-music/music/audio",
-          resourceType: "video",
-        });
-        setValue("audioUrl", result.secureUrl, { shouldDirty: true });
-        setValue("audioCloudinaryPublicId", result.publicId, { shouldDirty: true });
-      } catch (error) {
-        setAudioUploadError((error as Error).message);
-      } finally {
-        setIsAudioUploading(false);
-      }
-    },
-    [setValue],
-  );
-
   const clearCoverUpload = useCallback(() => {
     setValue("coverImageUrl", "", { shouldDirty: true });
     setValue("coverCloudinaryPublicId", "", { shouldDirty: true });
@@ -413,11 +390,6 @@ export function MusicSection() {
     setCoverUploadSuccess(null);
     setCoverFileSelection(null);
   }, [setValue, setCoverFileSelection]);
-
-  const clearAudioUpload = useCallback(() => {
-    setValue("audioUrl", "", { shouldDirty: true });
-    setValue("audioCloudinaryPublicId", "", { shouldDirty: true });
-  }, [setValue]);
 
   useEffect(() => {
     let mounted = true;
@@ -474,7 +446,6 @@ export function MusicSection() {
     reset(DEFAULT_VALUES);
     setCoverUploadError(null);
     setCoverUploadSuccess(null);
-    setAudioUploadError(null);
     setMessage({ type: "success", text: "Útgáfa búin til." });
   });
 
@@ -720,73 +691,6 @@ export function MusicSection() {
           </div>
         </div>
 
-          {/* keep the hidden file input so uploads still work */}
-          <input
-            ref={audioInputRef}
-            type="file"
-            accept="audio/*"
-            style={{ display: "none" }}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) {
-                void handleAudioUpload(file);
-                event.target.value = "";
-              }
-            }}
-          />
-
-          <div className={styles.fieldGroup}>
-            {/* HIDE: Audio file URL */}
-            {/*
-            <TextField
-              label="Audio file URL"
-              placeholder="https://res.cloudinary.com/.../track.mp3"
-              helperText="Optional direct audio upload for previews."
-              {...register("audioUrl")}
-              error={errors.audioUrl}
-            />
-            */}
-            {/* HIDE: Audio public ID */}
-            {/*
-            <TextField
-              label="Audio public ID"
-              placeholder="coh-music/music/audio/..."
-              helperText="Saved automatically when uploading from your computer."
-              {...register("audioCloudinaryPublicId")}
-              error={errors.audioCloudinaryPublicId}
-            />
-            */}
-            {/* HIDE: Upload audio controls + helper */}
-            {/*
-            <div className={controls.formField}>
-              <span className={controls.label}>Upload audio</span>
-              <div className={styles.fieldGroup}>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={() => audioInputRef.current?.click()}
-                  disabled={isAudioUploading}
-                >
-                  {isAudioUploading ? "Uploading…" : "Upload from computer"}
-                </button>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={clearAudioUpload}
-                  disabled={isAudioUploading}
-                >
-                  Clear audio
-                </button>
-              </div>
-              {audioUploadError && <span className={controls.error}>{audioUploadError}</span>}
-              {!audioUploadError && (
-                <span className={controls.helper}>
-                  MP3, WAV, AAC supported. Stored on Cloudinary as video assets.
-                </span>
-              )}
-            </div>
-            */}
-          </div>
         </AccordionSection>
 
         <AccordionSection
@@ -987,14 +891,11 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [coverUploadSuccess, setCoverUploadSuccess] = useState<string | null>(null);
   const [coverFileSelection, setCoverFileSelection] = useState<PendingUpload | null>(null);
-  const [isAudioUploading, setIsAudioUploading] = useState(false);
-  const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
   const [sectionVisibility, setSectionVisibility] = useState<Record<SectionId, boolean>>(() =>
     getAccordionDefaults(),
   );
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  const audioInputRef = useRef<HTMLInputElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
 
   useLayoutEffect(() => {
@@ -1062,26 +963,6 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
     }
   };
 
-  const handleAudioUpload = async (file: File) => {
-    setAudioUploadError(null);
-    setIsAudioUploading(true);
-    try {
-      const result = await uploadAsset(file, {
-        folder: "coh-music/music/audio",
-        resourceType: "video",
-      });
-      setState((prev) => ({
-        ...prev,
-        audioUrl: result.secureUrl,
-        audioCloudinaryPublicId: result.publicId,
-      }));
-    } catch (error) {
-      setAudioUploadError((error as Error).message);
-    } finally {
-      setIsAudioUploading(false);
-    }
-  };
-
   const clearCover = () => {
     setState((prev) => ({
       ...prev,
@@ -1091,14 +972,6 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
     setCoverUploadError(null);
     setCoverUploadSuccess(null);
     setCoverFileSelection(null);
-  };
-
-  const clearAudio = () => {
-    setState((prev) => ({
-      ...prev,
-      audioUrl: "",
-      audioCloudinaryPublicId: "",
-    }));
   };
 
   const {
@@ -1418,72 +1291,7 @@ function MusicListItem({ record, onUpdate, onDelete }: MusicListItemProps) {
           </div>
         </div>
 
-        {/* keep hidden audio input for logic, but hide the fields/buttons */}
-        <input
-          ref={audioInputRef}
-          type="file"
-          accept="audio/*"
-          style={{ display: "none" }}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) {
-              void handleAudioUpload(file);
-              event.target.value = "";
-            }
-          }}
-        />
-
-        <div className={styles.fieldGroup}>
-          {/* HIDE: Audio URL */}
-          {/*
-          <input
-            className={controls.input}
-            value={state.audioUrl ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({ ...prev, audioUrl: event.target.value }))
-            }
-            placeholder="Audio URL"
-          />
-          */}
-          {/* HIDE: Audio public ID */}
-          {/*
-          <input
-            className={controls.input}
-            value={state.audioCloudinaryPublicId ?? ""}
-            onChange={(event) =>
-              setState((prev) => ({
-                ...prev,
-                audioCloudinaryPublicId: event.target.value,
-              }))
-            }
-            placeholder="Audio public ID"
-          />
-          */}
-          {/* HIDE: Upload audio buttons */}
-          {/*
-          <div className={styles.fieldGroup}>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={() => audioInputRef.current?.click()}
-              disabled={isAudioUploading}
-            >
-              {isAudioUploading ? "Uploading…" : "Upload audio"}
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={clearAudio}
-              disabled={isAudioUploading}
-            >
-              Clear audio
-            </button>
-          </div>
-          */}
-        </div>
-        {audioUploadError ? (
-          <span className={controls.error}>{audioUploadError}</span>
-        ) : null}
+        {/* Audio management hidden */}
       </AccordionSection>
 
       <AccordionSection

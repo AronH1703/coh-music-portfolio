@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import styles from "../admin-dashboard.module.scss";
 import controls from "../form-controls.module.scss";
-import { TextField, TextareaField } from "../form-controls";
+import { TextField } from "../form-controls";
 import { galleryItemSchema } from "@/lib/validation";
 
 const FIVE_MB = 5 * 1024 * 1024;

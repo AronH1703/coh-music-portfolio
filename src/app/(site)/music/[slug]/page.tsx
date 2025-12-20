@@ -8,6 +8,7 @@ import {
   type MusicReleaseDetail,
 } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
+import { ComingSoonBadge } from "@/components/music/coming-soon-badge";
 import s from "./page.module.css";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -102,8 +103,7 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
       ? parsedReleaseDate
       : Number.NaN;
   const releaseMomentIsValid = !Number.isNaN(releaseMoment);
-  const showComingSoon =
-    comingSoon && (!releaseMomentIsValid || releaseMoment > Date.now());
+  const releaseTimestamp = releaseMomentIsValid ? releaseMoment : null;
 
   return (
     <main>
@@ -112,11 +112,11 @@ function ReleaseContent({ release }: { release: MusicReleaseDetail }) {
           <Link href="/" className={s.backLink}>
             {"<"} Back to main site
           </Link>
-          {showComingSoon && (
-            <span className={s.badge} aria-label="Coming soon">
-              Coming soon
-            </span>
-          )}
+          <ComingSoonBadge
+            comingSoon={comingSoon}
+            releaseTimestamp={releaseTimestamp}
+            className={s.badge}
+          />
         </div>
 
         <div className={`section ${s.hero} ${s.releaseHero}`}>

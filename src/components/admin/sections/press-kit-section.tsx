@@ -161,7 +161,6 @@ export function PressKitSection() {
               />
               <SelectField
                 label="Tegund hnapps"
-                name={`links.${index}.mode`}
                 {...register(`links.${index}.mode` as const)}
                 error={errors.links?.[index]?.mode}
               >

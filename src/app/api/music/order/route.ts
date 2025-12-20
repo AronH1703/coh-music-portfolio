@@ -33,6 +33,7 @@ export async function PATCH(request: NextRequest) {
       ),
     );
   } catch (error) {
+    console.error("Failed to persist release order", error);
     return NextResponse.json(
       { error: "Failed to persist release order." },
       { status: 500 },

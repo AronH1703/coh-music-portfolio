@@ -29,8 +29,6 @@ export function ContactSection() {
     defaultValues: {
       emailContacts: [],
       socialLinks: [],
-      managementContact: "",
-      pressContact: "",
     },
   });
 
@@ -74,8 +72,6 @@ export function ContactSection() {
                 };
               })
             : [],
-          managementContact: data.managementContact ?? "",
-          pressContact: data.pressContact ?? "",
         });
       }
     }

@@ -56,14 +56,21 @@ export type SiteLabels = {
   contactHeading?: string | null;
 };
 
-export async function getSiteLabels(): Promise<SiteLabels> {
-  const clientAny = prisma as unknown as { siteLabels?: { findFirst: Function } };
-  const hasModel = typeof clientAny.siteLabels?.findFirst === "function";
+type SiteLabelsRecord = SiteLabels & { updatedAt?: Date | null };
 
-  let labels: any = null;
-  if (hasModel) {
-    labels = await (clientAny.siteLabels as any).findFirst({ orderBy: { updatedAt: "desc" } });
-  }
+type PrismaWithSiteLabels = typeof prisma & {
+  siteLabels?: {
+    findFirst: (args: { orderBy: { updatedAt: "desc" } }) => Promise<SiteLabelsRecord | null>;
+  };
+};
+
+export async function getSiteLabels(): Promise<SiteLabels> {
+  const prismaWithSiteLabels = prisma as PrismaWithSiteLabels;
+  const model = prismaWithSiteLabels.siteLabels;
+  const labels =
+    model && typeof model.findFirst === "function"
+      ? await model.findFirst({ orderBy: { updatedAt: "desc" } })
+      : null;
 
   return {
     heroLabel: labels?.heroLabel ?? 'Composer • Producer • Multi-Instrumentalist',
@@ -92,6 +99,19 @@ export type GalleryItemContent = {
   height?: number | null;
 };
 
+function extractGalleryTags(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.filter((tag): tag is string => typeof tag === "string");
+  }
+  if (raw && typeof raw === "object") {
+    const possibleSet = (raw as { set?: unknown }).set;
+    if (Array.isArray(possibleSet)) {
+      return possibleSet.filter((tag): tag is string => typeof tag === "string");
+    }
+  }
+  return [];
+}
+
 export async function getGalleryItems(): Promise<GalleryItemContent[]> {
   const items = await prisma.galleryItem.findMany({
     orderBy: [{ sortOrder: "asc" }, { uploadedAt: "desc" }],
@@ -99,12 +119,7 @@ export async function getGalleryItems(): Promise<GalleryItemContent[]> {
 
   return items.map((item) => {
     const rawTags = item.tags as unknown;
-    let tags: string[] = [];
-    if (Array.isArray(rawTags)) {
-      tags = rawTags.filter((tag): tag is string => typeof tag === "string");
-    } else if (rawTags && typeof rawTags === "object" && Array.isArray((rawTags as any).set)) {
-      tags = ((rawTags as any).set as unknown[]).filter((tag): tag is string => typeof tag === "string");
-    }
+    const tags = extractGalleryTags(rawTags);
 
     return {
       id: item.id,

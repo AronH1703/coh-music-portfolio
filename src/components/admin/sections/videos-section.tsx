@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -22,7 +22,6 @@ import styles from "../admin-dashboard.module.scss";
 import controls from "../form-controls.module.scss";
 import { TextField, TextareaField } from "../form-controls";
 import { videoSchema } from "@/lib/validation";
-import { uploadAsset } from "@/lib/admin/uploads";
 
 type VideoRecord = {
   id: string;
@@ -82,17 +81,10 @@ export function VideosSection() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isVideoUploading, setIsVideoUploading] = useState(false);
-  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
-  const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
-  const [thumbnailUploadError, setThumbnailUploadError] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
   );
-
-  const videoInputRef = useRef<HTMLInputElement | null>(null);
-  const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
 
   const persistOrder = useCallback(
     async (ordered: VideoRecord[]) => {
@@ -113,6 +105,7 @@ export function VideosSection() {
         setMessage({ type: "success", text: "Röð myndbanda vistuð." });
         return true;
       } catch (error) {
+        console.error("Failed to persist admin video order", error);
         setMessage({ type: "error", text: "Tókst ekki að vista röð myndbanda." });
         return false;
       }
@@ -143,60 +136,6 @@ export function VideosSection() {
     },
     [persistOrder, videos],
   );
-
-  const handleVideoUpload = async (file: File) => {
-    setVideoUploadError(null);
-    setIsVideoUploading(true);
-    try {
-      const result = await uploadAsset(file, {
-        folder: "coh-music/videos",
-        resourceType: "video",
-      });
-      setFormData((prev) => ({
-        ...prev,
-        videoUrl: result.secureUrl,
-        videoCloudinaryPublicId: result.publicId,
-      }));
-    } catch (error) {
-      setVideoUploadError((error as Error).message);
-    } finally {
-      setIsVideoUploading(false);
-    }
-  };
-
-  const clearVideoUpload = () => {
-    setFormData((prev) => ({
-      ...prev,
-      videoCloudinaryPublicId: "",
-    }));
-  };
-
-  const handleThumbnailUpload = async (file: File) => {
-    setThumbnailUploadError(null);
-    setIsThumbnailUploading(true);
-    try {
-      const result = await uploadAsset(file, {
-        folder: "coh-music/videos/thumbnails",
-        resourceType: "image",
-      });
-      setFormData((prev) => ({
-        ...prev,
-        thumbnailUrl: result.secureUrl,
-        thumbnailCloudinaryPublicId: result.publicId,
-      }));
-    } catch (error) {
-      setThumbnailUploadError((error as Error).message);
-    } finally {
-      setIsThumbnailUploading(false);
-    }
-  };
-
-  const clearThumbnailUpload = () => {
-    setFormData((prev) => ({
-      ...prev,
-      thumbnailCloudinaryPublicId: "",
-    }));
-  };
 
   useEffect(() => {
     let active = true;
@@ -629,13 +568,6 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
   const [message, setMessage] = useState<MessageState>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isVideoUploading, setIsVideoUploading] = useState(false);
-  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
-  const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
-  const [thumbnailUploadError, setThumbnailUploadError] = useState<string | null>(null);
-
-  const videoInputRef = useRef<HTMLInputElement | null>(null);
-  const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: record.id,
   });
@@ -687,60 +619,6 @@ function VideoListItem({ record, onUpdate, onDelete }: VideoListItemProps) {
       });
     }
     setIsDeleting(false);
-  };
-
-  const handleVideoUpload = async (file: File) => {
-    setVideoUploadError(null);
-    setIsVideoUploading(true);
-    try {
-      const result = await uploadAsset(file, {
-        folder: "coh-music/videos",
-        resourceType: "video",
-      });
-      setState((prev) => ({
-        ...prev,
-        videoUrl: result.secureUrl,
-        videoCloudinaryPublicId: result.publicId,
-      }));
-    } catch (error) {
-      setVideoUploadError((error as Error).message);
-    } finally {
-      setIsVideoUploading(false);
-    }
-  };
-
-  const clearVideoUpload = () => {
-    setState((prev) => ({
-      ...prev,
-      videoCloudinaryPublicId: "",
-    }));
-  };
-
-  const handleThumbnailUpload = async (file: File) => {
-    setThumbnailUploadError(null);
-    setIsThumbnailUploading(true);
-    try {
-      const result = await uploadAsset(file, {
-        folder: "coh-music/videos/thumbnails",
-        resourceType: "image",
-      });
-      setState((prev) => ({
-        ...prev,
-        thumbnailUrl: result.secureUrl,
-        thumbnailCloudinaryPublicId: result.publicId,
-      }));
-    } catch (error) {
-      setThumbnailUploadError((error as Error).message);
-    } finally {
-      setIsThumbnailUploading(false);
-    }
-  };
-
-  const clearThumbnailUpload = () => {
-    setState((prev) => ({
-      ...prev,
-      thumbnailCloudinaryPublicId: "",
-    }));
   };
 
   return (

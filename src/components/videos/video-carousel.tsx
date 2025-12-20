@@ -74,6 +74,16 @@ function usePrevNextButtons(
   return { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick };
 }
 
+type EmblaWithClickAllowed = EmblaCarouselType & {
+  clickAllowed?: () => boolean;
+};
+
+function canCarouselClick(emblaApi: EmblaCarouselType | undefined) {
+  if (!emblaApi) return true;
+  const candidate = emblaApi as EmblaWithClickAllowed;
+  return typeof candidate.clickAllowed === "function" ? candidate.clickAllowed() : true;
+}
+
 
 type ButtonProps = ComponentPropsWithoutRef<"button">;
 
@@ -153,8 +163,7 @@ export default function VideoCarousel({ videos }: VideoCarouselProps) {
   const openLightbox = useCallback(
     (index: number) => {
       if (!slides[index]) return;
-      const clickAllowed = (emblaApi as any)?.clickAllowed?.() ?? true;
-      if (!clickAllowed) return;
+      if (!canCarouselClick(emblaApi)) return;
       setLightboxIndex(index);
       setLightboxDescriptionOpen(false);
     },
