@@ -99,14 +99,25 @@ export type GalleryItemContent = {
   height?: number | null;
 };
 
+const toNonEmptyString = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : null;
+};
+
 function extractGalleryTags(raw: unknown): string[] {
+  const sanitize = (values: unknown[]) =>
+    values
+      .map(toNonEmptyString)
+      .filter((tag): tag is string => Boolean(tag));
+
   if (Array.isArray(raw)) {
-    return raw.filter((tag): tag is string => typeof tag === "string");
+    return sanitize(raw);
   }
   if (raw && typeof raw === "object") {
     const possibleSet = (raw as { set?: unknown }).set;
     if (Array.isArray(possibleSet)) {
-      return possibleSet.filter((tag): tag is string => typeof tag === "string");
+      return sanitize(possibleSet);
     }
   }
   return [];
@@ -117,22 +128,35 @@ export async function getGalleryItems(): Promise<GalleryItemContent[]> {
     orderBy: [{ sortOrder: "asc" }, { uploadedAt: "desc" }],
   });
 
-  return items.map((item) => {
-    const rawTags = item.tags as unknown;
-    const tags = extractGalleryTags(rawTags);
+  return items
+    .filter((item) => {
+      const id = toNonEmptyString((item as { id?: unknown }).id);
+      const imageUrl = toNonEmptyString((item as { imageUrl?: unknown }).imageUrl);
+      return Boolean(id && imageUrl);
+    })
+    .map((item) => {
+      const id = toNonEmptyString(item.id) ?? "";
+      const imageUrl = toNonEmptyString(item.imageUrl) ?? "";
+      const title = toNonEmptyString(item.title) ?? "";
+      const caption = toNonEmptyString(item.caption);
+      const altText = toNonEmptyString(item.altText);
+      const category = toNonEmptyString(item.category);
+      const tags = extractGalleryTags(item.tags as unknown);
+      const width = typeof item.width === "number" ? item.width : null;
+      const height = typeof item.height === "number" ? item.height : null;
 
-    return {
-      id: item.id,
-      title: item.title,
-      caption: item.caption,
-      imageUrl: item.imageUrl,
-      altText: item.altText,
-      category: item.category,
-      tags,
-      width: item.width,
-      height: item.height,
-    };
-  });
+      return {
+        id,
+        title,
+        caption: caption ?? null,
+        imageUrl,
+        altText: altText ?? null,
+        category: category ?? null,
+        tags,
+        width,
+        height,
+      };
+    });
 }
 
 export type MusicReleaseContent = {
@@ -196,20 +220,24 @@ export async function getMusicReleaseBySlug(slug: string): Promise<MusicReleaseD
   if (!release) return null;
 
   const streamingLinksRaw = (release.streamingLinks ?? []) as unknown;
+  const fallbackIdBase = toNonEmptyString(release.id) ?? slug;
   const streamingLinks = Array.isArray(streamingLinksRaw)
     ? streamingLinksRaw
-        .map((entry) => {
+        .map((entry, index) => {
           if (!entry || typeof entry !== "object") return null;
           const { id, label, url } = entry as {
             id?: unknown;
             label?: unknown;
             url?: unknown;
           };
-          if (typeof label !== "string" || typeof url !== "string") return null;
+          const labelStr = toNonEmptyString(label);
+          const urlStr = toNonEmptyString(url);
+          if (!labelStr || !urlStr) return null;
+          const idStr = toNonEmptyString(id) ?? `${fallbackIdBase}-stream-${index}`;
           return {
-            id: typeof id === "string" ? id : `${slug}-${label}-${url}`,
-            label,
-            url,
+            id: idStr,
+            label: labelStr,
+            url: urlStr,
           };
         })
         .filter((link): link is { id: string; label: string; url: string } => Boolean(link))
@@ -252,7 +280,7 @@ export type VideoContent = {
 
 export async function getVideos(): Promise<VideoContent[]> {
   const videos = await prisma.video.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    orderBy: { createdAt: "desc" },
   });
 
   return videos.map((video) => ({
@@ -313,6 +341,7 @@ export async function getContactContent(): Promise<ContactContentEntry | null> {
 
   if (!contact) return null;
 
+  const contactId = toNonEmptyString(contact.id) ?? "contact";
   const rawEmails = (contact.emailContacts ?? []) as unknown;
   const emailContacts = Array.isArray(rawEmails)
     ? rawEmails
@@ -323,11 +352,14 @@ export async function getContactContent(): Promise<ContactContentEntry | null> {
             label?: unknown;
             email?: unknown;
           };
-          if (typeof label !== "string" || typeof email !== "string") return null;
+          const labelStr = toNonEmptyString(label);
+          const emailStr = toNonEmptyString(email);
+          if (!labelStr || !emailStr) return null;
+          const idStr = toNonEmptyString(id) ?? `${contactId}-email-${index}`;
           return {
-            id: typeof id === "string" ? id : `${contact.id}-email-${index}`,
-            label,
-            email,
+            id: idStr,
+            label: labelStr,
+            email: emailStr,
           };
         })
         .filter((entry): entry is ContactEmailEntry => Boolean(entry))
@@ -343,11 +375,14 @@ export async function getContactContent(): Promise<ContactContentEntry | null> {
             label?: unknown;
             url?: unknown;
           };
-          if (typeof label !== "string" || typeof url !== "string") return null;
+          const labelStr = toNonEmptyString(label);
+          const urlStr = toNonEmptyString(url);
+          if (!labelStr || !urlStr) return null;
+          const idStr = toNonEmptyString(id) ?? `${contactId}-link-${index}`;
           return {
-            id: typeof id === "string" ? id : `${contact.id}-link-${index}`,
-            label,
-            url,
+            id: idStr,
+            label: labelStr,
+            url: urlStr,
           };
         })
         .filter((entry): entry is ContactSocialLinkEntry => Boolean(entry))
