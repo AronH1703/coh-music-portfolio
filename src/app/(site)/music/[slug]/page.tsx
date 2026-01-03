@@ -22,8 +22,13 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const releases = await getMusicReleases();
-  return releases.map(({ slug }) => ({ slug }));
+  try {
+    const releases = await getMusicReleases();
+    return releases.map(({ slug }) => ({ slug }));
+  } catch (error) {
+    console.warn("Failed to generate static params for music releases.", error);
+    return [];
+  }
 }
 
 export const revalidate = 0;
