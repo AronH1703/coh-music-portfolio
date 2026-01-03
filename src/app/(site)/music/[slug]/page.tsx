@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getMusicReleaseBySlug,
-  getMusicReleases,
   type MusicReleaseDetail,
 } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
@@ -21,18 +20,9 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateStaticParams() {
-  try {
-    const releases = await getMusicReleases();
-    return releases.map(({ slug }) => ({ slug }));
-  } catch (error) {
-    console.warn("Failed to generate static params for music releases.", error);
-    return [];
-  }
-}
-
 export const revalidate = 0;
 export const dynamicParams = true;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
