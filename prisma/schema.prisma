@@ -4,7 +4,9 @@ generator client {
 
 datasource db {
   provider  = "sqlite"
-  url       = env("DATABASE_URL")
+  // Prisma CLI (generate/validate/migrate) requires a `file:` URL for SQLite.
+  // Runtime in production uses the libSQL adapter (see `src/lib/prisma.ts`).
+  url       = "file:./prisma/dev.db"
 }
 
 
