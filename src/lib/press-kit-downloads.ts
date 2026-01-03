@@ -19,13 +19,19 @@ export function buildPressKitItems(assets: PressKitAssetsRecord): PressKitDownlo
         return null;
       }
 
-      return {
+      const item: PressKitDownloadItem = {
         id: link.id ?? url,
         label,
-        description: link.helper?.trim() || undefined,
         url,
         mode: link.mode === "open" || link.mode === "download" ? link.mode : "download",
       };
+
+      const description = link.helper?.trim();
+      if (description) {
+        item.description = description;
+      }
+
+      return item;
     })
     .filter((entry): entry is PressKitDownloadItem => Boolean(entry));
 }

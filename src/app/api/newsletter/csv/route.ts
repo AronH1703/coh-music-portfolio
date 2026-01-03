@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/auth";
+import type { NewsletterSubscriber } from "@prisma/client";
 
 export async function GET() {
   try {
@@ -14,7 +15,7 @@ export async function GET() {
   });
 
   const header = "email,created_at,source";
-  const rows = subscribers.map((subscriber) =>
+  const rows = subscribers.map((subscriber: NewsletterSubscriber) =>
     [
       subscriber.email,
       subscriber.createdAt.toISOString(),

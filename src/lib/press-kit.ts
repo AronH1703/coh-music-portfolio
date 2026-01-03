@@ -4,10 +4,18 @@ export const PRESS_KIT_ASSETS_ID = "press-kit-assets";
 
 export type PressKitLinkMode = "download" | "open";
 
+export type PressKitLinkInput = {
+  id?: string;
+  label?: string;
+  helper?: string;
+  url?: string;
+  mode?: PressKitLinkMode;
+};
+
 export type PressKitLinkEntry = {
   id: string;
   label: string;
-  helper?: string | null;
+  helper?: string;
   url: string;
   mode: PressKitLinkMode;
 };
@@ -16,13 +24,15 @@ export type PressKitAssetsRecord = {
   links: PressKitLinkEntry[];
 };
 
-export type PressKitAssetsPayload = Partial<PressKitAssetsRecord>;
+export type PressKitAssetsPayload = {
+  links?: PressKitLinkInput[];
+};
 
 export const DEFAULT_PRESS_KIT_ASSETS: PressKitAssetsRecord = {
   links: [],
 };
 
-const pressKitModel = (prisma as unknown as Record<string, typeof prisma>)?.pressKitAssets;
+const pressKitModel = prisma.pressKitAssets;
 
 const LEGACY_LINK_CONFIGS = [
   {
@@ -74,10 +84,6 @@ type LegacyLinkKey = LegacyLinkConfig["urlKey"];
 type LegacyPressKitRecord = Record<LegacyLinkKey, string | null> & { links: unknown };
 
 export async function getPressKitAssets(): Promise<PressKitAssetsRecord> {
-  if (!pressKitModel) {
-    return DEFAULT_PRESS_KIT_ASSETS;
-  }
-
   const record = (await pressKitModel.findUnique({
     where: { id: PRESS_KIT_ASSETS_ID },
   })) as (LegacyPressKitRecord & { id: string }) | null;
@@ -95,10 +101,6 @@ export async function getPressKitAssets(): Promise<PressKitAssetsRecord> {
 }
 
 export async function upsertPressKitAssets(payload: PressKitAssetsPayload): Promise<PressKitAssetsRecord> {
-  if (!pressKitModel) {
-    return DEFAULT_PRESS_KIT_ASSETS;
-  }
-
   const normalizedLinks = sanitizePressKitLinks(payload.links ?? []);
 
   await pressKitModel.upsert({
@@ -133,26 +135,31 @@ function normalizePressKitLinks(raw: unknown): PressKitLinkEntry[] {
         mode?: unknown;
       };
 
-      return {
-        id: typeof id === "string" ? id : undefined,
-        label: typeof label === "string" ? label : "",
-        helper: typeof helper === "string" ? helper : undefined,
-        url: typeof url === "string" ? url : "",
-        mode: mode === "download" || mode === "open" ? mode : undefined,
-      };
+      const candidate: PressKitLinkInput = {};
+      if (typeof id === "string") {
+        candidate.id = id;
+      }
+      if (typeof label === "string") {
+        candidate.label = label;
+      }
+      if (typeof helper === "string") {
+        candidate.helper = helper;
+      }
+      if (typeof url === "string") {
+        candidate.url = url;
+      }
+      if (mode === "download" || mode === "open") {
+        candidate.mode = mode;
+      }
+
+      return candidate;
     })
-    .filter((entry): entry is { id?: string; label: string; helper?: string; url: string; mode?: string } => Boolean(entry));
+    .filter((entry): entry is PressKitLinkInput => entry !== null);
 
   return sanitizePressKitLinks(candidates);
 }
 
-function sanitizePressKitLinks(rawLinks: Array<{
-  id?: string;
-  label?: string;
-  helper?: string | null;
-  url?: string;
-  mode?: string;
-}>): PressKitLinkEntry[] {
+function sanitizePressKitLinks(rawLinks: PressKitLinkInput[]): PressKitLinkEntry[] {
   const fallbackId = () =>
     typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()

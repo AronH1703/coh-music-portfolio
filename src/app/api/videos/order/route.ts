@@ -9,12 +9,18 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const payload = await request.json().catch(() => null);
-  if (!payload || !Array.isArray(payload.ids)) {
+  const payload: unknown = await request.json().catch(() => null);
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("ids" in payload) ||
+    !Array.isArray((payload as { ids: unknown[] }).ids)
+  ) {
     return NextResponse.json({ error: "Expected an array of ids." }, { status: 400 });
   }
 
-  const validIds = payload.ids.filter((id): id is string => typeof id === "string");
+  const { ids } = payload as { ids: unknown[] };
+  const validIds = ids.filter((id): id is string => typeof id === "string");
   if (!validIds.length) {
     return NextResponse.json({ error: "No valid video ids provided." }, { status: 400 });
   }
