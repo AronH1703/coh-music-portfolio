@@ -1,12 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider  = "sqlite"
-  // Prisma CLI (generate/validate/migrate) requires a `file:` URL for SQLite.
-  // Runtime in production uses the libSQL adapter (see `src/lib/prisma.ts`).
-  url       = "file:./prisma/dev.db"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 
