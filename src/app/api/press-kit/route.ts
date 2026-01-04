@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { pressKitAssetsSchema } from "@/lib/validation";
 import { requireAdminSession } from "@/lib/auth";

@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";

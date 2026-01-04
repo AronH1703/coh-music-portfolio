@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { type ReactNode } from "react";

@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { getPressKitAssets } from "@/lib/content";
 import { PressKitActions } from "./actions";
 import styles from "@/components/press-kit/press-kit-section.module.css";
